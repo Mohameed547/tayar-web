@@ -1,0 +1,7 @@
+npm install clsx tailwind-merge
+
+npm install zod
+
+npm install lucide-react
+
+ npm install react-hook-form @hookform/resolvers lucide-react
