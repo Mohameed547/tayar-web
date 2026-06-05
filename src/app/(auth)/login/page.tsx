@@ -115,12 +115,12 @@ export default function LoginPage() {
           </label>
         </div>
 
-        <Button type="submit" className="w-full" isLoading={isLoading}>
+        <Button type="submit" className="w-full" loading={isLoading}>
           Sign in
         </Button>
 
         <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          Don't have an account?
+          {"Don&apos;t have an account?"}
           <div className="mt-2 flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 font-semibold text-blue-600">
             <Link href={ROUTES.REGISTER_CUSTOMER} className="hover:underline">
               Register as Customer
