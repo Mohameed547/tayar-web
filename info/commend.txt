@@ -5,3 +5,5 @@ npm install zod
 npm install lucide-react
 
  npm install react-hook-form @hookform/resolvers lucide-react
+
+ npm install next-intl

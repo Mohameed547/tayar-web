@@ -8,8 +8,9 @@ import { verifyOtpSchema } from "@/lib/validations";
 import { ROUTES } from "@/constants/routes";
 import type { VerifyOtpInput } from "@/types/auth";
 import { useRouter } from "next/navigation";
-
+import { useTranslation } from "@/hooks/use-translation";
 export default function VerifyOtpPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -31,12 +32,14 @@ export default function VerifyOtpPage() {
 
   return (
     <AuthLayout
-      title="Verify OTP"
-      subtitle={`Enter the 6-digit code sent to ${email}`}
+      title={t("auth.verifyOtp")}
+      subtitle={`${t("auth.otpSentTo")} ${email}`}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">OTP Code</label>
+          <label className="text-sm font-medium text-gray-700">
+            {t("auth.otpCode")}
+          </label>
           <input
             {...register("otp")}
             type="text"
@@ -54,7 +57,7 @@ export default function VerifyOtpPage() {
           disabled={isSubmitting}
           className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {isSubmitting ? "Verifying..." : "Verify OTP"}
+          {isSubmitting ? t("auth.verifying") : t("auth.verifyOtp")}
         </button>
       </form>
     </AuthLayout>

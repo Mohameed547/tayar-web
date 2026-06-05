@@ -9,8 +9,11 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function RegisterDriverPage() {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = React.useState({
     name: "",
     email: "",
@@ -65,20 +68,20 @@ export default function RegisterDriverPage() {
 
   return (
     <AuthLayout
-      title="Join as a driver"
-      subtitle="Register to start delivering shipments and earning money"
+      title={t("auth.registerAsDriver")}
+      subtitle={t("auth.driverRegisterSubtitle")}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Personal Info */}
         <div className="border-b border-gray-100 dark:border-gray-800 pb-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900 dark:text-white">
-            Personal Information
+            {t("auth.personalInformation")}
           </h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="Full Name"
+            label={t("auth.name")}
             name="name"
             placeholder="John Doe"
             value={formData.name}
@@ -88,7 +91,7 @@ export default function RegisterDriverPage() {
           />
 
           <Input
-            label="Phone Number"
+            label={t("auth.phone")}
             name="phone"
             placeholder="01xxxxxxxxx"
             value={formData.phone}
@@ -99,7 +102,7 @@ export default function RegisterDriverPage() {
         </div>
 
         <Input
-          label="Email Address"
+          label={t("auth.email")}
           name="email"
           type="email"
           placeholder="john@example.com"
@@ -112,7 +115,7 @@ export default function RegisterDriverPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <PasswordInput
             name="password"
-            placeholder="Password"
+            placeholder={t("auth.password")}
             value={formData.password}
             onChange={handleChange}
             error={errors.password}
@@ -121,7 +124,7 @@ export default function RegisterDriverPage() {
 
           <PasswordInput
             name="confirmPassword"
-            placeholder="Confirm Password"
+            placeholder={t("auth.confirmPassword")}
             value={formData.confirmPassword}
             onChange={handleChange}
             error={errors.confirmPassword}
@@ -132,14 +135,14 @@ export default function RegisterDriverPage() {
         {/* Vehicle Info */}
         <div className="border-b border-gray-100 dark:border-gray-800 pb-2 pt-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900 dark:text-white">
-            Vehicle & Licensing
+            {t("auth.vehicleInformation")}
           </h3>
         </div>
 
         <Input
-          label="Driver License Number"
+          label={t("auth.driverLicenseNumber")}
           name="licenseNumber"
-          placeholder="DL-12345678"
+          placeholder={t("auth.licensePlaceholder")}
           value={formData.licenseNumber}
           onChange={handleChange}
           error={errors.licenseNumber}
@@ -148,9 +151,9 @@ export default function RegisterDriverPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="Vehicle Type"
+            label={t("auth.vehicleType")}
             name="vehicleType"
-            placeholder="Van / Truck"
+            placeholder={t("auth.vehicleTypePlaceholder")}
             value={formData.vehicleType}
             onChange={handleChange}
             error={errors.vehicleType}
@@ -158,9 +161,9 @@ export default function RegisterDriverPage() {
           />
 
           <Input
-            label="Vehicle Plate Number"
+            label={t("auth.vehiclePlateNumber")}
             name="vehiclePlate"
-            placeholder="ABC 1234"
+            placeholder={t("auth.plateNumberPlaceholder")}
             value={formData.vehiclePlate}
             onChange={handleChange}
             error={errors.vehiclePlate}
@@ -169,16 +172,16 @@ export default function RegisterDriverPage() {
         </div>
 
         <Button type="submit" fullWidth loading={isLoading}>
-          Create Driver Account
+          {t("auth.createDriverAccount")}
         </Button>
 
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Already have an account?{" "}
+          {t("auth.haveAccount")}
           <Link
             href={ROUTES.LOGIN}
             className="font-semibold text-blue-600 hover:underline"
           >
-            Sign in
+            {t("auth.signIn")}
           </Link>
         </div>
       </form>
