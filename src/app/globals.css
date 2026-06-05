@@ -1,5 +1,34 @@
 @import "tailwindcss";
 
+:root {
+  --color-bg-app: #F8FAFC;
+  --color-bg-card: #ffffff;
+  --color-bg-topbar: #ffffff;
+  --color-bg-input: #ffffff;
+  --color-border: #E2E8F0;
+  --color-text-main: #0F172A;
+  --color-text-sub: #64748B;
+  --color-bg-muted: #F1F5F9;
+}
+
+.dark {
+  --color-bg-app: #0B0F19;
+  --color-bg-card: #151F32;
+  --color-bg-topbar: #111827;
+  --color-bg-input: #1E293B;
+  --color-border: #22314A;
+  --color-text-main: #F8FAFC;
+  --color-text-sub: #94A3B8;
+  --color-bg-muted: #1E293B;
+}
+
+html,
+body {
+  background-color: var(--color-bg-app);
+  color: var(--color-text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
 body {
   font-family: "Cairo", sans-serif;
   -webkit-font-smoothing: antialiased;
