@@ -63,3 +63,11 @@ export default function VerifyOtpPage() {
     </AuthLayout>
   );
 }
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="text-zinc-400 text-sm">Loading...</div>}>
+      <VerifyOtpForm />
+    </Suspense>
+  );
+}

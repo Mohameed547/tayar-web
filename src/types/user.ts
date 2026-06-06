@@ -1,4 +1,3 @@
-import { UserRole } from "./auth";
 
 export interface CustomerProfile {
   id: string;
