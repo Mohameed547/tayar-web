@@ -50,3 +50,18 @@ export const resetPasswordSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const landingSearchSchema = z.object({
+  from: z.string().min(2, "Pickup location is required"),
+  to: z.string().min(2, "Destination is required"),
+});
+
+export const shipmentRequestSchema = z.object({
+  pickupAddress: z.string().min(5, "Pickup address is too short"),
+  deliveryAddress: z.string().min(5, "Delivery address is too short"),
+  weight: z.number().positive("Weight must be greater than 0"),
+  packageType: z.enum(["small_box", "medium_box", "large_box", "pallet"]),
+  deliverySpeed: z.enum(["standard", "express", "scheduled"]),
+  scheduledDate: z.union([z.string(), z.date()]).optional(),
+  notes: z.string().max(300, "Notes cannot exceed 300 characters").optional(),
+});

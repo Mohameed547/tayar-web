@@ -1,4 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap");
+
 @import "tailwindcss";
+:root {
+    --navy: #0b1120;
+    --navy-mid: #131d2e;
+    --navy-light: #1e2d44;
+    --blue: #2563eb;
+    --blue-light: #3b82f6;
+    --blue-glow: rgba(37, 99, 235, 0.35);
+    --blue-subtle: rgba(37, 99, 235, 0.12);
+    --text-muted: rgba(255, 255, 255, 0.55);
+    --text-dim: rgba(255, 255, 255, 0.35);
+    --success: #22c55e;
+    --amber: #f59e0b;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-blue: rgba(37, 99, 235, 0.4);
+}
+
+@theme inline {
+    --color-navy: var(--navy);
+    --color-navy-mid: var(--navy-mid);
+    --color-navy-light: var(--navy-light);
+    --color-blue-brand: var(--blue);
+    --color-blue-light: var(--blue-light);
+    --color-success: var(--success);
+    --color-amber: var(--amber);
+    --font-display: "Syne", sans-serif;
+    --font-body: "DM Sans", sans-serif;
+}
 
 :root {
   --color-bg-app: #F8FAFC;
