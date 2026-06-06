@@ -9,7 +9,9 @@ import { ROUTES } from "@/constants/routes";
 import type { VerifyOtpInput } from "@/types/auth";
 import { useRouter } from "next/navigation";
 
-export default function VerifyOtpPage() {
+import { Suspense } from "react";
+
+function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -58,5 +60,13 @@ export default function VerifyOtpPage() {
         </button>
       </form>
     </AuthLayout>
+  );
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="text-zinc-400 text-sm">Loading...</div>}>
+      <VerifyOtpForm />
+    </Suspense>
   );
 }
