@@ -1,23 +1,6 @@
-import type { Metadata } from "next"
-import { Cairo, Plus_Jakarta_Sans } from "next/font/google"
-import Providers from "./Providers"
-import "./globals.css"
-
-const cairo = Cairo({
-  subsets: ["arabic", "latin"],
-  variable: "--font-cairo",
-})
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-plus-jakarta',
-  weight: ['400', '500', '600', '700', '800'],
-})
-
-const cairo = Cairo({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
+import type { Metadata } from "next";
+import { LanguageProvider } from "@/context/language-context";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DeliveryHub",
@@ -30,11 +13,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <body className={`${cairo.variable} ${plusJakarta.variable}`}>
-        <Providers>
-          {children}
-        </Providers>
+    <html lang="en" dir="ltr">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   )

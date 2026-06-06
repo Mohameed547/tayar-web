@@ -2,15 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-
 import { registerCustomerSchema } from "@/lib/validations";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function RegisterCustomerPage() {
+  const { t } = useTranslation();
   const [formData, setFormData] = React.useState({
     name: "",
     email: "",
@@ -24,16 +25,11 @@ export default function RegisterCustomerPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setErrors({});
     setIsLoading(true);
 
@@ -41,33 +37,27 @@ export default function RegisterCustomerPage() {
 
     if (!validationResult.success) {
       const fieldErrors: Record<string, string> = {};
-
       validationResult.error.issues.forEach((issue) => {
         const field = issue.path[0];
-
-        if (field) {
-          fieldErrors[field as string] = issue.message;
-        }
+        if (field) fieldErrors[field as string] = issue.message;
       });
-
       setErrors(fieldErrors);
       setIsLoading(false);
       return;
     }
 
     console.log("Register Customer:", formData);
-
     setIsLoading(false);
   };
 
   return (
     <AuthLayout
-      title="Create customer account"
-      subtitle="Register to start tracking and shipping your packages"
+      title={t("auth.registerAsCustomer")}
+      subtitle={t("auth.customerRegisterSubtitle")}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="Full Name"
+          label={t("auth.name")}
           name="name"
           placeholder="John Doe"
           value={formData.name}
@@ -77,7 +67,7 @@ export default function RegisterCustomerPage() {
         />
 
         <Input
-          label="Email Address"
+          label={t("auth.email")}
           name="email"
           type="email"
           placeholder="john@example.com"
@@ -88,7 +78,7 @@ export default function RegisterCustomerPage() {
         />
 
         <Input
-          label="Phone Number"
+          label={t("auth.phone")}
           name="phone"
           placeholder="01xxxxxxxxx"
           value={formData.phone}
@@ -99,7 +89,7 @@ export default function RegisterCustomerPage() {
 
         <PasswordInput
           name="password"
-          placeholder="Password"
+          placeholder={t("auth.password")}
           value={formData.password}
           onChange={handleChange}
           error={errors.password}
@@ -108,7 +98,7 @@ export default function RegisterCustomerPage() {
 
         <PasswordInput
           name="confirmPassword"
-          placeholder="Confirm Password"
+          placeholder={t("auth.confirmPassword")}
           value={formData.confirmPassword}
           onChange={handleChange}
           error={errors.confirmPassword}
@@ -116,16 +106,16 @@ export default function RegisterCustomerPage() {
         />
 
         <Button type="submit" fullWidth loading={isLoading}>
-          Create Account
+          {t("auth.register")}
         </Button>
 
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Already have an account?{" "}
+          {t("auth.haveAccount")}{" "}
           <Link
             href={ROUTES.LOGIN}
             className="font-semibold text-blue-600 hover:underline"
           >
-            Sign in
+            {t("auth.signIn")}
           </Link>
         </div>
       </form>
