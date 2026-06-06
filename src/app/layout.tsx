@@ -8,14 +8,14 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "DeliveryHub",
-  description: "Smart shipping platform in Egypt",
+    title: "DeliveryHub",
+    description: "Smart shipping platform in Egypt",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
   return (
     <html lang="en" dir="ltr">
