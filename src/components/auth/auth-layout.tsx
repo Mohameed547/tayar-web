@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/language-context";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -14,6 +17,8 @@ export function AuthLayout({
   subtitle,
   className,
 }: AuthLayoutProps) {
+  const { locale, toggleLocale } = useLanguage();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-blue-950/20 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -22,8 +27,8 @@ export function AuthLayout({
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Logo */}
-        <div className="mb-8 text-center">
+        {/* Logo + Language Toggle */}
+        <div className="mb-8 flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/30">
               <svg
@@ -55,6 +60,14 @@ export function AuthLayout({
               Delivery<span className="text-blue-600">Hub</span>
             </span>
           </Link>
+
+          {/* Language Toggle */}
+          <button
+            onClick={toggleLocale}
+            className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 transition-colors"
+          >
+            {locale === "en" ? "عربي" : "English"}
+          </button>
         </div>
 
         {/* Card */}

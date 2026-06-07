@@ -9,8 +9,10 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
+import { useTranslation } from "@/hooks/use-translation";
 
 function ResetPasswordForm() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
 
   const token = searchParams.get("token") || "";
@@ -67,14 +69,14 @@ function ResetPasswordForm() {
 
   return (
     <AuthLayout
-      title="Reset your password"
-      subtitle="Enter your new password below to complete the reset"
+      title={t("auth.resetPassword")}
+      subtitle={t("auth.resetPasswordSubtitle")}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {errors.token && <p className="text-sm text-red-500">{errors.token}</p>}
 
         <PasswordInput
-          label="New Password"
+          label={t("auth.password")}
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -83,7 +85,7 @@ function ResetPasswordForm() {
         />
 
         <PasswordInput
-          label="Confirm New Password"
+          label={t("auth.confirmPassword")}
           placeholder="••••••••"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -92,16 +94,16 @@ function ResetPasswordForm() {
         />
 
         <Button type="submit" fullWidth loading={isLoading}>
-          Reset Password
+          {t("auth.resetPassword")}
         </Button>
 
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Back to{" "}
+          {t("auth.backTo")}
           <Link
             href={ROUTES.LOGIN}
             className="font-semibold text-blue-600 hover:underline"
           >
-            Sign in
+            {t("auth.signIn")}
           </Link>
         </div>
       </form>

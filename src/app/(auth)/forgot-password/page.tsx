@@ -8,8 +8,10 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSent, setIsSent] = React.useState(false);
@@ -37,8 +39,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout
-      title="Forgot your password?"
-      subtitle="Enter your email to receive a password reset link"
+      title={t("auth.forgotPassword")}
+      subtitle={t("auth.forgotPasswordSubtitle")}
     >
       {isSent ? (
         <div className="text-center space-y-6">
@@ -81,14 +83,14 @@ export default function ForgotPasswordPage() {
               href={ROUTES.LOGIN}
               className="font-semibold text-blue-600 hover:underline"
             >
-              Sign in
+              {t("auth.signIn")}
             </Link>
           </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           <Input
-            label="Email Address"
+            label={t("auth.email")}
             type="email"
             placeholder="name@example.com"
             value={email}
@@ -98,16 +100,16 @@ export default function ForgotPasswordPage() {
           />
 
           <Button type="submit" fullWidth loading={isLoading}>
-            Send Reset Link
+            {t("auth.sendResetLink")}
           </Button>
 
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Remembered your password?{" "}
+            {t("auth.rememberPassword")}
             <Link
               href={ROUTES.LOGIN}
               className="font-semibold text-blue-600 hover:underline"
             >
-              Sign in
+              {t("auth.signIn")}
             </Link>
           </div>
         </form>

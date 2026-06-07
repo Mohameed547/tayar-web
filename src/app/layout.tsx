@@ -1,25 +1,38 @@
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
+import Providers from "./Providers";
+import ConditionalShell from "./ConditionalShell";
 import "./globals.css";
 
-const cairo = Cairo({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
 export const metadata: Metadata = {
-    title: "DeliveryHub",
-    description: "Smart shipping platform in Egypt",
+  title: "DeliveryHub",
+  description: "Smart shipping platform in Egypt",
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" dir="ltr">
-      <body className={cairo.className}>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>
+        <Providers>
+          <ConditionalShell>{children}</ConditionalShell>
+        </Providers>
+      </body>
     </html>
   );
 }
+
