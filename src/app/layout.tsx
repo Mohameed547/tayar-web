@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { LanguageProvider } from "@/context/language-context";
+import Providers from "./Providers";
+import ConditionalShell from "./ConditionalShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DeliveryHub",
   description: "Smart shipping platform in Egypt",
-}
+};
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" dir="ltr">
@@ -27,48 +28,11 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <LanguageProvider>{children}</LanguageProvider>
+        <Providers>
+          <ConditionalShell>{children}</ConditionalShell>
+        </Providers>
       </body>
     </html>
-  )
+  );
 }
 
-
-
-
-// 'use client';
-
-// import { Provider } from 'react-redux';
-// import { store } from '@/store/store';
-// import { Cairo } from "next/font/google";
-// import "./globals.css";
-
-// import { Plus_Jakarta_Sans } from 'next/font/google'
-// const font = Plus_Jakarta_Sans({
-//   subsets: ['latin'],
-//   weight: ['400', '500', '600', '700', '800'],
-// })
-
-// const cairo = Cairo({
-//   subsets: ["arabic", "latin"],
-//   variable: "--font-cairo",
-// });
-
-// export default function RootLayout({
-//   children,
-// }: {
-//   children: React.ReactNode;
-// }) {
-//   return (<html
-//     lang="ar"
-//     dir="rtl"
-//     suppressHydrationWarning
-//   >
-//     <body className="font-cairo">
-//       <Provider store={store}>
-//         {children}
-//       </Provider>
-//     </body>
-//   </html>
-//   );
-// }
