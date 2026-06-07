@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { loginSchema } from "@/lib/validations";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { useTranslation } from "@/hooks/use-translation";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = React.useState(false);
@@ -39,7 +41,9 @@ export default function LoginPage() {
         return;
       }
       console.log("Login data:", { email, password, rememberMe });
-      // TODO: API CALL HERE
+      // TODO: replace with real API call
+      // For now simulate success and redirect to customer dashboard
+      router.push(ROUTES.CUSTOMER_DASHBOARD);
     } finally {
       setIsLoading(false);
     }

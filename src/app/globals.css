@@ -2,63 +2,67 @@
 
 @import "tailwindcss";
 :root {
-    --navy: #0b1120;
-    --navy-mid: #131d2e;
-    --navy-light: #1e2d44;
-    --blue: #2563eb;
-    --blue-light: #3b82f6;
-    --blue-glow: rgba(37, 99, 235, 0.35);
-    --blue-subtle: rgba(37, 99, 235, 0.12);
-    --text-muted: rgba(255, 255, 255, 0.55);
-    --text-dim: rgba(255, 255, 255, 0.35);
-    --success: #22c55e;
-    --amber: #f59e0b;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-blue: rgba(37, 99, 235, 0.4);
+  --navy: #0b1120;
+  --navy-mid: #131d2e;
+  --navy-light: #1e2d44;
+  --blue: #2563eb;
+  --blue-light: #3b82f6;
+  --blue-glow: rgba(37, 99, 235, 0.35);
+  --blue-subtle: rgba(37, 99, 235, 0.12);
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --text-dim: rgba(255, 255, 255, 0.35);
+  --success: #22c55e;
+  --amber: #f59e0b;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-blue: rgba(37, 99, 235, 0.4);
 }
 
 @theme inline {
-    --color-navy: var(--navy);
-    --color-navy-mid: var(--navy-mid);
-    --color-navy-light: var(--navy-light);
-    --color-blue-brand: var(--blue);
-    --color-blue-light: var(--blue-light);
-    --color-success: var(--success);
-    --color-amber: var(--amber);
-    --font-display: "Syne", sans-serif;
-    --font-body: "DM Sans", sans-serif;
+  --color-navy: var(--navy);
+  --color-navy-mid: var(--navy-mid);
+  --color-navy-light: var(--navy-light);
+  --color-blue-brand: var(--blue);
+  --color-blue-light: var(--blue-light);
+  --color-success: var(--success);
+  --color-amber: var(--amber);
+  --font-display: "Syne", sans-serif;
+  --font-body: "DM Sans", sans-serif;
 }
 
+/* ── Captain Dashboard CSS Variables (Light Mode) ── */
 :root {
-  --color-bg-app: #F8FAFC;
-  --color-bg-card: #ffffff;
+  --color-bg-app:    #f1f5f9;
   --color-bg-topbar: #ffffff;
-  --color-bg-input: #ffffff;
-  --color-border: #E2E8F0;
-  --color-text-main: #0F172A;
-  --color-text-sub: #64748B;
-  --color-bg-muted: #F1F5F9;
+  --color-bg-card:   #ffffff;
+  --color-bg-muted:  #f1f5f9;
+  --color-border:    #e2e8f0;
+  --color-text-main: #0f172a;
+  --color-text-sub:  #64748b;
 }
 
-.dark {
-  --color-bg-app: #0B0F19;
-  --color-bg-card: #151F32;
-  --color-bg-topbar: #111827;
-  --color-bg-input: #1E293B;
-  --color-border: #22314A;
-  --color-text-main: #F8FAFC;
-  --color-text-sub: #94A3B8;
-  --color-bg-muted: #1E293B;
-}
-
-html,
-body {
-  background-color: var(--color-bg-app);
-  color: var(--color-text-main);
-  transition: background-color 0.2s ease, color 0.2s ease;
+/* ── Captain Dashboard CSS Variables (Dark Mode) ── */
+html.dark {
+  --color-bg-app:    #0f172a;
+  --color-bg-topbar: #1e293b;
+  --color-bg-card:   #1e293b;
+  --color-bg-muted:  #0f172a;
+  --color-border:    rgba(255,255,255,0.08);
+  --color-text-main: #f1f5f9;
+  --color-text-sub:  #94a3b8;
 }
 
 body {
-  font-family: "Cairo", sans-serif;
-  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-body);
+  background: var(--navy);
+  color: white;
+  overflow-x: hidden;
+}
+.font-display {
+  font-family: var(--font-display);
+}
+.bg-white\/4 {
+  background: rgba(255, 255, 255, 0.04);
+}
+.bg-white\/7 {
+  background: rgba(255, 255, 255, 0.07);
 }

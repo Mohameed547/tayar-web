@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 import { registerDriverSchema } from "@/lib/validations";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { useTranslation } from "@/hooks/use-translation";
 
 export default function RegisterDriverPage() {
   const { t } = useTranslation();
+  const router = useRouter();
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -62,7 +63,8 @@ export default function RegisterDriverPage() {
     }
 
     console.log("Register Driver:", formData);
-
+    // TODO: replace with real API call
+    router.push(ROUTES.CAPTAIN_DASHBOARD);
     setIsLoading(false);
   };
 

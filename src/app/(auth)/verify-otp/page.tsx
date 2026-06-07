@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
@@ -9,7 +10,8 @@ import { ROUTES } from "@/constants/routes";
 import type { VerifyOtpInput } from "@/types/auth";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/use-translation";
-export default function VerifyOtpPage() {
+
+function VerifyOtpForm() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();

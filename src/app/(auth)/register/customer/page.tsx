@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { registerCustomerSchema } from "@/lib/validations";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { useTranslation } from "@/hooks/use-translation";
 
 export default function RegisterCustomerPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [formData, setFormData] = React.useState({
     name: "",
     email: "",
@@ -47,6 +49,8 @@ export default function RegisterCustomerPage() {
     }
 
     console.log("Register Customer:", formData);
+    // TODO: replace with real API call
+    router.push(ROUTES.CUSTOMER_DASHBOARD);
     setIsLoading(false);
   };
 
