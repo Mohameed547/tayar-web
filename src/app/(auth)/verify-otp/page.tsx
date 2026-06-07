@@ -3,12 +3,12 @@
 import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { verifyOtpSchema } from "@/lib/validations";
 import { ROUTES } from "@/constants/routes";
 import type { VerifyOtpInput } from "@/types/auth";
-import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/use-translation";
 
 function VerifyOtpForm() {
@@ -29,7 +29,7 @@ function VerifyOtpForm() {
   async function onSubmit(data: VerifyOtpInput) {
     console.log(data);
     // TODO: connect to API
-    router.push(ROUTES.RESET_PASSWORD + "?email=" + email);
+    router.push(`${ROUTES.RESET_PASSWORD}?email=${email}`);
   }
 
   return (
@@ -42,6 +42,7 @@ function VerifyOtpForm() {
           <label className="text-sm font-medium text-gray-700">
             {t("auth.otpCode")}
           </label>
+
           <input
             {...register("otp")}
             type="text"
@@ -49,6 +50,7 @@ function VerifyOtpForm() {
             placeholder="123456"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+
           {errors.otp && (
             <p className="text-xs text-red-500">{errors.otp.message}</p>
           )}

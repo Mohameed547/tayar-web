@@ -21,8 +21,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("locale") as Locale;
-    if (saved) setLocale(saved);
-  }, []);
+    if (saved && saved !== locale) {
+      setTimeout(() => {
+        setLocale(saved);
+      }, 0);
+    }
+  }, [locale]);
 
   useEffect(() => {
     localStorage.setItem("locale", locale);

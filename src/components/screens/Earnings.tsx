@@ -1,6 +1,6 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
-import { t }              from '@/lib/translations'
+import { t, type TranslationKey }              from '@/lib/translations'
 import Card               from '../Card'
 
 export default function Earnings() {
@@ -22,7 +22,7 @@ export default function Earnings() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {items.map(item => (
           <Card key={item.labelKey}>
-            <p className="text-[12px] text-[var(--color-text-sub)] mb-2">{t(item.labelKey as any, language)}</p>
+            <p className="text-[12px] text-[var(--color-text-sub)] mb-2">{t(item.labelKey as TranslationKey, language)}</p>
             <p className="text-[26px] font-extrabold text-[var(--color-text-main)]">
               EGP {item.value.toLocaleString()}
             </p>

@@ -26,7 +26,7 @@ export default function CompareOffersPage() {
     setTimeout(() => {
       setConfirming(false);
       // Redirect to live tracking dashboard for this shipment
-      router.push(`/tracking/${shipment.id}`);
+      router.push(`/tracking/${shipment.id}?offerId=${selectedOfferId}`);
     }, 1000);
   };
 

@@ -6,8 +6,8 @@ import { TrackingMilestone } from "@/types/tracking";
 export const mockCustomer = {
   id: "cust-1",
   name: "Mohamed Zohair",
-  email: "mohamed@shipconnect.com",
-  phone: "01012345678",
+  email: "mohamedzohair547@gmail.com",
+  phone: "01063732212",
   role: "customer" as const,
   avatar: "MK",
   isVerified: true,

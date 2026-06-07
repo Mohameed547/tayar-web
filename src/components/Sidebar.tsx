@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setActiveScreen, setSidebarOpen } from '@/store/features/uiSlice'
-import { t } from '@/lib/translations'
+import { t, type TranslationKey } from '@/lib/translations'
 import type { ScreenId } from '@/types'
 
 interface NavEntry {
@@ -76,7 +76,7 @@ export default function Sidebar() {
       >
         <span className={clsx('shrink-0', isRTL && 'scale-x-[-1]')}>{item.icon}</span>
         <span className="flex-1 text-left rtl:text-right">
-          {t(item.labelKey as any, language)}
+          {t(item.labelKey as TranslationKey, language)}
         </span>
         {item.badge !== undefined && (
           <span className={clsx('bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full', isRTL ? 'mr-auto' : 'ml-auto')}>
@@ -94,7 +94,7 @@ export default function Sidebar() {
     return (
       <>
         <p className="px-3 pt-[14px] pb-[6px] text-[10px] font-bold uppercase tracking-[.07em] text-white/30">
-          {t(labelKey as any, language)}
+          {t(labelKey as TranslationKey, language)}
         </p>
         {items.map(renderItem)}
       </>

@@ -219,7 +219,12 @@ export default function NewShipmentPage() {
                 <button
                   key={speed.id}
                   type="button"
-                  onClick={() => setValue("deliverySpeed", speed.id as "standard" | "express" | "scheduled")}
+                  onClick={() => {
+                    setValue("deliverySpeed", speed.id as "standard" | "express" | "scheduled");
+                    if (speed.id !== "scheduled") {
+                      setValue("scheduledDate", undefined);
+                    }
+                  }}
                   className={cn(
                     "flex flex-col items-center justify-center py-2.5 rounded-lg transition-all duration-200",
                     deliverySpeed === speed.id
@@ -233,6 +238,25 @@ export default function NewShipmentPage() {
               ))}
             </div>
           </div>
+
+          {/* Scheduled Date (Conditional) */}
+          {deliverySpeed === "scheduled" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-zinc-400">
+                Scheduled Date
+              </label>
+              <input
+                type="date"
+                {...register("scheduledDate")}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+              />
+              {errors.scheduledDate && (
+                <span className="text-[11px] text-red-400 font-medium">
+                  {errors.scheduledDate.message}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Notes for Captain */}
           <div className="flex flex-col gap-2">
@@ -333,6 +357,12 @@ export default function NewShipmentPage() {
                 <span className="text-zinc-500 font-medium">Speed</span>
                 <span className="text-zinc-200 font-semibold">{getSpeedLabel(deliverySpeed)}</span>
               </div>
+              {deliverySpeed === "scheduled" && watch("scheduledDate") && (
+                <div className="flex justify-between">
+                  <span className="text-zinc-500 font-medium">Scheduled Date</span>
+                  <span className="text-zinc-200 font-semibold">{String(watch("scheduledDate"))}</span>
+                </div>
+              )}
               <hr className="border-zinc-800 my-1" />
               <div className="flex justify-between items-baseline mt-1">
                 <span className="text-zinc-400 font-bold">Est. price range</span>

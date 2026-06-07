@@ -7,7 +7,7 @@ import {
   setAccountType, toggleOnline, toggleSidebar,
 } from '@/store/features/uiSlice'
 import { switchAccountTypeData } from '@/store/features/dataSlice'
-import { t }                     from '@/lib/translations'
+import { t, type TranslationKey }                     from '@/lib/translations'
 import type { AccountType, ScreenId } from '@/types'
 
 const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
@@ -62,7 +62,7 @@ export default function Topbar() {
 
       {/* Screen title */}
       <h1 className="text-base font-bold text-[var(--color-text-main)]">
-        {t(titleKey as any, language)}
+        {t(titleKey as TranslationKey, language)}
       </h1>
 
       <div className={clsx('flex-1')} />

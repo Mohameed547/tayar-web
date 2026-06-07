@@ -1,5 +1,3 @@
-import clsx from 'clsx'
-
 interface Column<T> {
   key:       keyof T | string
   header:    string
@@ -38,7 +36,7 @@ export default function DataTable<T>({ columns, data, keyField }: DataTableProps
                 >
                   {col.render
                     ? col.render(row)
-                    : String((row as any)[col.key] ?? '')}
+                    : String((row as Record<string, unknown>)[col.key as string] ?? '')}
                 </td>
               ))}
             </tr>

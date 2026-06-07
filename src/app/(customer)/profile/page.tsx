@@ -2,45 +2,26 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { profileSchema } from "@/lib/validations";
 import { User, Phone, Mail, Calendar, CheckCircle } from "lucide-react";
 import { mockCustomer } from "@/constants/mock-data";
 import { cn } from "@/lib/utils";
 
-// Yup validation schema for profile edits
-const profileSchema = yup.object().shape({
-  name: yup
-    .string()
-    .required("Name is required")
-    .min(3, "Name must be at least 3 characters"),
-  email: yup
-    .string()
-    .required("Email address is required")
-    .email("Must be a valid email address"),
-  phone: yup
-    .string()
-    .required("Phone number is required")
-    .matches(/^01[0-2,5]{1}[0-9]{8}$/, "Must be a valid Egyptian phone number (e.g. 01012345678)"),
-});
-
-type ProfileFormValues = {
-  name: string;
-  email: string;
-  phone: string;
-};
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"info" | "edit">("info");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Hook Form setup with Yup resolver
+  // Hook Form setup with Zod resolver
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<ProfileFormValues>({
-    resolver: yupResolver(profileSchema),
+    resolver: zodResolver(profileSchema),
     defaultValues: {
       name: mockCustomer.name,
       email: mockCustomer.email,
