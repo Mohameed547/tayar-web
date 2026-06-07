@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
@@ -8,10 +9,17 @@ import { verifyOtpSchema } from "@/lib/validations";
 import { ROUTES } from "@/constants/routes";
 import type { VerifyOtpInput } from "@/types/auth";
 import { useRouter } from "next/navigation";
+<<<<<<< HEAD
 
 import { Suspense } from "react";
 
 function VerifyOtpForm() {
+=======
+import { useTranslation } from "@/hooks/use-translation";
+
+function VerifyOtpForm() {
+  const { t } = useTranslation();
+>>>>>>> 3195bca (feat(customer): complete customer module updates)
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";

@@ -1,19 +1,53 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, Phone, MessageSquare, Ship, Navigation } from "lucide-react";
-import { mockShipments, mockTrackingMilestones } from "@/constants/mock-data";
+import { mockShipments, mockTrackingMilestones, mockOffers } from "@/constants/mock-data";
 import TrackingTimeline from "@/components/customer/tracking-timeline";
+import { Suspense } from "react";
 
 export default function LiveMapTrackingPage() {
+  return (
+    <Suspense fallback={<div className="text-zinc-400 text-xs p-6 text-center">Loading tracking details...</div>}>
+      <TrackingContent />
+    </Suspense>
+  );
+}
+
+function TrackingContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  const offerId = searchParams.get("offerId");
 
   // Find shipment
   const shipment = mockShipments.find((s) => s.id === id) || mockShipments[0];
 
   const captain = shipment.captain;
+
+  // Dynamically map selected offer details
+  const selectedOffer = mockOffers.find((o) => o.id === offerId);
+  const displayProvider = selectedOffer
+    ? {
+        name: selectedOffer.providerName,
+        rating: selectedOffer.providerRating,
+        avatar: selectedOffer.providerName
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2),
+        role: selectedOffer.providerType === "office" ? "Office" : "Captain",
+      }
+    : captain
+    ? {
+        name: captain.name,
+        rating: captain.rating || 4.9,
+        avatar: captain.avatar || "KM",
+        role: "Captain",
+      }
+    : null;
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-5xl mx-auto">
@@ -112,22 +146,22 @@ export default function LiveMapTrackingPage() {
               <TrackingTimeline milestones={mockTrackingMilestones} />
             </div>
 
-            {/* Captain widget card */}
-            {captain && (
+            {/* Captain / Provider widget card */}
+            {displayProvider && (
               <div className="bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  {/* Captain profile initials */}
+                  {/* Provider profile initials */}
                   <div className="flex items-center justify-center h-10 w-10 rounded-full bg-amber-600/10 text-amber-400 font-bold border border-amber-500/20">
-                    {captain.avatar || "KM"}
+                    {displayProvider.avatar}
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-zinc-200">
-                      {captain.name}
+                      {displayProvider.name}
                     </span>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span className="text-amber-400 text-xs">★</span>
                       <span className="text-[10px] text-zinc-500 font-semibold">
-                        {captain.rating?.toFixed(1) || "4.9"}
+                        {displayProvider.rating?.toFixed(1)} ({displayProvider.role})
                       </span>
                     </div>
                   </div>
@@ -150,3 +184,4 @@ export default function LiveMapTrackingPage() {
     </div>
   );
 }
+

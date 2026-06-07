@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { verifyOtpSchema } from "@/lib/validations";
+
 export type UserRole = "customer" | "driver" | "admin";
 
 export interface User {
@@ -20,7 +23,5 @@ export interface AuthResponse {
   user: User;
   tokens: AuthTokens;
 }
-export interface VerifyOtpInput {
-  otp: string;
-  email: string;
-}
+export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
+
