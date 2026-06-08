@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { resetPasswordSchema } from "@/lib/validations";
-import { AuthLayout } from "@/components/auth/auth-layout";
-import { PasswordInput } from "@/components/auth/password-input";
-import { Button } from "@/components/ui/button";
+import { AuthLayout } from "@/modules/auth/auth-layout";
+import { PasswordInput } from "@/modules/auth/password-input";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { useTranslation } from "@/hooks/use-translation";
+import { useTranslation } from "@/shared/hooks/use-translation";
 
 function ResetPasswordForm() {
   const { t } = useTranslation();

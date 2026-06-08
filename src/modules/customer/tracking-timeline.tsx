@@ -1,6 +1,6 @@
 "use client";
 
-import { TrackingMilestone } from "@/types/tracking";
+import { TrackingMilestone } from "@/shared/types/tracking";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 

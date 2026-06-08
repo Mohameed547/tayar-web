@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "@/components/shared/sidebar";
-import Topbar from "@/components/shared/topbar";
-import MobileNav from "@/components/shared/mobile-nav";
+import Sidebar from "@/shared/components/sidebar";
+import Topbar from "@/shared/components/topbar";
+import MobileNav from "@/shared/components/mobile-nav";
 
 export default function CustomerLayout({
   children,

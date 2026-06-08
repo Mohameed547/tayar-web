@@ -1,9 +1,9 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
 import { t }              from '@/lib/translations'
-import DataTable          from '../DataTable'
-import Badge              from '../Badge'
-import type { Offer }     from '@/types'
+import DataTable          from '@/shared/ui/DataTable'
+import Badge              from '@/shared/ui/Badge'
+import type { Offer }     from '@/shared/types'
 
 const STATUS_BADGE: Record<Offer['status'], { variant: 'blue' | 'green' | 'red' | 'amber' | 'gray'; label_en: string; label_ar: string }> = {
   pending:  { variant: 'amber', label_en: 'Pending Response', label_ar: 'قيد الانتظار' },

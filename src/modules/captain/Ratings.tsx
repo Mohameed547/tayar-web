@@ -1,7 +1,7 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
 import { t }              from '@/lib/translations'
-import Card               from '../Card'
+import Card               from '@/shared/ui/Card'
 
 export default function Ratings() {
   const language = useAppSelector(s => s.ui.language)

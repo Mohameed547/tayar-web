@@ -1,6 +1,6 @@
-import { Shipment } from "@/types/shipment";
-import { Offer } from "@/types/offer";
-import { TrackingMilestone } from "@/types/tracking";
+import { Shipment } from "@/shared/types/shipment";
+import { Offer } from "@/shared/types/offer";
+import { TrackingMilestone } from "@/shared/types/tracking";
 
 // Mock Users
 export const mockCustomer = {

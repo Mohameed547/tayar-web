@@ -4,11 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 
 import { forgotPasswordSchema } from "@/lib/validations";
-import { AuthLayout } from "@/components/auth/auth-layout";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { AuthLayout } from "@/modules/auth/auth-layout";
+import { Input } from "@/shared/ui/input";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { useTranslation } from "@/hooks/use-translation";
+import { useTranslation } from "@/shared/hooks/use-translation";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();

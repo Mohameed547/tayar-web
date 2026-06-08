@@ -1,9 +1,9 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
 import { t }              from '@/lib/translations'
-import DataTable          from '../DataTable'
-import Badge              from '../Badge'
-import type { Delivery }  from '@/types'
+import DataTable          from '@/shared/ui/DataTable'
+import Badge              from '@/shared/ui/Badge'
+import type { Delivery }  from '@/shared/types'
 
 export default function Deliveries() {
   const language   = useAppSelector(s => s.ui.language)

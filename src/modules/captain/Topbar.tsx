@@ -8,7 +8,7 @@ import {
 } from '@/store/features/uiSlice'
 import { switchAccountTypeData } from '@/store/features/dataSlice'
 import { t, type TranslationKey }                     from '@/lib/translations'
-import type { AccountType, ScreenId } from '@/types'
+import type { AccountType, ScreenId } from '@/shared/types'
 
 const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
   'overview':         'screen_overview',

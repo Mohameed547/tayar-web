@@ -1,6 +1,6 @@
 "use client";
 
-import { Offer } from "@/types/offer";
+import { Offer } from "@/shared/types/offer";
 import { cn } from "@/lib/utils";
 import { Star } from "lucide-react";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Shipment } from "@/types/shipment";
+import { Shipment } from "@/shared/types/shipment";
 import { Navigation, Eye } from "lucide-react";
 import Link from "next/link";
 

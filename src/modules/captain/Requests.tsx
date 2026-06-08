@@ -1,8 +1,8 @@
 'use client'
 import { useAppSelector }   from '@/store/hooks'
 import { t }                from '@/lib/translations'
-import Card                 from '../Card'
-import Badge                from '../Badge'
+import Card                 from '@/shared/ui/Card'
+import Badge                from '@/shared/ui/Badge'
 
 export default function Requests() {
   const language = useAppSelector(s => s.ui.language)

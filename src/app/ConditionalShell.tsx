@@ -1,7 +1,7 @@
 'use client'
 import { usePathname } from 'next/navigation'
-import Navbar from './Components/Navbar'
-import Footer from './Components/Footer'
+import Navbar from '@/shared/components/Navbar'
+import Footer from '@/shared/components/Footer'
 
 // These route groups have their own full-screen layouts
 const SHELL_FREE_PREFIXES = [

@@ -4,12 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerCustomerSchema } from "@/lib/validations";
-import { AuthLayout } from "@/components/auth/auth-layout";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/auth/password-input";
-import { Button } from "@/components/ui/button";
+import { AuthLayout } from "@/modules/auth/auth-layout";
+import { Input } from "@/shared/ui/input";
+import { PasswordInput } from "@/modules/auth/password-input";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { useTranslation } from "@/hooks/use-translation";
+import { useTranslation } from "@/shared/hooks/use-translation";
 
 export default function RegisterCustomerPage() {
   const { t } = useTranslation();

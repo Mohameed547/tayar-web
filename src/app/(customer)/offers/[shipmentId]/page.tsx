@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { SlidersHorizontal, ArrowUpDown, ArrowLeft, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { mockOffers, mockShipments } from "@/constants/mock-data";
-import OfferCard from "@/components/customer/offer-card";
+import OfferCard from "@/modules/customer/offer-card";
 
 export default function CompareOffersPage() {
   const params = useParams();

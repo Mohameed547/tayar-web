@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { AccountType, Language, ScreenId, Theme } from '@/types'
+import type { AccountType, Language, ScreenId, Theme } from '@/shared/types'
 
 interface UIState {
   theme:        Theme

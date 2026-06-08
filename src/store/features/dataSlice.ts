@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import type {
   Request, Offer, Order, Delivery, Captain,
   EarningsData, Wallet, Rating, VerificationStatus, Profile,
-} from '@/types'
+} from '@/shared/types'
 import api from '@/lib/api'
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────

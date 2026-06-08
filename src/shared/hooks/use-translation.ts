@@ -1,6 +1,6 @@
 import { useLanguage } from "@/context/language-context";
-import en from "../../messages/en.json";
-import ar from "../../messages/ar.json";
+import en from "../../../messages/en.json";
+import ar from "../../../messages/ar.json";
 
 const messages = { en, ar };
 

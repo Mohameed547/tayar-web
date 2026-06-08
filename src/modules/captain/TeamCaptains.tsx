@@ -2,9 +2,9 @@
 import { UserPlus }       from 'lucide-react'
 import { useAppSelector } from '@/store/hooks'
 import { t }              from '@/lib/translations'
-import DataTable          from '../DataTable'
-import Badge              from '../Badge'
-import type { Captain }   from '@/types'
+import DataTable          from '@/shared/ui/DataTable'
+import Badge              from '@/shared/ui/Badge'
+import type { Captain }   from '@/shared/types'
 
 const STATUS_MAP: Record<Captain['status'], { variant: 'green' | 'amber' | 'gray'; en: string; ar: string }> = {
   available: { variant: 'green', en: 'Available', ar: 'متاح'    },

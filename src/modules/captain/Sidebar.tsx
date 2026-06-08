@@ -8,7 +8,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setActiveScreen, setSidebarOpen } from '@/store/features/uiSlice'
 import { t, type TranslationKey } from '@/lib/translations'
-import type { ScreenId } from '@/types'
+import type { ScreenId } from '@/shared/types'
 
 interface NavEntry {
   id: ScreenId

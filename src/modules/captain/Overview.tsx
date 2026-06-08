@@ -2,9 +2,9 @@
 import { TrendingUp, Inbox } from 'lucide-react'
 import { useAppSelector }    from '@/store/hooks'
 import { t }                 from '@/lib/translations'
-import MetricCard            from '../MetricCard'
-import Card                  from '../Card'
-import Badge                 from '../Badge'
+import MetricCard            from '@/shared/ui/MetricCard'
+import Card                  from '@/shared/ui/Card'
+import Badge                 from '@/shared/ui/Badge'
 
 export default function Overview() {
   const language    = useAppSelector(s => s.ui.language)

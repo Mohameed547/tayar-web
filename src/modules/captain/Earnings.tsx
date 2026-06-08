@@ -1,7 +1,7 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
 import { t, type TranslationKey }              from '@/lib/translations'
-import Card               from '../Card'
+import Card               from '@/shared/ui/Card'
 
 export default function Earnings() {
   const language = useAppSelector(s => s.ui.language)

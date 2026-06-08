@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { topUpSchema, withdrawSchema } from "@/lib/validations";
 import { z } from "zod";
-import { Transaction } from "@/types/wallet";
+import { Transaction } from "@/shared/types/wallet";
 
 type TopUpFormValues = z.infer<typeof topUpSchema>;
 type WithdrawFormValues = z.infer<typeof withdrawSchema>;

@@ -5,11 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from "next/navigation";
 
-import { AuthLayout } from "@/components/auth/auth-layout";
+import { AuthLayout } from "@/modules/auth/auth-layout";
 import { verifyOtpSchema } from "@/lib/validations";
 import { ROUTES } from "@/constants/routes";
-import type { VerifyOtpInput } from "@/types/auth";
-import { useTranslation } from "@/hooks/use-translation";
+import type { VerifyOtpInput } from "@/shared/types/auth";
+import { useTranslation } from "@/shared/hooks/use-translation";
 
 function VerifyOtpForm() {
   const { t } = useTranslation();
