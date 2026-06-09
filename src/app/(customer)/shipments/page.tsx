@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { mockShipments } from "@/constants/mock-data";
-import ShipmentCard from "@/modules/customer/shipment-card";
+import ShipmentCard from "@/modules/customer/ui/shipment-card";
 export default function MyShipmentsPage() {
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "pending" | "completed">("all");
 

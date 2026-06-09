@@ -3,7 +3,7 @@ import type {
   Request, Offer, Order, Delivery, Captain,
   EarningsData, Wallet, Rating, VerificationStatus, Profile,
 } from '@/shared/types'
-import api from '@/lib/api'
+import api from '@/lib/api/client'
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MOCK_REQUESTS: Request[] = [

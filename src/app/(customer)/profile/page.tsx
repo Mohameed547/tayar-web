@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { profileSchema } from "@/lib/validations";
+import { profileSchema } from "@/lib/validation/common";
 import { User, Phone, Mail, Calendar, CheckCircle } from "lucide-react";
 import { mockCustomer } from "@/constants/mock-data";
 import { cn } from "@/lib/utils";

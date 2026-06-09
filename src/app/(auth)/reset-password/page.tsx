@@ -4,10 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { resetPasswordSchema } from "@/lib/validations";
-import { AuthLayout } from "@/modules/auth/auth-layout";
-import { PasswordInput } from "@/modules/auth/password-input";
-import { Button } from "@/shared/ui/button";
+import { resetPasswordSchema } from "@/lib/validation/common";
+import { AuthLayout } from "@/modules/auth/ui/auth-layout";
+import { PasswordInput } from "@/modules/auth/ui/password-input";
+import { Button } from "@/shared/ui/Button";
 import { ROUTES } from "@/constants/routes";
 import { useTranslation } from "@/shared/hooks/use-translation";
 

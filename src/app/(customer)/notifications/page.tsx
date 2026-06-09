@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Truck, Check, Wallet, CheckCircle, Info } from "lucide-react";
-import { Notification, NotificationType } from "@/shared/types/notification";
+import { Notification, NotificationType } from "@/modules/customer/types/notification";
 import { cn } from "@/lib/utils";
 
 export default function NotificationsPage() {

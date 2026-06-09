@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, Phone, MessageSquare, Ship, Navigation } from "lucide-react";
 import { mockShipments, mockTrackingMilestones, mockOffers } from "@/constants/mock-data";
-import TrackingTimeline from "@/modules/customer/tracking-timeline";
+import TrackingTimeline from "@/modules/customer/ui/tracking-timeline";
 import { Suspense } from "react";
 
 export default function LiveMapTrackingPage() {

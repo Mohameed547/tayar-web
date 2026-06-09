@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Plus, Package, Clock, Wallet, Star } from "lucide-react";
 import { mockShipments, mockCustomer } from "@/constants/mock-data";
-import ShipmentCard from "@/modules/customer/shipment-card";
-import StatCard from "@/shared/components/stat-card";
+import ShipmentCard from "@/modules/customer/ui/shipment-card";
+// import StatCard from "@/shared/components/stat-card";
+import StatCard from "@/shared/ui/StatCard";
+
 
 export default function CustomerDashboard() {
   // We filter shipments to show active or pending ones on the dashboard

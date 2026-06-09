@@ -5,10 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from "next/navigation";
 
-import { AuthLayout } from "@/modules/auth/auth-layout";
-import { verifyOtpSchema } from "@/lib/validations";
+import { AuthLayout } from "@/modules/auth/ui/auth-layout";
+import { verifyOtpSchema } from "@/lib/validation/common";
 import { ROUTES } from "@/constants/routes";
-import type { VerifyOtpInput } from "@/shared/types/auth";
+import type { VerifyOtpInput } from "@/modules/auth/types/auth";
 import { useTranslation } from "@/shared/hooks/use-translation";
 
 function VerifyOtpForm() {

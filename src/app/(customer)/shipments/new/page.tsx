@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { shipmentRequestSchema } from "@/lib/validations";
+import { shipmentRequestSchema } from "@/lib/validation/common";
 import { cn } from "@/lib/utils";
 import { MapPin, Search, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";

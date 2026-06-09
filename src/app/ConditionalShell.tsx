@@ -1,11 +1,11 @@
 'use client'
 import { usePathname } from 'next/navigation'
-import Navbar from '@/shared/components/Navbar'
-import Footer from '@/shared/components/Footer'
+import Navbar from '@/shared/layout/Navbar'
+import Footer from '@/shared/layout/Footer'
 
 // These route groups have their own full-screen layouts
 const SHELL_FREE_PREFIXES = [
-  '/captiandashboard',
+  '/captain-dashboard', // FIX
   '/dashboard',
   '/shipments',
   '/tracking',
@@ -15,11 +15,6 @@ const SHELL_FREE_PREFIXES = [
   '/profile',
   '/reviews',
   '/support',
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/verify-otp',
 ]
 
 export default function ConditionalShell({ children }: { children: React.ReactNode }) {
@@ -36,3 +31,5 @@ export default function ConditionalShell({ children }: { children: React.ReactNo
     </>
   )
 }
+
+

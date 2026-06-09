@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { supportTicketSchema } from "@/lib/validations";
+import { supportTicketSchema } from "@/lib/validation/common";
 import { z } from "zod";
 import { Headphones, Mail, Phone, MessageSquare, Plus, X, Send } from "lucide-react";
 

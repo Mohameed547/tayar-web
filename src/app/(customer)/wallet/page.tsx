@@ -4,9 +4,9 @@ import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp, X 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { topUpSchema, withdrawSchema } from "@/lib/validations";
+import { topUpSchema, withdrawSchema } from "@/lib/validation/common";
 import { z } from "zod";
-import { Transaction } from "@/shared/types/wallet";
+import { Transaction } from "@/modules/customer/types/wallet";
 
 type TopUpFormValues = z.infer<typeof topUpSchema>;
 type WithdrawFormValues = z.infer<typeof withdrawSchema>;

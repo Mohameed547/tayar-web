@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import differenceSection from "@/app/assets/differenceSection.avif";
+// import differenceSection from "@/public/images/differenceSection.avif";
+
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -790,7 +791,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative rounded-3xl overflow-hidden bg-slate-900 min-h-[420px] flex items-end">
             <Image
-              src={differenceSection}
+              src="/images/differenceSection.avif"
               alt="Captain handing package to customer"
               fill
               className="object-cover"
