@@ -1,6 +1,20 @@
 import Link from "next/link";
+import { Truck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
+    const t = useTranslations("footer");
+    const common = useTranslations("common");
+    const companyLinks = [
+        { label: t("about"), href: "#about" },
+        { label: t("howItWorks"), href: "#how-it-works" },
+        { label: t("contact"), href: "#contact" },
+    ];
+    const legalLinks = [
+        { label: t("privacyPolicy"), href: "#" },
+        { label: t("termsOfService"), href: "#" },
+    ];
+
     return (
         <footer
             className="border-t"
@@ -9,9 +23,7 @@ export default function Footer() {
                 background: "var(--navy-mid)",
             }}
         >
-            {/* Top */}
             <div className="max-w-6xl mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
-                {/* Brand */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
                         <div
@@ -21,81 +33,74 @@ export default function Footer() {
                                 boxShadow: "0 0 20px var(--blue-glow)",
                             }}
                         >
-                            <span className="text-white text-sm">🚚</span>
+                            <Truck className="h-4 w-4 text-white" aria-hidden="true" />
                         </div>
                         <span
-                            className="font-bold text-lg text-white"
+                            className="font-bold text-lg text-[var(--landing-text)]"
                             style={{ fontFamily: "var(--font-display)" }}
                         >
                             DeliveryHub
                         </span>
                     </div>
-                    <p
-                        className="text-sm"
-                        style={{ color: "var(--text-muted)" }}
-                    >
-                        {
-                            "Egypt's marketplace for delivery. Connecting customers and offices in one transparent platform."
-                        }
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                        {t("description")}
                     </p>
-                    {/* Socials */}
                     <div className="flex gap-3">
-                        {["Facebook", "Instagram", "LinkedIn"].map((s) => (
+                        {["Facebook", "Instagram", "LinkedIn"].map((social) => (
                             <Link
-                                key={s}
+                                key={social}
                                 href="#"
+                                aria-label={social}
                                 className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all"
                                 style={{
                                     border: "1px solid var(--border)",
                                     color: "var(--text-muted)",
                                 }}
                             >
-                                {s[0]}
+                                {social[0]}
                             </Link>
                         ))}
                     </div>
                 </div>
 
-                {/* Company */}
                 <div className="flex flex-col gap-4">
                     <div
-                        className="text-sm font-semibold text-white"
+                        className="text-sm font-semibold text-[var(--landing-text)]"
                         style={{ fontFamily: "var(--font-display)" }}
                     >
-                        Company
+                        {t("company")}
                     </div>
                     <ul className="flex flex-col gap-3 list-none">
-                        {["About Us", "How it Works", "Contact"].map((item) => (
-                            <li key={item}>
+                        {companyLinks.map((item) => (
+                            <li key={item.label}>
                                 <Link
-                                    href="#"
-                                    className="text-sm hover:text-white transition-colors"
+                                    href={item.href}
+                                    className="text-sm hover:text-[var(--landing-text)] transition-colors"
                                     style={{ color: "var(--text-muted)" }}
                                 >
-                                    {item}
+                                    {item.label}
                                 </Link>
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                {/* Legal */}
                 <div className="flex flex-col gap-4">
                     <div
-                        className="text-sm font-semibold text-white"
+                        className="text-sm font-semibold text-[var(--landing-text)]"
                         style={{ fontFamily: "var(--font-display)" }}
                     >
-                        Legal
+                        {t("legal")}
                     </div>
                     <ul className="flex flex-col gap-3 list-none">
-                        {["Privacy Policy", "Terms of Service"].map((item) => (
-                            <li key={item}>
+                        {legalLinks.map((item) => (
+                            <li key={item.label}>
                                 <Link
-                                    href="#"
-                                    className="text-sm hover:text-white transition-colors"
+                                    href={item.href}
+                                    className="text-sm hover:text-[var(--landing-text)] transition-colors"
                                     style={{ color: "var(--text-muted)" }}
                                 >
-                                    {item}
+                                    {item.label}
                                 </Link>
                             </li>
                         ))}
@@ -103,23 +108,25 @@ export default function Footer() {
                 </div>
             </div>
 
-            {/* Bottom */}
             <div
                 className="border-t px-10 py-5 flex items-center justify-between"
                 style={{ borderColor: "var(--border)" }}
             >
                 <span className="text-sm" style={{ color: "var(--text-dim)" }}>
-                    © 2025 DeliveryHub. All rights reserved.
+                    © 2026 DeliveryHub. {common("copyright")}
                 </span>
                 <div className="flex gap-4">
-                    {["Privacy", "Terms"].map((item) => (
+                    {[
+                        { label: t("privacy"), href: "#" },
+                        { label: t("terms"), href: "#" },
+                    ].map((item) => (
                         <Link
-                            key={item}
-                            href="#"
-                            className="text-sm hover:text-white transition-colors"
+                            key={item.label}
+                            href={item.href}
+                            className="text-sm hover:text-[var(--landing-text)] transition-colors"
                             style={{ color: "var(--text-dim)" }}
                         >
-                            {item}
+                            {item.label}
                         </Link>
                     ))}
                 </div>

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function TrackingSearchPage() {
+  const t = useTranslations("customer.trackingSearch");
   const router = useRouter();
   const [trackingId, setTrackingId] = useState("");
   const [error, setError] = useState("");
@@ -14,7 +16,7 @@ export default function TrackingSearchPage() {
     const cleanId = trackingId.trim().toLowerCase();
 
     if (!cleanId) {
-      setError("Please enter a valid tracking number");
+      setError(t("invalid"));
       return;
     }
 
@@ -29,16 +31,16 @@ export default function TrackingSearchPage() {
         <div className="inline-flex mx-auto p-3 rounded-full bg-blue-600/10 text-blue-500 border border-blue-500/20 mb-2">
           <MapPin className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Track Your Shipment</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-          Enter your shipment tracking ID to get real-time location and milestone status updates.
+          {t("subtitle")}
         </p>
       </div>
 
       <form onSubmit={handleTrack} className="flex flex-col gap-4 bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-md mt-4">
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-zinc-400">
-            Tracking ID
+            {t("trackingId")}
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
@@ -47,7 +49,7 @@ export default function TrackingSearchPage() {
               value={trackingId}
               onChange={(e) => setTrackingId(e.target.value)}
               className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-10 pr-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors uppercase placeholder-zinc-500"
-              placeholder="e.g. SC-00412"
+              placeholder={t("placeholder")}
             />
           </div>
           {error && (
@@ -61,13 +63,13 @@ export default function TrackingSearchPage() {
           type="submit"
           className="w-full py-3 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-md focus:outline-none"
         >
-          Track Live Status
+          {t("action")}
         </button>
       </form>
 
       {/* Helper Suggestion */}
       <div className="text-center text-[10px] text-zinc-500 mt-2">
-        <span>Try tracking </span>
+        <span>{t("tryTracking")} </span>
         <button
           onClick={() => {
             setTrackingId("SC-00412");
@@ -77,7 +79,7 @@ export default function TrackingSearchPage() {
         >
           SC-00412
         </button>
-        <span> or </span>
+        <span> {t("or")} </span>
         <button
           onClick={() => {
             setTrackingId("SC-00408");

@@ -1,11 +1,12 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
-import { t, type TranslationKey }              from '@/lib/i18n/translations'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
+import { selectEarnings } from '@/modules/captain/store/selectors'
 import Card               from '@/shared/ui/Card'
 
 export default function Earnings() {
-  const language = useAppSelector(s => s.ui.language)
-  const earnings = useAppSelector(s => s.data.earnings)
+  const t = useCaptainTranslations()
+  const earnings = useAppSelector(selectEarnings)
 
   const items = [
     { labelKey: 'thisMonth',    value: earnings.thisMonth      },
@@ -16,13 +17,13 @@ export default function Earnings() {
   return (
     <div>
       <div className="mb-[22px]">
-        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('earnings_title', language)}</h1>
-        <p className="text-[13px] text-[var(--color-text-sub)]">{t('earnings_sub', language)}</p>
+        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('earnings_title')}</h1>
+        <p className="text-[13px] text-[var(--color-text-sub)]">{t('earnings_sub')}</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {items.map(item => (
           <Card key={item.labelKey}>
-            <p className="text-[12px] text-[var(--color-text-sub)] mb-2">{t(item.labelKey as TranslationKey, language)}</p>
+            <p className="text-[12px] text-[var(--color-text-sub)] mb-2">{t(item.labelKey)}</p>
             <p className="text-[26px] font-extrabold text-[var(--color-text-main)]">
               EGP {item.value.toLocaleString()}
             </p>

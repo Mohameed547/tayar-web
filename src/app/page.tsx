@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 // import differenceSection from "@/public/images/differenceSection.avif";
 
 import Image from "next/image";
@@ -21,48 +21,51 @@ import {
   Zap,
 } from "lucide-react";
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const t = useTranslations("landing");
   const stats = [
-    { value: "15K+", label: "Orders Delivered" },
-    { value: "120+", label: "Delivery Offices" },
-    { value: "350+", label: "Active Captains" },
-    { value: "99.8%", label: "Success Rate" },
+    { value: "15K+", label: t("stats.orders") },
+    { value: "120+", label: t("stats.offices") },
+    { value: "350+", label: t("stats.captains") },
+    { value: "99.8%", label: t("stats.success") },
   ];
   const features = [
     {
       icon: <MapPin className="w-6 h-6 text-blue-400" />,
-      title: "Live Tracking",
-      description: "Track deliveries in real time.",
+      title: t("features.trackingTitle"),
+      description: t("features.trackingDescription"),
     },
     {
       icon: <MessageCircle className="w-6 h-6 text-blue-400" />,
-      title: "Internal Chat",
-      description: "Connect offices and captains instantly.",
+      title: t("features.chatTitle"),
+      description: t("features.chatDescription"),
     },
     {
       icon: <Zap className="w-6 h-6 text-blue-400" />,
-      title: "Smart Assignment",
-      description: "Assign available captains automatically.",
+      title: t("features.assignmentTitle"),
+      description: t("features.assignmentDescription"),
     },
     {
       icon: <BarChart2 className="w-6 h-6 text-blue-400" />,
-      title: "Analytics",
-      description: "Monitor revenue and delivery performance.",
+      title: t("features.analyticsTitle"),
+      description: t("features.analyticsDescription"),
     },
     {
       icon: <Wallet className="w-6 h-6 text-blue-400" />,
-      title: "Wallet System",
-      description: "Secure payments and balance management.",
+      title: t("features.walletTitle"),
+      description: t("features.walletDescription"),
     },
     {
       icon: <Bell className="w-6 h-6 text-blue-400" />,
-      title: "Notifications",
-      description: "Instant updates for every order.",
+      title: t("features.notificationsTitle"),
+      description: t("features.notificationsDescription"),
     },
   ];
 
   return (
-    <main className="min-h-screen bg-[#0B1120] text-white overflow-hidden">
+    <main
+      className="landing-surface min-h-screen bg-[var(--navy)] text-[var(--landing-text)] overflow-hidden"
+      data-surface="landing"
+    >
       {/* HERO */}
       <section className="relative  pb-0 px-6 overflow-hidden min-h-screen flex items-center">
         {/* Background grid */}
@@ -83,37 +86,35 @@ export default function Home() {
           <div>
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm border border-blue-500/30 text-blue-400 bg-blue-500/10 mb-6">
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              Smart Delivery Platform
+              {t("badge")}
             </span>
 
             <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight">
-              Delivery of the
+              {t("heroLine1")}
               <br />
-              <span className="text-blue-500">most necessary</span>
+              <span className="text-blue-500">{t("heroHighlight")}</span>
               <br />
-              things for everyone
+              {t("heroLine3")}
             </h1>
 
             <p className="mt-6 text-lg text-gray-400 max-w-lg leading-relaxed">
-              There are no delivery boundaries for us. Connect customers,
-              offices and delivery captains through one powerful platform with
-              live tracking and smart management.
+              {t("heroDescription")}
             </p>
 
             <div className="flex flex-wrap gap-4 mt-10">
               <Link href={ROUTES.REGISTER_CUSTOMER} className="flex items-center gap-2 px-7 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 transition font-medium">
-                Make An Order
+                {t("makeOrder")}
                 <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">
                   ▶
                 </span>
               </Link>
 
               <a href="#how-it-works" className="px-7 py-4 rounded-xl border border-slate-700 hover:border-blue-500 hover:text-blue-400 transition">
-                Explore Features
+                {t("exploreFeatures")}
               </a>
 
               <Link href={ROUTES.REGISTER_DRIVER} className="px-7 py-4 rounded-xl border border-blue-500/40 text-blue-400 hover:bg-blue-500/10 transition text-sm">
-                Join as Captain / Office
+                {t("joinProvider")}
               </Link>
             </div>
           </div>
@@ -333,7 +334,7 @@ export default function Home() {
                     fontWeight="bold"
                     fontFamily="system-ui"
                   >
-                    Order NOW
+                    {t("illustrationOrder")}
                   </text>
                 </g>
               </g>
@@ -653,7 +654,7 @@ export default function Home() {
                   fontSize="8"
                   fontFamily="system-ui"
                 >
-                  Delivered!
+                  {t("illustrationDelivered")}
                 </text>
                 <text
                   x="-5"
@@ -663,7 +664,7 @@ export default function Home() {
                   fontSize="7"
                   fontFamily="system-ui"
                 >
-                  Order #2548
+                  {t("illustrationOrderNumber")}
                 </text>
               </g>
 
@@ -731,16 +732,15 @@ export default function Home() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-px bg-blue-500" />
             <span className="text-blue-500 text-sm font-semibold uppercase tracking-widest">
-              How It Works
+              {t("how.eyebrow")}
             </span>
           </div>
 
           <h2 className="text-4xl md:text-5xl font-bold max-w-xl leading-tight">
-            3 steps to deliver anything, anywhere
+            {t("how.title")}
           </h2>
           <p className="text-gray-400 mt-4 max-w-lg">
-            Simple, fast, and transparent — from posting your shipment to
-            delivery confirmation.
+            {t("how.description")}
           </p>
 
           <div className="grid md:grid-cols-3 mt-10 divide-y md:divide-y-0 md:divide-x divide-slate-800">
@@ -748,20 +748,20 @@ export default function Home() {
               {
                 num: "01",
                 icon: <Package className="w-6 h-6 text-blue-400" />,
-                title: "Post your shipment",
-                desc: "Enter pickup location, drop-off address, and package details in under 2 minutes. No calls, no back-and-forth.",
+                title: t("how.postTitle"),
+                desc: t("how.postDescription"),
               },
               {
                 num: "02",
                 icon: <Zap className="w-6 h-6 text-blue-400" />,
-                title: "Assign a captain",
-                desc: "Receive offers from verified offices and captains. Compare prices, ratings, and estimated delivery time — then pick what suits you.",
+                title: t("how.assignTitle"),
+                desc: t("how.assignDescription"),
               },
               {
                 num: "03",
                 icon: <MapPin className="w-6 h-6 text-blue-400" />,
-                title: "Track live",
-                desc: "Watch your shipment move in real time on the map. Get notified at every step until your package arrives safely.",
+                title: t("how.trackTitle"),
+                desc: t("how.trackDescription"),
               },
             ].map((step, i) => (
               <div key={i} className="relative p-8 pt-6 overflow-hidden">
@@ -792,7 +792,7 @@ export default function Home() {
           <div className="relative rounded-3xl overflow-hidden bg-slate-900 min-h-[420px] flex items-end">
             <Image
               src="/images/differenceSection.avif"
-              alt="Captain handing package to customer"
+              alt={t("difference.imageAlt")}
               fill
               className="object-cover"
             />
@@ -801,7 +801,7 @@ export default function Home() {
                 <ShieldCheck className="w-4 h-4 text-blue-400" />
               </div>
               <span className="text-sm font-medium text-white">
-                Verified & trusted providers
+                {t("difference.verified")}
               </span>
             </div>
           </div>
@@ -810,37 +810,34 @@ export default function Home() {
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-px bg-blue-500" />
               <span className="text-blue-500 text-sm font-semibold uppercase tracking-widest">
-                The DeliveryHub Difference
+                {t("difference.eyebrow")}
               </span>
             </div>
 
             <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
-              Delivery that works for everyone
+              {t("difference.title")}
             </h2>
 
             <p className="text-gray-400 leading-relaxed mb-10">
-              We built DeliveryHub because delivery in Egypt was broken — fixed
-              prices, no transparency, no tracking. Now, customers get
-              competitive offers, captains get steady work, and offices grow
-              without extra costs.
+              {t("difference.description")}
             </p>
 
             <div className="space-y-6">
               {[
                 {
                   icon: <Zap className="w-6 h-6 text-blue-400" />,
-                  title: "Real competition, better prices",
-                  desc: "Multiple providers bid for your shipment — you always get the best deal.",
+                  title: t("difference.competitionTitle"),
+                  desc: t("difference.competitionDescription"),
                 },
                 {
                   icon: <MapPin className="w-6 h-6 text-blue-400" />,
-                  title: "Full visibility, zero surprises",
-                  desc: "Live tracking and real-time updates from pickup to delivery.",
+                  title: t("difference.visibilityTitle"),
+                  desc: t("difference.visibilityDescription"),
                 },
                 {
                   icon: <Users className="w-6 h-6 text-blue-400" />,
-                  title: "A community you can trust",
-                  desc: "Every provider is verified. Every review is real. No shortcuts.",
+                  title: t("difference.communityTitle"),
+                  desc: t("difference.communityDescription"),
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4 items-start">
@@ -866,40 +863,40 @@ export default function Home() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-px bg-blue-500" />
             <span className="text-blue-500 text-sm font-semibold uppercase tracking-widest">
-              Why Trust Us
+              {t("trust.eyebrow")}
             </span>
           </div>
 
           <h2 className="text-4xl md:text-5xl font-bold max-w-lg leading-tight mb-8">
-            Your shipment is safe with DeliveryHub
+            {t("trust.title")}
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
               {
                 icon: <ShieldCheck className="w-6 h-6 text-blue-400" />,
-                title: "Verified providers",
-                desc: "ID and license checked before joining",
+                title: t("trust.verifiedTitle"),
+                desc: t("trust.verifiedDescription"),
               },
               {
                 icon: <MapPin className="w-6 h-6 text-blue-400" />,
-                title: "Live GPS",
-                desc: "Track your shipment every step of the way",
+                title: t("trust.gpsTitle"),
+                desc: t("trust.gpsDescription"),
               },
               {
                 icon: <Lock className="w-6 h-6 text-blue-400" />,
-                title: "Secure payments",
-                desc: "Encrypted wallet, funds held until delivery",
+                title: t("trust.paymentsTitle"),
+                desc: t("trust.paymentsDescription"),
               },
               {
                 icon: <Star className="w-6 h-6 text-blue-400" />,
-                title: "Honest reviews",
-                desc: "Ratings from verified customers only",
+                title: t("trust.reviewsTitle"),
+                desc: t("trust.reviewsDescription"),
               },
               {
                 icon: <Headphones className="w-6 h-6 text-blue-400" />,
-                title: "Support team",
-                desc: "Here to help whenever you need us",
+                title: t("trust.supportTitle"),
+                desc: t("trust.supportDescription"),
               },
             ].map((item) => (
               <div
@@ -922,7 +919,7 @@ export default function Home() {
       {/* FEATURES */}
       <section id="features" className="px-6 py-14">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-center text-4xl font-bold">Powerful Features</h2>
+          <h2 className="text-center text-4xl font-bold">{t("features.title")}</h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
             {features.map((feature) => (
@@ -943,16 +940,13 @@ export default function Home() {
       <section className="px-6 py-14">
         <div className="max-w-5xl mx-auto text-center rounded-3xl border border-slate-800 bg-slate-900 p-12">
           <h2 className="text-4xl md:text-5xl font-bold">
-            Ready To Transform
+            {t("cta.line1")}
             <br />
-            Your Delivery Business?
+            {t("cta.line2")}
           </h2>
-          <p className="mt-6 text-gray-400">
-            Join DeliveryHub and manage deliveries smarter, faster and more
-            efficiently.
-          </p>
+          <p className="mt-6 text-gray-400">{t("cta.description")}</p>
           <Link href={ROUTES.REGISTER_CUSTOMER} className="inline-block mt-8 px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 transition">
-            Get Started Today
+            {t("cta.action")}
           </Link>
         </div>
       </section>

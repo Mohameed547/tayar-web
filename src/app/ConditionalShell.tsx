@@ -5,6 +5,11 @@ import Footer from '@/shared/layout/Footer'
 
 // These route groups have their own full-screen layouts
 const SHELL_FREE_PREFIXES = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-otp',
   '/captain-dashboard', // FIX
   '/dashboard',
   '/shipments',

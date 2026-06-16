@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import Providers from "./Providers";
+import { cookies } from "next/headers";
+import { getLocale, getMessages } from "next-intl/server";
 import ConditionalShell from "./ConditionalShell";
+import { getLocaleDirection, type AppLocale } from "@/i18n/config";
+import { AppProviders } from "@/shared/providers/app-providers";
+import {
+  themeCookieName,
+  type Theme,
+} from "@/shared/config/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,29 +15,32 @@ export const metadata: Metadata = {
   description: "Smart shipping platform in Egypt",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [locale, messages, cookieStore] = await Promise.all([
+    getLocale(),
+    getMessages(),
+    cookies(),
+  ]);
+  const savedTheme = cookieStore.get(themeCookieName)?.value;
+  const theme: Theme = savedTheme === "dark" ? "dark" : "light";
+  const direction = getLocaleDirection(locale as AppLocale);
+
   return (
-    <html lang="en" dir="ltr">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html
+      lang={locale}
+      dir={direction}
+      className={theme === "dark" ? "dark" : undefined}
+      style={{ colorScheme: theme }}
+      suppressHydrationWarning
+    >
       <body>
-        <Providers>
+        <AppProviders locale={locale} messages={messages} theme={theme}>
           <ConditionalShell>{children}</ConditionalShell>
-        </Providers>
+        </AppProviders>
       </body>
     </html>
   );

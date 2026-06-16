@@ -5,10 +5,17 @@ import {
   Coins, Wallet, Users, MapPin, BarChart2, Star,
   UserCircle, ShieldCheck, Ship, LogOut, X,
 } from 'lucide-react'
+import { useLocale } from 'next-intl'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setActiveScreen, setSidebarOpen } from '@/store/features/uiSlice'
-import { t, type TranslationKey } from '@/lib/i18n/translations'
-import type { ScreenId } from '@/shared/types'
+import { setActiveScreen, setSidebarOpen } from '@/modules/captain/store/captain-dashboard-slice'
+import {
+  selectAccountType,
+  selectActiveScreen,
+  selectProfile,
+  selectSidebarOpen,
+} from '@/modules/captain/store/selectors'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
+import type { ScreenId } from '@/modules/captain/types/provider'
 
 interface NavEntry {
   id: ScreenId
@@ -46,13 +53,14 @@ const ACCOUNT_ITEMS: NavEntry[] = [
 
 export default function Sidebar() {
   const dispatch = useAppDispatch()
-  const accountType = useAppSelector(s => s.ui.accountType)
-  const activeScreen = useAppSelector(s => s.ui.activeScreen)
-  const language = useAppSelector(s => s.ui.language)
-  const sidebarOpen = useAppSelector(s => s.ui.sidebarOpen)
-  const profile = useAppSelector(s => s.data.profile)
+  const accountType = useAppSelector(selectAccountType)
+  const activeScreen = useAppSelector(selectActiveScreen)
+  const sidebarOpen = useAppSelector(selectSidebarOpen)
+  const profile = useAppSelector(selectProfile)
+  const locale = useLocale()
+  const t = useCaptainTranslations()
   const isOffice = accountType === 'office'
-  const isRTL = language === 'ar'
+  const isRTL = locale === 'ar'
 
   const navigate = (id: ScreenId) => {
     dispatch(setActiveScreen(id))
@@ -76,7 +84,7 @@ export default function Sidebar() {
       >
         <span className={clsx('shrink-0', isRTL && 'scale-x-[-1]')}>{item.icon}</span>
         <span className="flex-1 text-left rtl:text-right">
-          {t(item.labelKey as TranslationKey, language)}
+          {t(item.labelKey)}
         </span>
         {item.badge !== undefined && (
           <span className={clsx('bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full', isRTL ? 'mr-auto' : 'ml-auto')}>
@@ -94,7 +102,7 @@ export default function Sidebar() {
     return (
       <>
         <p className="px-3 pt-[14px] pb-[6px] text-[10px] font-bold uppercase tracking-[.07em] text-white/30">
-          {t(labelKey as TranslationKey, language)}
+          {t(labelKey)}
         </p>
         {items.map(renderItem)}
       </>
@@ -136,7 +144,7 @@ export default function Sidebar() {
             'text-[10px] font-bold px-2 py-[2px] rounded-full',
             isOffice ? 'bg-blue-600/30 text-blue-200' : 'bg-amber-500/20 text-amber-200',
           )}>
-            {t(isOffice ? 'accountType_office' : 'accountType_captain', language)}
+            {t(isOffice ? 'accountType_office' : 'accountType_captain')}
           </span>
           <p className="text-[12px] font-semibold text-white mt-[6px]">{profile.name}</p>
         </div>
@@ -156,7 +164,7 @@ export default function Sidebar() {
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold text-white truncate">{profile.name}</p>
               <p className="text-[11px] text-white/40">
-                {t(isOffice ? 'accountType_office' : 'accountType_captain', language)}
+                {t(isOffice ? 'accountType_office' : 'accountType_captain')}
               </p>
             </div>
             <button className="text-white/30 hover:text-white transition-colors">

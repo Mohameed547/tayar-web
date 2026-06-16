@@ -6,8 +6,10 @@ import { SlidersHorizontal, ArrowUpDown, ArrowLeft, CheckCircle } from "lucide-r
 import Link from "next/link";
 import { mockOffers, mockShipments } from "@/constants/mock-data";
 import OfferCard from "@/modules/customer/ui/offer-card";
+import { useTranslations } from "next-intl";
 
 export default function CompareOffersPage() {
+  const t = useTranslations("customer.offers");
   const params = useParams();
   const router = useRouter();
   const shipmentId = params.shipmentId as string;
@@ -35,11 +37,11 @@ export default function CompareOffersPage() {
   const getSpeedLabel = (val: string) => {
     switch (val) {
       case "standard":
-        return "Standard";
+        return t("standard");
       case "express":
-        return "Express";
+        return t("express");
       case "scheduled":
-        return "Scheduled";
+        return t("scheduled");
       default:
         return val;
     }
@@ -58,7 +60,7 @@ export default function CompareOffersPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-              {mockOffers.length} Offers received
+              {t("received", { count: mockOffers.length })}
             </h1>
             <span className="text-zinc-600 font-bold">•</span>
             <span className="text-sm font-semibold text-blue-500">
@@ -77,7 +79,7 @@ export default function CompareOffersPage() {
           className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all duration-200 shadow-md focus:outline-none disabled:bg-blue-800"
         >
           <CheckCircle className="h-4 w-4" />
-          <span>{confirming ? "Confirming..." : "Accept Selected Offer"}</span>
+          <span>{confirming ? t("confirming") : t("accept")}</span>
         </button>
       </div>
 
@@ -85,11 +87,11 @@ export default function CompareOffersPage() {
       <div className="flex justify-end gap-2.5">
         <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all focus:outline-none">
           <SlidersHorizontal className="h-3.5 w-3.5" />
-          <span>Filter</span>
+          <span>{t("filter")}</span>
         </button>
         <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all focus:outline-none">
           <ArrowUpDown className="h-3.5 w-3.5" />
-          <span>Sort: Price</span>
+          <span>{t("sortPrice")}</span>
         </button>
       </div>
 

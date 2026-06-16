@@ -8,10 +8,13 @@ import { profileSchema } from "@/lib/validation/common";
 import { User, Phone, Mail, Calendar, CheckCircle } from "lucide-react";
 import { mockCustomer } from "@/constants/mock-data";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
+  const t = useTranslations("customer.profile");
+  const validation = useTranslations("validation");
   const [activeTab, setActiveTab] = useState<"info" | "edit">("info");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -38,7 +41,7 @@ export default function ProfilePage() {
         mockCustomer.email = data.email;
         mockCustomer.phone = data.phone;
 
-        setSuccessMessage("Profile updated successfully!");
+        setSuccessMessage(t("updated"));
         setActiveTab("info");
         resolve();
 
@@ -50,7 +53,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-3xl mx-auto">
-      <h1 className="text-xl font-bold tracking-tight">My Profile</h1>
+      <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
 
       {successMessage && (
         <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
@@ -73,11 +76,11 @@ export default function ProfilePage() {
           <div className="flex flex-col">
             <span className="text-base font-bold text-zinc-200">{mockCustomer.name}</span>
             <span className="text-[10px] text-zinc-500 mt-1 uppercase tracking-wider font-bold">
-              {mockCustomer.role}
+              {t("customerRole")}
             </span>
           </div>
           <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Verified Account
+            {t("verified")}
           </span>
         </div>
 
@@ -94,7 +97,7 @@ export default function ProfilePage() {
                   : "border-transparent text-zinc-500 hover:text-zinc-300"
               )}
             >
-              Overview
+              {t("overview")}
             </button>
             <button
               onClick={() => setActiveTab("edit")}
@@ -105,7 +108,7 @@ export default function ProfilePage() {
                   : "border-transparent text-zinc-500 hover:text-zinc-300"
               )}
             >
-              Edit Profile
+              {t("edit")}
             </button>
           </div>
 
@@ -114,14 +117,14 @@ export default function ProfilePage() {
             {activeTab === "info" ? (
               <div className="flex flex-col gap-5">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                  Account Details
+                  {t("accountDetails")}
                 </h2>
 
                 <div className="flex flex-col gap-4 text-xs">
                   <div className="flex items-center gap-3">
                     <User className="h-4 w-4 text-zinc-500 shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-zinc-500 font-medium">Full Name</span>
+                      <span className="text-zinc-500 font-medium">{t("fullName")}</span>
                       <span className="text-zinc-200 font-semibold mt-0.5">{mockCustomer.name}</span>
                     </div>
                   </div>
@@ -129,7 +132,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3">
                     <Mail className="h-4 w-4 text-zinc-500 shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-zinc-500 font-medium">Email Address</span>
+                      <span className="text-zinc-500 font-medium">{t("email")}</span>
                       <span className="text-zinc-200 font-semibold mt-0.5">{mockCustomer.email}</span>
                     </div>
                   </div>
@@ -137,7 +140,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-zinc-500 shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-zinc-500 font-medium">Phone Number</span>
+                      <span className="text-zinc-500 font-medium">{t("phone")}</span>
                       <span className="text-zinc-200 font-semibold mt-0.5">{mockCustomer.phone}</span>
                     </div>
                   </div>
@@ -145,8 +148,8 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-zinc-500 shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-zinc-500 font-medium">Joined On</span>
-                      <span className="text-zinc-200 font-semibold mt-0.5">January 2026</span>
+                      <span className="text-zinc-500 font-medium">{t("joined")}</span>
+                      <span className="text-zinc-200 font-semibold mt-0.5">{t("joinedDate")}</span>
                     </div>
                   </div>
                 </div>
@@ -154,13 +157,13 @@ export default function ProfilePage() {
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">
-                  Update Information
+                  {t("updateInformation")}
                 </h2>
 
                 {/* Name Input */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-zinc-400">
-                    Full Name
+                    {t("fullName")}
                   </label>
                   <input
                     type="text"
@@ -169,11 +172,11 @@ export default function ProfilePage() {
                       "w-full bg-zinc-950 border rounded-lg px-4 py-2.5 text-xs text-zinc-250 focus:outline-none transition-colors",
                       errors.name ? "border-red-500 focus:border-red-500" : "border-zinc-850 focus:border-zinc-700"
                     )}
-                    placeholder="John Doe"
+                    placeholder={mockCustomer.name}
                   />
                   {errors.name && (
                     <span className="text-[10px] text-red-400 font-medium mt-0.5">
-                      {errors.name.message}
+                      {validation(errors.name.message as never)}
                     </span>
                   )}
                 </div>
@@ -181,7 +184,7 @@ export default function ProfilePage() {
                 {/* Email Input */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-zinc-400">
-                    Email Address
+                    {t("email")}
                   </label>
                   <input
                     type="email"
@@ -190,11 +193,11 @@ export default function ProfilePage() {
                       "w-full bg-zinc-950 border rounded-lg px-4 py-2.5 text-xs text-zinc-250 focus:outline-none transition-colors",
                       errors.email ? "border-red-500 focus:border-red-500" : "border-zinc-850 focus:border-zinc-700"
                     )}
-                    placeholder="john@example.com"
+                    placeholder={mockCustomer.email}
                   />
                   {errors.email && (
                     <span className="text-[10px] text-red-400 font-medium mt-0.5">
-                      {errors.email.message}
+                      {validation(errors.email.message as never)}
                     </span>
                   )}
                 </div>
@@ -202,7 +205,7 @@ export default function ProfilePage() {
                 {/* Phone Input */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-zinc-400">
-                    Phone Number
+                    {t("phone")}
                   </label>
                   <input
                     type="text"
@@ -211,11 +214,11 @@ export default function ProfilePage() {
                       "w-full bg-zinc-950 border rounded-lg px-4 py-2.5 text-xs text-zinc-250 focus:outline-none transition-colors",
                       errors.phone ? "border-red-500 focus:border-red-500" : "border-zinc-850 focus:border-zinc-700"
                     )}
-                    placeholder="01012345678"
+                    placeholder={mockCustomer.phone}
                   />
                   {errors.phone && (
                     <span className="text-[10px] text-red-400 font-medium mt-0.5">
-                      {errors.phone.message}
+                      {validation(errors.phone.message as never)}
                     </span>
                   )}
                 </div>
@@ -226,7 +229,7 @@ export default function ProfilePage() {
                   disabled={isSubmitting}
                   className="w-full py-2.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 transition-all shadow-md focus:outline-none mt-2"
                 >
-                  {isSubmitting ? "Saving changes..." : "Save Changes"}
+                  {isSubmitting ? t("saving") : t("save")}
                 </button>
               </form>
             )}

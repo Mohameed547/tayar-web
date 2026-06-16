@@ -1,20 +1,21 @@
 'use client'
 import { useAppSelector }   from '@/store/hooks'
-import { t }                from '@/lib/i18n/translations'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
+import { selectRequests } from '@/modules/captain/store/selectors'
 import Card                 from '@/shared/ui/Card'
 import Badge                from '@/shared/ui/Badge'
 
 export default function Requests() {
-  const language = useAppSelector(s => s.ui.language)
-  const requests = useAppSelector(s => s.data.requests)
+  const t = useCaptainTranslations()
+  const requests = useAppSelector(selectRequests)
 
   return (
     <div>
       <div className="mb-[22px]">
         <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">
-          {t('requests_title', language)}
+          {t('requests_title')}
         </h1>
-        <p className="text-[13px] text-[var(--color-text-sub)]">{t('requests_sub', language)}</p>
+        <p className="text-[13px] text-[var(--color-text-sub)]">{t('requests_sub')}</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -28,14 +29,14 @@ export default function Requests() {
                 </span>
               </div>
               <button className="px-3 py-[6px] bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-semibold rounded-md transition-colors self-start sm:self-auto">
-                {t('sendOffer', language)}
+                {t('sendOffer')}
               </button>
             </div>
             <div className="text-[13px] text-[var(--color-text-main)] space-y-1">
-              <p><strong>{t('pickup', language)}:</strong> {req.pickup}</p>
-              <p><strong>{t('dropoff', language)}:</strong> {req.dropoff}</p>
+              <p><strong>{t('pickup')}:</strong> {req.pickup}</p>
+              <p><strong>{t('dropoff')}:</strong> {req.dropoff}</p>
             </div>
-            <p className="text-[11px] text-amber-500 mt-2">⏱ {t('expiresIn', language)} {req.expiresIn}</p>
+            <p className="text-[11px] text-amber-500 mt-2">⏱ {t('expiresIn')} {req.expiresIn}</p>
           </Card>
         ))}
       </div>

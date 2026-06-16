@@ -1,17 +1,20 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { shipmentRequestSchema } from "@/lib/validation/common";
 import { cn } from "@/lib/utils";
 import { MapPin, Search, ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 
 type ShipmentFormValues = z.infer<typeof shipmentRequestSchema>;
 
 export default function NewShipmentPage() {
+  const t = useTranslations("customer.newShipment");
+  const validation = useTranslations("validation");
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
@@ -19,7 +22,7 @@ export default function NewShipmentPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<ShipmentFormValues>({
@@ -35,26 +38,29 @@ export default function NewShipmentPage() {
   });
 
   // Watch fields to update the preview panel in real-time
-  const pickupAddress = watch("pickupAddress");
-  const deliveryAddress = watch("deliveryAddress");
-  const weight = watch("weight");
-  const packageType = watch("packageType");
-  const deliverySpeed = watch("deliverySpeed");
+  const [
+    pickupAddress,
+    deliveryAddress,
+    weight,
+    packageType,
+    deliverySpeed,
+    scheduledDate,
+  ] = useWatch({
+    control,
+    name: [
+      "pickupAddress",
+      "deliveryAddress",
+      "weight",
+      "packageType",
+      "deliverySpeed",
+      "scheduledDate",
+    ],
+  });
 
   // Determine estimated price & distance based on addresses
-  const [distance, setDistance] = useState("~220 km");
-  const [estPrice, setEstPrice] = useState("EGP 80-180");
-
-  useEffect(() => {
-    // If user changes addresses, we simulate distance changes
-    if (pickupAddress && deliveryAddress) {
-      setDistance("~220 km");
-      setEstPrice("EGP 80-180");
-    } else {
-      setDistance("-");
-      setEstPrice("-");
-    }
-  }, [pickupAddress, deliveryAddress]);
+  const hasCompleteRoute = Boolean(pickupAddress && deliveryAddress);
+  const distance = hasCompleteRoute ? t("distanceValue") : "-";
+  const estPrice = hasCompleteRoute ? t("priceValue") : "-";
 
   const onSubmit = () => {
     setSubmitting(true);
@@ -69,13 +75,13 @@ export default function NewShipmentPage() {
   const getPackageTypeLabel = (val: string) => {
     switch (val) {
       case "small_box":
-        return "Small box";
+        return t("smallBox");
       case "medium_box":
-        return "Medium box";
+        return t("mediumBox");
       case "large_box":
-        return "Large box";
+        return t("largeBox");
       case "pallet":
-        return "Pallet";
+        return t("pallet");
       default:
         return val;
     }
@@ -84,11 +90,11 @@ export default function NewShipmentPage() {
   const getSpeedLabel = (val: string) => {
     switch (val) {
       case "standard":
-        return "Standard (2-3 days)";
+        return `${t("standard")} (${t("standardTime")})`;
       case "express":
-        return "Express (Same day)";
+        return `${t("express")} (${t("expressTime")})`;
       case "scheduled":
-        return "Scheduled (Pick date)";
+        return `${t("scheduled")} (${t("scheduledTime")})`;
       default:
         return val;
     }
@@ -100,10 +106,10 @@ export default function NewShipmentPage() {
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-            New Shipment Request
+            {t("title")}
           </h1>
           <p className="text-xs text-blue-500 font-semibold mt-1">
-            Step 1: Pickup & Delivery Details
+            {t("step")}
           </p>
         </div>
         {/* Progress Dots */}
@@ -123,7 +129,7 @@ export default function NewShipmentPage() {
           {/* Pickup Address */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-zinc-400">
-              Pickup address
+              {t("pickupAddress")}
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
@@ -131,12 +137,12 @@ export default function NewShipmentPage() {
                 type="text"
                 {...register("pickupAddress")}
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-                placeholder="Enter pickup location..."
+                placeholder={t("pickupPlaceholder")}
               />
             </div>
             {errors.pickupAddress && (
               <span className="text-[11px] text-red-400 font-medium">
-                {errors.pickupAddress.message}
+                {validation(errors.pickupAddress.message as never)}
               </span>
             )}
           </div>
@@ -144,7 +150,7 @@ export default function NewShipmentPage() {
           {/* Delivery Address */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-zinc-400">
-              Delivery address
+              {t("deliveryAddress")}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
@@ -152,12 +158,12 @@ export default function NewShipmentPage() {
                 type="text"
                 {...register("deliveryAddress")}
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-                placeholder="Search destination..."
+                placeholder={t("deliveryPlaceholder")}
               />
             </div>
             {errors.deliveryAddress && (
               <span className="text-[11px] text-red-400 font-medium">
-                {errors.deliveryAddress.message}
+                {validation(errors.deliveryAddress.message as never)}
               </span>
             )}
           </div>
@@ -167,7 +173,7 @@ export default function NewShipmentPage() {
             {/* Weight */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold text-zinc-400">
-                Weight (kg)
+                {t("weight")}
               </label>
               <input
                 type="number"
@@ -178,7 +184,7 @@ export default function NewShipmentPage() {
               />
               {errors.weight && (
                 <span className="text-[11px] text-red-400 font-medium">
-                  {errors.weight.message}
+                  {validation(errors.weight.message as never)}
                 </span>
               )}
             </div>
@@ -186,7 +192,7 @@ export default function NewShipmentPage() {
             {/* Package Type */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold text-zinc-400">
-                Package type
+                {t("packageType")}
               </label>
               <select
                 {...register("packageType")}
@@ -197,10 +203,10 @@ export default function NewShipmentPage() {
                   backgroundPosition: 'right 10px center'
                 }}
               >
-                <option value="small_box" className="bg-zinc-900 text-zinc-200">Small box</option>
-                <option value="medium_box" className="bg-zinc-900 text-zinc-200">Medium box</option>
-                <option value="large_box" className="bg-zinc-900 text-zinc-200">Large box</option>
-                <option value="pallet" className="bg-zinc-900 text-zinc-200">Pallet</option>
+                <option value="small_box" className="bg-zinc-900 text-zinc-200">{t("smallBox")}</option>
+                <option value="medium_box" className="bg-zinc-900 text-zinc-200">{t("mediumBox")}</option>
+                <option value="large_box" className="bg-zinc-900 text-zinc-200">{t("largeBox")}</option>
+                <option value="pallet" className="bg-zinc-900 text-zinc-200">{t("pallet")}</option>
               </select>
             </div>
           </div>
@@ -208,13 +214,13 @@ export default function NewShipmentPage() {
           {/* Delivery Speed Selector (Tabs layout) */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-zinc-400">
-              Delivery speed
+              {t("deliverySpeed")}
             </label>
             <div className="grid grid-cols-3 gap-2 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
               {[
-                { id: "standard", label: "Standard", sub: "2-3 days" },
-                { id: "express", label: "Express", sub: "Same day" },
-                { id: "scheduled", label: "Scheduled", sub: "Pick date" },
+                { id: "standard", label: t("standard"), sub: t("standardTime") },
+                { id: "express", label: t("express"), sub: t("expressTime") },
+                { id: "scheduled", label: t("scheduled"), sub: t("scheduledTime") },
               ].map((speed) => (
                 <button
                   key={speed.id}
@@ -243,7 +249,7 @@ export default function NewShipmentPage() {
           {deliverySpeed === "scheduled" && (
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold text-zinc-400">
-                Scheduled Date
+                {t("scheduledDate")}
               </label>
               <input
                 type="date"
@@ -252,7 +258,7 @@ export default function NewShipmentPage() {
               />
               {errors.scheduledDate && (
                 <span className="text-[11px] text-red-400 font-medium">
-                  {errors.scheduledDate.message}
+                  {validation(errors.scheduledDate.message as never)}
                 </span>
               )}
             </div>
@@ -261,17 +267,17 @@ export default function NewShipmentPage() {
           {/* Notes for Captain */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-zinc-400">
-              Notes for captain (optional)
+              {t("notes")}
             </label>
             <textarea
               {...register("notes")}
               rows={3}
               className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors resize-none"
-              placeholder="e.g. Fragile, call before delivery..."
+              placeholder={t("notesPlaceholder")}
             />
             {errors.notes && (
               <span className="text-[11px] text-red-400 font-medium">
-                {errors.notes.message}
+                {validation(errors.notes.message as never)}
               </span>
             )}
           </div>
@@ -283,10 +289,10 @@ export default function NewShipmentPage() {
             className="w-full flex items-center justify-center gap-2 mt-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 shadow-md focus:outline-none"
           >
             {submitting ? (
-              <span>Posting Request...</span>
+              <span>{t("posting")}</span>
             ) : (
               <>
-                <span>Next: Review & Post</span>
+                <span>{t("next")}</span>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -329,7 +335,7 @@ export default function NewShipmentPage() {
             {/* Float badge with route summary */}
             {pickupAddress && deliveryAddress && (
               <span className="absolute bottom-4 bg-zinc-950/90 border border-zinc-800 px-3 py-1.5 rounded-full text-[10px] font-bold text-zinc-300 shadow-md uppercase tracking-wider">
-                Cairo ➔ Alexandria · {distance}
+                {t("routePreview", { distance })}
               </span>
             )}
           </div>
@@ -337,35 +343,35 @@ export default function NewShipmentPage() {
           {/* Shipment Summary details panel */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex flex-col gap-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-800 pb-2">
-              Shipment summary
+              {t("summary")}
             </h3>
 
             <div className="flex flex-col gap-3 text-xs">
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">Distance</span>
+                <span className="text-zinc-500 font-medium">{t("distance")}</span>
                 <span className="text-zinc-200 font-semibold">{distance}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">Weight</span>
+                <span className="text-zinc-500 font-medium">{t("weight")}</span>
                 <span className="text-zinc-200 font-semibold">{weight ? `${weight} kg` : "-"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">Type</span>
+                <span className="text-zinc-500 font-medium">{t("type")}</span>
                 <span className="text-zinc-200 font-semibold">{getPackageTypeLabel(packageType)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">Speed</span>
+                <span className="text-zinc-500 font-medium">{t("speed")}</span>
                 <span className="text-zinc-200 font-semibold">{getSpeedLabel(deliverySpeed)}</span>
               </div>
-              {deliverySpeed === "scheduled" && watch("scheduledDate") && (
+              {deliverySpeed === "scheduled" && scheduledDate && (
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 font-medium">Scheduled Date</span>
-                  <span className="text-zinc-200 font-semibold">{String(watch("scheduledDate"))}</span>
+                  <span className="text-zinc-500 font-medium">{t("scheduledDate")}</span>
+                  <span className="text-zinc-200 font-semibold">{String(scheduledDate)}</span>
                 </div>
               )}
               <hr className="border-zinc-800 my-1" />
               <div className="flex justify-between items-baseline mt-1">
-                <span className="text-zinc-400 font-bold">Est. price range</span>
+                <span className="text-zinc-400 font-bold">{t("estimatedPrice")}</span>
                 <span className="text-blue-400 text-sm font-extrabold">{estPrice}</span>
               </div>
             </div>

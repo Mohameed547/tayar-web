@@ -1,37 +1,39 @@
 "use client";
 
 import { CheckCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ReviewsPage() {
+  const t = useTranslations("customer.reviews");
   const reviews = [
     {
       id: "rev-1",
-      entityName: "Karim Mostafa (Captain)",
+      entityName: t("captainName"),
       shipmentId: "SC-00408",
       rating: 5,
-      comment: "Super fast delivery, kept me updated during the whole road trip. Highly recommended!",
-      date: "Yesterday",
+      comment: t("captainComment"),
+      date: t("yesterday"),
     },
     {
       id: "rev-2",
-      entityName: "Nour Logistics (Office)",
+      entityName: t("officeName"),
       shipmentId: "SC-00405",
       rating: 4,
-      comment: "Very professional dispatch team, package was delivered intact.",
-      date: "1 week ago",
+      comment: t("officeComment"),
+      date: t("weekAgo"),
     },
   ];
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-3xl mx-auto">
-      <h1 className="text-xl font-bold tracking-tight">Reviews & Ratings</h1>
+      <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex items-center justify-between shadow-sm">
           <div className="flex flex-col">
             <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-              Average Rating Left
+              {t("average")}
             </span>
             <span className="text-3xl font-extrabold text-amber-400 mt-1">
               4.5 / 5
@@ -47,7 +49,7 @@ export default function ReviewsPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex items-center justify-between shadow-sm">
           <div className="flex flex-col">
             <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-              Pending Reviews
+              {t("pending")}
             </span>
             <span className="text-3xl font-extrabold text-blue-500 mt-1">
               0
@@ -62,7 +64,7 @@ export default function ReviewsPage() {
       {/* Historical Reviews Feed */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-800 pb-3 mb-4">
-          Review History
+          {t("history")}
         </h2>
 
         <div className="flex flex-col gap-5">
@@ -77,7 +79,7 @@ export default function ReviewsPage() {
                     {rev.entityName}
                   </span>
                   <span className="text-[10px] text-zinc-500 font-medium">
-                    Shipment ID: {rev.shipmentId}
+                    {t("shipmentId", { id: rev.shipmentId })}
                   </span>
                 </div>
                 <span className="text-[10px] text-zinc-500 font-medium">{rev.date}</span>

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { supportTicketSchema } from "@/lib/validation/common";
 import { z } from "zod";
 import { Headphones, Mail, Phone, MessageSquare, Plus, X, Send } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type TicketFormValues = z.infer<typeof supportTicketSchema>;
 
@@ -17,19 +18,21 @@ interface ChatMessage {
 }
 
 export default function SupportPage() {
+  const t = useTranslations("customer.support");
+  const validation = useTranslations("validation");
   // Support Tickets State
-  const [tickets, setTickets] = useState([
+  const [tickets, setTickets] = useState(() => [
     {
       id: "tkt-9021",
-      subject: "Shipment delayed - SC-00412",
+      subject: t("ticketDelayed"),
       status: "open",
-      date: "Jun 5, 2026",
+      date: t("ticketDate1"),
     },
     {
       id: "tkt-8810",
-      subject: "Cashback mismatch issue",
+      subject: t("ticketCashback"),
       status: "resolved",
-      date: "May 29, 2026",
+      date: t("ticketDate2"),
     },
   ]);
 
@@ -37,12 +40,12 @@ export default function SupportPage() {
   const [showLiveChat, setShowLiveChat] = useState(false);
 
   // Live Chat Messages & Typing State
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => [
     {
       id: "m1",
       sender: "agent",
-      text: "Hello! Welcome to ShipConnect support. How can I help you today?",
-      time: "Just now",
+      text: t("welcome"),
+      time: t("justNow"),
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
@@ -73,7 +76,7 @@ export default function SupportPage() {
       id: `tkt-${9022 + tickets.length}`,
       subject: data.subject,
       status: "open",
-      date: "Jun 6, 2026",
+      date: t("ticketDateNew"),
     };
     setTickets((prev) => [newTicket, ...prev]);
     reset();
@@ -99,14 +102,14 @@ export default function SupportPage() {
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
-      let replyText = "Thank you for contacting us. An agent will review your request shortly.";
+      let replyText = t("defaultReply");
       
       if (inputVal.includes("sc-00412") || inputVal.includes("412") || inputVal.includes("delayed")) {
-        replyText = "I see your shipment SC-00412 is currently on the road. The captain assigned is Karim Mostafa. He is estimated to arrive in Alexandria in about 2 hours.";
+        replyText = t("delayedReply");
       } else if (inputVal.includes("cashback") || inputVal.includes("refund")) {
-        replyText = "For cashback questions, our billing team is reviewing all transactions. Your cashback of EGP 14.50 from SC-00405 has been processed successfully.";
+        replyText = t("cashbackReply");
       } else if (inputVal.includes("hello") || inputVal.includes("hi")) {
-        replyText = "Hi there! How can I assist you with your shipments today?";
+        replyText = t("greetingReply");
       }
 
       const agentMsg: ChatMessage = {
@@ -121,7 +124,7 @@ export default function SupportPage() {
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-4xl mx-auto">
-      <h1 className="text-xl font-bold tracking-tight">Customer Support</h1>
+      <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {/* Contact Channels Grid */}
@@ -129,20 +132,20 @@ export default function SupportPage() {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
               <Headphones className="h-4.5 w-4.5" />
-              <span>Contact Us</span>
+              <span>{t("contactUs")}</span>
             </div>
             <p className="text-[11px] text-zinc-500 leading-relaxed mt-1">
-              Need immediate assistance? Our support agents are available 24/7.
+              {t("contactDescription")}
             </p>
 
             <div className="flex flex-col gap-2.5 mt-2 text-xs">
               <div className="flex items-center gap-2 text-zinc-300">
                 <Phone className="h-3.5 w-3.5 text-zinc-500" />
-                <span>19999 (Hotline)</span>
+                <span>{t("hotline")}</span>
               </div>
               <div className="flex items-center gap-2 text-zinc-300">
                 <Mail className="h-3.5 w-3.5 text-zinc-500" />
-                <span>support@shipconnect.com</span>
+                <span>support@deliveryhub.com</span>
               </div>
             </div>
           </div>
@@ -152,7 +155,7 @@ export default function SupportPage() {
             className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none mt-4"
           >
             <MessageSquare className="h-3.5 w-3.5" />
-            <span>Start Live Chat</span>
+            <span>{t("startChat")}</span>
           </button>
         </div>
 
@@ -161,14 +164,14 @@ export default function SupportPage() {
           <div className="flex flex-col">
             <div className="flex justify-between items-center border-b border-zinc-800 pb-3 mb-4">
               <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                My Support Tickets
+                {t("tickets")}
               </h2>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-1 text-[10px] font-bold text-blue-500 hover:text-blue-400"
               >
                 <Plus className="h-3 w-3" />
-                <span>Create Ticket</span>
+                <span>{t("createTicket")}</span>
               </button>
             </div>
 
@@ -197,7 +200,7 @@ export default function SupportPage() {
                           : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                       }`}
                     >
-                      {tkt.status}
+                      {isOpen ? t("open") : t("resolved")}
                     </span>
                   </div>
                 );
@@ -220,48 +223,48 @@ export default function SupportPage() {
             >
               <X className="h-4 w-4" />
             </button>
-            <h2 className="text-base font-bold text-zinc-100">Create Support Ticket</h2>
+            <h2 className="text-base font-bold text-zinc-100">{t("createTitle")}</h2>
             <p className="text-xs text-zinc-400">
-              Submit a support ticket and our customer assistance team will reply shortly.
+              {t("createSubtitle")}
             </p>
             <form onSubmit={handleSubmit(handleCreateTicket)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Subject</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("subject")}</label>
                 <input
                   type="text"
                   {...register("subject")}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-                  placeholder="e.g. Delayed delivery package..."
+                  placeholder={t("subjectPlaceholder")}
                 />
                 {errors.subject && (
                   <span className="text-[11px] text-red-400 font-medium">
-                    {errors.subject.message}
+                    {validation(errors.subject.message as never)}
                   </span>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Category</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("category")}</label>
                 <select
                   {...register("category")}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors cursor-pointer"
                 >
-                  <option value="delay" className="bg-zinc-900 text-zinc-200">Delivery Delay</option>
-                  <option value="billing" className="bg-zinc-900 text-zinc-200">Billing / Payment Issues</option>
-                  <option value="damage" className="bg-zinc-900 text-zinc-200">Cargo Damage</option>
-                  <option value="other" className="bg-zinc-900 text-zinc-200">Other / Inquiries</option>
+                  <option value="delay" className="bg-zinc-900 text-zinc-200">{t("delay")}</option>
+                  <option value="billing" className="bg-zinc-900 text-zinc-200">{t("billing")}</option>
+                  <option value="damage" className="bg-zinc-900 text-zinc-200">{t("damage")}</option>
+                  <option value="other" className="bg-zinc-900 text-zinc-200">{t("other")}</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Message Details</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("messageDetails")}</label>
                 <textarea
                   {...register("message")}
                   rows={4}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors resize-none"
-                  placeholder="Describe your issue in detail..."
+                  placeholder={t("messagePlaceholder")}
                 />
                 {errors.message && (
                   <span className="text-[11px] text-red-400 font-medium">
-                    {errors.message.message}
+                    {validation(errors.message.message as never)}
                   </span>
                 )}
               </div>
@@ -269,7 +272,7 @@ export default function SupportPage() {
                 type="submit"
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 shadow-md focus:outline-none"
               >
-                Submit Ticket
+                {t("submitTicket")}
               </button>
             </form>
           </div>
@@ -290,8 +293,8 @@ export default function SupportPage() {
                   <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 border border-zinc-900" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-zinc-100">Live Support Agent</span>
-                  <span className="text-[9px] text-zinc-500">Always online</span>
+                  <span className="text-xs font-bold text-zinc-100">{t("liveAgent")}</span>
+                  <span className="text-[9px] text-zinc-500">{t("alwaysOnline")}</span>
                 </div>
               </div>
               <button
@@ -346,7 +349,7 @@ export default function SupportPage() {
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={t("typeMessage")}
                 className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
               />
               <button

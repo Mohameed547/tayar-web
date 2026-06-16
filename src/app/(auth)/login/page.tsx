@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginSchema } from "@/lib/validation/common";
 import { AuthLayout } from "@/modules/auth/ui/auth-layout";
-import { Input } from "@/shared/ui/Input";
+import { Input } from "@/shared/ui/input";
 import { PasswordInput } from "@/modules/auth/ui/password-input";
-import { Button } from "@/shared/ui/Button";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useTranslation } from "@/shared/hooks/use-translation";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const validation = useTranslations("validation");
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -55,10 +57,10 @@ export default function LoginPage() {
         <Input
           label={t("auth.email")}
           type="email"
-          placeholder="name@example.com"
+          placeholder={t("auth.emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          error={errors.email}
+          error={errors.email ? validation(errors.email as never) : undefined}
           disabled={isLoading}
           required
         />
@@ -79,7 +81,7 @@ export default function LoginPage() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            error={errors.password}
+            error={errors.password ? validation(errors.password as never) : undefined}
             disabled={isLoading}
             required
           />
@@ -97,7 +99,7 @@ export default function LoginPage() {
             htmlFor="remember-me"
             className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
           >
-            {t("auth.RememberMe")}
+            {t("auth.rememberMe")}
           </label>
         </div>
 

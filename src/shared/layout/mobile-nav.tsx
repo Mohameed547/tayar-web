@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -24,51 +25,52 @@ interface MobileNavProps {
 
 export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const pathname = usePathname();
+  const t = useTranslations("navigation");
 
   const menuItems = [
     {
-      label: "Dashboard",
+      label: t("dashboard"),
       href: "/dashboard",
       icon: LayoutDashboard,
     },
     {
-      label: "New Shipment",
+      label: t("newShipment"),
       href: "/shipments/new",
       icon: PlusCircle,
     },
     {
-      label: "My Shipments",
+      label: t("myShipments"),
       href: "/shipments",
       icon: Package,
     },
     {
-      label: "Track",
+      label: t("track"),
       href: "/tracking",
       icon: MapPin,
     },
     {
-      label: "Wallet",
+      label: t("wallet"),
       href: "/wallet",
       icon: Wallet,
     },
     {
-      label: "Notifications",
+      label: t("notifications"),
       href: "/notifications",
       icon: Bell,
       badge: 3,
     },
     {
-      label: "Reviews",
+      label: t("reviews"),
       href: "/reviews",
       icon: Star,
     },
     {
-      label: "Support",
+      label: t("support"),
       href: "/support",
       icon: Headphones,
     },
     {
-      label: "Settings",
+      label: t("settings"),
       href: "/profile",
       icon: Settings,
     },
@@ -104,7 +106,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
           {/* Menu Items */}
           <nav className="flex flex-col gap-1">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-3 mb-2">
-              Menu
+              {t("menu")}
             </span>
             {menuItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");

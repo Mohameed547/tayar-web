@@ -4,42 +4,44 @@ import { useState } from "react";
 import { Truck, Check, Wallet, CheckCircle, Info } from "lucide-react";
 import { Notification, NotificationType } from "@/modules/customer/types/notification";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function NotificationsPage() {
+  const t = useTranslations("customer.notifications");
   // Mock data as state
-  const [notifications, setNotifications] = useState<Notification[]>([
+  const [notifications, setNotifications] = useState<Notification[]>(() => [
     {
       id: "nt-1",
-      title: "Package picked up!",
-      message: "SC-00412 picked up by Karim M.",
-      time: "2 min ago",
+      title: t("pickupTitle"),
+      message: t("pickupMessage"),
+      time: t("pickupTime"),
       type: "pickup",
       isRead: false,
       shipmentId: "sc-00412",
     },
     {
       id: "nt-2",
-      title: "Offer accepted!",
-      message: "You selected Nour Logistics for SC-00412",
-      time: "35 min ago",
+      title: t("acceptedTitle"),
+      message: t("acceptedMessage"),
+      time: t("acceptedTime"),
       type: "offer",
       isRead: false,
       shipmentId: "sc-00412",
     },
     {
       id: "nt-3",
-      title: "4 offers received",
-      message: "Compare and select for SC-00412",
-      time: "1h ago",
+      title: t("receivedTitle"),
+      message: t("receivedMessage"),
+      time: t("receivedTime"),
       type: "received",
       isRead: false,
       shipmentId: "sc-00412",
     },
     {
       id: "nt-4",
-      title: "Delivered ✔",
-      message: "SC-00408 delivered successfully",
-      time: "Yesterday",
+      title: t("deliveredTitle"),
+      message: t("deliveredMessage"),
+      time: t("yesterday"),
       type: "delivered",
       isRead: true,
       shipmentId: "sc-00408",
@@ -102,10 +104,10 @@ export default function NotificationsPage() {
       {/* Header section with unread badge counter */}
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold tracking-tight">Notifications</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
           {unreadCount > 0 && (
             <span className="bg-red-500/10 border border-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-              {unreadCount} New
+              {t("newCount", { count: unreadCount })}
             </span>
           )}
         </div>
@@ -114,7 +116,7 @@ export default function NotificationsPage() {
             onClick={handleMarkAllRead}
             className="text-xs font-semibold text-blue-500 hover:text-blue-400 focus:outline-none transition-colors"
           >
-            Mark all as read
+            {t("markAll")}
           </button>
         )}
       </div>

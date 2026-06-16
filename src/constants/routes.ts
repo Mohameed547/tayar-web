@@ -22,5 +22,5 @@ export const ROUTES = {
   PROFILE: "/profile",
 
   // Captain / Office Dashboard
-  CAPTAIN_DASHBOARD: "/captiandashboard",
+  CAPTAIN_DASHBOARD: "/captain-dashboard",
 } as const;

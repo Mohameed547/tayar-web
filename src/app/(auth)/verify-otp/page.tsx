@@ -10,9 +10,11 @@ import { verifyOtpSchema } from "@/lib/validation/common";
 import { ROUTES } from "@/constants/routes";
 import type { VerifyOtpInput } from "@/modules/auth/types/auth";
 import { useTranslation } from "@/shared/hooks/use-translation";
+import { useTranslations } from "next-intl";
 
 function VerifyOtpForm() {
   const { t } = useTranslation();
+  const validation = useTranslations("validation");
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -52,7 +54,9 @@ function VerifyOtpForm() {
           />
 
           {errors.otp && (
-            <p className="text-xs text-red-500">{errors.otp.message}</p>
+            <p className="text-xs text-red-500">
+              {validation(errors.otp.message as never)}
+            </p>
           )}
         </div>
 
@@ -69,8 +73,10 @@ function VerifyOtpForm() {
 }
 
 export default function VerifyOtpPage() {
+  const common = useTranslations("common");
+
   return (
-    <Suspense fallback={<div className="text-zinc-400 text-sm">Loading...</div>}>
+    <Suspense fallback={<div className="text-zinc-400 text-sm">{common("loading")}</div>}>
       <VerifyOtpForm />
     </Suspense>
   );

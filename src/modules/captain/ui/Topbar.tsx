@@ -1,14 +1,21 @@
 'use client'
 import clsx from 'clsx'
-import { Moon, Sun, Languages, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
+import { useLocale } from 'next-intl'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
-  toggleTheme, toggleLanguage,
   setAccountType, toggleOnline, toggleSidebar,
-} from '@/store/features/uiSlice'
-import { switchAccountTypeData } from '@/store/features/dataSlice'
-import { t, type TranslationKey }                     from '@/lib/i18n/translations'
-import type { AccountType, ScreenId } from '@/shared/types'
+} from '@/modules/captain/store/captain-dashboard-slice'
+import { switchAccountTypeData } from '@/modules/captain/store/captain-data-slice'
+import {
+  selectAccountType,
+  selectActiveScreen,
+  selectIsOnline,
+} from '@/modules/captain/store/selectors'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
+import { LocaleToggle } from '@/shared/ui/locale-toggle'
+import { ThemeToggle } from '@/shared/ui/theme-toggle'
+import type { AccountType, ScreenId } from '@/modules/captain/types/provider'
 
 const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
   'overview':         'screen_overview',
@@ -29,13 +36,12 @@ const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
 
 export default function Topbar() {
   const dispatch     = useAppDispatch()
-  const theme        = useAppSelector(s => s.ui.theme)
-  const language     = useAppSelector(s => s.ui.language)
-  const activeScreen = useAppSelector(s => s.ui.activeScreen)
-  const accountType  = useAppSelector(s => s.ui.accountType)
-  const isOnline     = useAppSelector(s => s.ui.isOnline)
-  const isRTL        = language === 'ar'
-  const isDark       = theme === 'dark'
+  const activeScreen = useAppSelector(selectActiveScreen)
+  const accountType  = useAppSelector(selectAccountType)
+  const isOnline     = useAppSelector(selectIsOnline)
+  const locale       = useLocale()
+  const t            = useCaptainTranslations()
+  const isRTL        = locale === 'ar'
 
   const handleAccountType = (type: AccountType) => {
     dispatch(setAccountType(type))
@@ -62,28 +68,13 @@ export default function Topbar() {
 
       {/* Screen title */}
       <h1 className="text-base font-bold text-[var(--color-text-main)]">
-        {t(titleKey as TranslationKey, language)}
+        {t(titleKey)}
       </h1>
 
       <div className={clsx('flex-1')} />
 
-      {/* Language toggle */}
-      <button
-        onClick={() => dispatch(toggleLanguage())}
-        className="w-9 h-9 rounded-md flex items-center justify-center text-[var(--color-text-sub)] hover:bg-[var(--color-bg-muted)] transition-colors"
-        title="Toggle language"
-      >
-        <Languages size={18} />
-      </button>
-
-      {/* Dark / Light toggle */}
-      <button
-        onClick={() => dispatch(toggleTheme())}
-        className="w-9 h-9 rounded-md flex items-center justify-center text-[var(--color-text-sub)] hover:bg-[var(--color-bg-muted)] transition-colors"
-        title="Toggle theme"
-      >
-        {isDark ? <Sun size={18} /> : <Moon size={18} />}
-      </button>
+      <LocaleToggle className="border-0 bg-transparent dark:bg-transparent" />
+      <ThemeToggle className="border-0 bg-transparent dark:bg-transparent" />
 
       {/* Office / Captain switcher */}
       <div className="flex gap-1 bg-[var(--color-bg-muted)] p-[3px] rounded-md">
@@ -98,7 +89,7 @@ export default function Topbar() {
                 : 'text-[var(--color-text-sub)] hover:text-[var(--color-text-main)]',
             )}
           >
-            {type === 'office' ? 'Office' : 'Captain'}
+            {t(type)}
           </button>
         ))}
       </div>
@@ -114,7 +105,7 @@ export default function Topbar() {
         )}
       >
         <span className={clsx('w-2 h-2 rounded-full', isOnline ? 'bg-green-500' : 'bg-[var(--color-text-sub)]')} />
-        {isOnline ? t('online', language) : t('offline', language)}
+        {isOnline ? t('online') : t('offline')}
       </button>
     </header>
   )

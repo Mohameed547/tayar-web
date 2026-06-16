@@ -1,23 +1,24 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
-import { t }              from '@/lib/i18n/translations'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
+import { selectRating } from '@/modules/captain/store/selectors'
 import Card               from '@/shared/ui/Card'
 
 export default function Ratings() {
-  const language = useAppSelector(s => s.ui.language)
-  const rating   = useAppSelector(s => s.data.rating)
+  const t = useCaptainTranslations()
+  const rating = useAppSelector(selectRating)
 
   return (
     <div>
       <div className="mb-[22px]">
-        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('ratings_title', language)}</h1>
-        <p className="text-[13px] text-[var(--color-text-sub)]">{t('ratings_sub', language)}</p>
+        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('ratings_title')}</h1>
+        <p className="text-[13px] text-[var(--color-text-sub)]">{t('ratings_sub')}</p>
       </div>
       <Card>
         <p className="text-[24px] font-extrabold text-amber-500 mb-1">
           {rating.score} / 5.0 ★
         </p>
-        <p className="text-[12px] text-[var(--color-text-sub)]">{t('ratingsBase', language)}</p>
+        <p className="text-[12px] text-[var(--color-text-sub)]">{t('ratingsBase')}</p>
       </Card>
     </div>
   )

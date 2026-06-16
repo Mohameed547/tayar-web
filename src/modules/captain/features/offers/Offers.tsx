@@ -1,29 +1,30 @@
 'use client'
 import { useAppSelector } from '@/store/hooks'
-import { t }              from '@/lib/i18n/translations'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
+import { selectOffers } from '@/modules/captain/store/selectors'
 import DataTable          from '@/shared/ui/DataTable'
 import Badge              from '@/shared/ui/Badge'
-import type { Offer }     from '@/shared/types'
+import type { ProviderOffer } from '@/modules/captain/types/provider'
 
-const STATUS_BADGE: Record<Offer['status'], { variant: 'blue' | 'green' | 'red' | 'amber' | 'gray'; label_en: string; label_ar: string }> = {
-  pending:  { variant: 'amber', label_en: 'Pending Response', label_ar: 'قيد الانتظار' },
-  accepted: { variant: 'green', label_en: 'Accepted',         label_ar: 'مقبول'         },
-  rejected: { variant: 'red',   label_en: 'Rejected',         label_ar: 'مرفوض'         },
-  expired:  { variant: 'gray',  label_en: 'Expired',          label_ar: 'منتهية'         },
+const STATUS_BADGE: Record<ProviderOffer['status'], { variant: 'blue' | 'green' | 'red' | 'amber' | 'gray'; label: 'pendingResponse' | 'accepted' | 'rejected' | 'expired' }> = {
+  pending:  { variant: 'amber', label: 'pendingResponse' },
+  accepted: { variant: 'green', label: 'accepted' },
+  rejected: { variant: 'red',   label: 'rejected' },
+  expired:  { variant: 'gray',  label: 'expired' },
 }
 
 export default function Offers() {
-  const language = useAppSelector(s => s.ui.language)
-  const offers   = useAppSelector(s => s.data.offers)
+  const t = useCaptainTranslations()
+  const offers = useAppSelector(selectOffers)
 
   const columns = [
-    { key: 'requestId', header: t('request_col', language), render: (o: Offer) => <span className="font-semibold text-[var(--color-text-main)]">{o.requestId}</span> },
-    { key: 'quoteEGP',  header: t('yourQuote',   language), render: (o: Offer) => `EGP ${o.quoteEGP}` },
+    { key: 'requestId', header: t('request_col'), render: (o: ProviderOffer) => <span className="font-semibold text-[var(--color-text-main)]">{o.requestId}</span> },
+    { key: 'quoteEGP',  header: t('yourQuote'), render: (o: ProviderOffer) => `EGP ${o.quoteEGP}` },
     {
-      key: 'status', header: t('status_col', language),
-      render: (o: Offer) => {
+      key: 'status', header: t('status_col'),
+      render: (o: ProviderOffer) => {
         const s = STATUS_BADGE[o.status]
-        return <Badge variant={s.variant}>{language === 'ar' ? s.label_ar : s.label_en}</Badge>
+        return <Badge variant={s.variant}>{t(s.label)}</Badge>
       },
     },
   ]
@@ -31,8 +32,8 @@ export default function Offers() {
   return (
     <div>
       <div className="mb-[22px]">
-        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('offers_title', language)}</h1>
-        <p className="text-[13px] text-[var(--color-text-sub)]">{t('offers_sub', language)}</p>
+        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('offers_title')}</h1>
+        <p className="text-[13px] text-[var(--color-text-sub)]">{t('offers_sub')}</p>
       </div>
       <DataTable columns={columns} data={offers} keyField="id" />
     </div>

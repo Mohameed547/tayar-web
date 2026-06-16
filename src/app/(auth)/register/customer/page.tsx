@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerCustomerSchema } from "@/lib/validation/common";
 import { AuthLayout } from "@/modules/auth/ui/auth-layout";
-import { Input } from "@/shared/ui/Input";
+import { Input } from "@/shared/ui/input";
 import { PasswordInput } from "@/modules/auth/ui/password-input";
-import { Button } from "@/shared/ui/Button";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useTranslation } from "@/shared/hooks/use-translation";
+import { useTranslations } from "next-intl";
 
 export default function RegisterCustomerPage() {
   const { t } = useTranslation();
+  const validation = useTranslations("validation");
   const router = useRouter();
   const [formData, setFormData] = React.useState({
     name: "",
@@ -63,10 +65,10 @@ export default function RegisterCustomerPage() {
         <Input
           label={t("auth.name")}
           name="name"
-          placeholder="John Doe"
+          placeholder={t("auth.fullNamePlaceholder")}
           value={formData.name}
           onChange={handleChange}
-          error={errors.name}
+          error={errors.name ? validation(errors.name as never) : undefined}
           disabled={isLoading}
         />
 
@@ -74,20 +76,20 @@ export default function RegisterCustomerPage() {
           label={t("auth.email")}
           name="email"
           type="email"
-          placeholder="john@example.com"
+          placeholder={t("auth.emailPlaceholder")}
           value={formData.email}
           onChange={handleChange}
-          error={errors.email}
+          error={errors.email ? validation(errors.email as never) : undefined}
           disabled={isLoading}
         />
 
         <Input
           label={t("auth.phone")}
           name="phone"
-          placeholder="01xxxxxxxxx"
+          placeholder={t("auth.phonePlaceholder")}
           value={formData.phone}
           onChange={handleChange}
-          error={errors.phone}
+          error={errors.phone ? validation(errors.phone as never) : undefined}
           disabled={isLoading}
         />
 
@@ -96,7 +98,7 @@ export default function RegisterCustomerPage() {
           placeholder={t("auth.password")}
           value={formData.password}
           onChange={handleChange}
-          error={errors.password}
+          error={errors.password ? validation(errors.password as never) : undefined}
           disabled={isLoading}
         />
 
@@ -105,7 +107,7 @@ export default function RegisterCustomerPage() {
           placeholder={t("auth.confirmPassword")}
           value={formData.confirmPassword}
           onChange={handleChange}
-          error={errors.confirmPassword}
+          error={errors.confirmPassword ? validation(errors.confirmPassword as never) : undefined}
           disabled={isLoading}
         />
 

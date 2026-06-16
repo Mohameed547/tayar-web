@@ -13,7 +13,10 @@ export default function CustomerLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-zinc-950">
+    <div
+      className="customer-surface flex h-screen w-screen overflow-hidden bg-zinc-950"
+      data-surface="customer"
+    >
       {/* Sidebar navigation for desktop */}
       <Sidebar className="hidden md:flex" />
 

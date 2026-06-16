@@ -1,8 +1,9 @@
 "use client";
 
-import { Offer } from "@/modules/customer/types/offer";
-import { cn } from "@/lib/utils";
 import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import { Offer } from "@/modules/customer/types/offer";
 
 interface OfferCardProps {
   offer: Offer;
@@ -10,26 +11,40 @@ interface OfferCardProps {
   onSelect: () => void;
 }
 
+const descriptionKeys = {
+  "offer-1": "description1",
+  "offer-2": "description2",
+  "offer-3": "description3",
+  "offer-4": "description4",
+} as const;
+const durationKeys = {
+  "offer-1": "duration1",
+  "offer-2": "duration2",
+  "offer-3": "duration3",
+  "offer-4": "duration4",
+} as const;
+
 export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProps) {
+  const t = useTranslations("customer.offers");
   const {
     providerName,
     providerType,
     providerRating,
     reviewCount,
     price,
-    estDelivery,
     coverage,
-    description,
     isBestValue,
   } = offer;
-
-  // Initials for avatar
   const initials = providerName
     .split(" ")
     .map((word) => word[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  const descriptionKey =
+    descriptionKeys[offer.id as keyof typeof descriptionKeys] ?? "description1";
+  const durationKey =
+    durationKeys[offer.id as keyof typeof durationKeys] ?? "duration1";
 
   return (
     <div
@@ -41,11 +56,9 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
           : "border-zinc-800"
       )}
     >
-      {/* Top Section: Provider Meta */}
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* Avatar Initials */}
             <div
               className={cn(
                 "flex items-center justify-center h-10 w-10 rounded-lg font-bold text-sm shrink-0",
@@ -67,36 +80,38 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
                   {providerRating.toFixed(1)}
                 </span>
                 <span className="text-[10px] text-zinc-500">
-                  ({reviewCount} reviews)
+                  ({t("reviews", { count: reviewCount })})
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Badges on Right */}
           <div className="flex flex-col gap-1.5 items-end">
             {isBestValue && (
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white uppercase tracking-wider">
-                Best Value
+                {t("bestValue")}
               </span>
             )}
             {providerType === "captain" && (
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-800 text-emerald-400 border border-zinc-700 uppercase tracking-wider">
-                Captain
+                {t("captain")}
               </span>
             )}
           </div>
         </div>
 
-        {/* Middle Stats Grid */}
         <div className="grid grid-cols-3 border-y border-zinc-800/60 py-3.5 my-1 text-center">
           <div className="flex flex-col items-center">
             <span className="text-blue-400 font-bold text-base">EGP {price}</span>
-            <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">Price</span>
+            <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">
+              {t("price")}
+            </span>
           </div>
           <div className="flex flex-col items-center border-x border-zinc-800/60">
-            <span className="text-zinc-200 font-bold text-base">{estDelivery}</span>
-            <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">Est. delivery</span>
+            <span className="text-zinc-200 font-bold text-base">{t(durationKey)}</span>
+            <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">
+              {t("estimatedDelivery")}
+            </span>
           </div>
           <div className="flex flex-col items-center">
             <span
@@ -105,22 +120,22 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
                 coverage === "insured" ? "text-emerald-400" : "text-zinc-500"
               )}
             >
-              {coverage === "insured" ? "Insured" : "None"}
+              {coverage === "insured" ? t("insured") : t("none")}
             </span>
-            <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">Coverage</span>
+            <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">
+              {t("coverage")}
+            </span>
           </div>
         </div>
 
-        {/* Description snippet */}
         <p className="text-xs text-zinc-400 leading-relaxed min-h-[32px]">
-          {description}
+          {t(descriptionKey)}
         </p>
       </div>
 
-      {/* Action Select Button */}
       <button
-        onClick={(e) => {
-          e.stopPropagation();
+        onClick={(event) => {
+          event.stopPropagation();
           onSelect();
         }}
         className={cn(
@@ -130,7 +145,7 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
             : "bg-transparent text-zinc-300 border-zinc-800 hover:border-zinc-700 hover:text-zinc-100"
         )}
       >
-        {isSelected ? "Select This Offer" : "Select"}
+        {isSelected ? t("selectThis") : t("select")}
       </button>
     </div>
   );

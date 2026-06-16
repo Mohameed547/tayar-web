@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -15,6 +16,7 @@ export function PasswordInput({
   className,
   ...props
 }: PasswordInputProps) {
+  const t = useTranslations("auth");
   const [show, setShow] = useState(false);
 
   return (
@@ -34,6 +36,7 @@ export function PasswordInput({
         />
         <button
           type="button"
+          aria-label={show ? t("hidePassword") : t("showPassword")}
           onClick={() => setShow(!show)}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
         >

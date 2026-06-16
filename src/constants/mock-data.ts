@@ -1,4 +1,3 @@
-// import { Shipment } from "@/shared/types/shipment";
 import { Shipment } from "@/modules/customer/types/shipment";
 import { Offer } from "@/modules/customer/types/offer";
 import { TrackingMilestone } from "@/modules/customer/types/tracking";

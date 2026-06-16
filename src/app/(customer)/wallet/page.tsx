@@ -7,34 +7,37 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { topUpSchema, withdrawSchema } from "@/lib/validation/common";
 import { z } from "zod";
 import { Transaction } from "@/modules/customer/types/wallet";
+import { useTranslations } from "next-intl";
 
 type TopUpFormValues = z.infer<typeof topUpSchema>;
 type WithdrawFormValues = z.infer<typeof withdrawSchema>;
 
 export default function WalletPage() {
+  const t = useTranslations("customer.wallet");
+  const validation = useTranslations("validation");
   // Stateful wallet balance and transactions
   const [balance, setBalance] = useState(320.0);
-  const [transactions, setTransactions] = useState<Transaction[]>([
+  const [transactions, setTransactions] = useState<Transaction[]>(() => [
     {
       id: "tx-1",
       type: "payment",
       amount: -95,
-      description: "Payment · SC-00408",
-      date: "Yesterday",
+      description: t("paymentDescription"),
+      date: t("yesterday"),
     },
     {
       id: "tx-2",
       type: "topup",
       amount: 400,
-      description: "Top-up · Visa ••••4242",
-      date: "3 days ago",
+      description: t("topUpDescription"),
+      date: t("daysAgo"),
     },
     {
       id: "tx-3",
       type: "cashback",
       amount: 14.5,
-      description: "Cashback · SC-00405",
-      date: "1 week ago",
+      description: t("cashbackDescription"),
+      date: t("weekAgo"),
     },
   ]);
 
@@ -67,16 +70,16 @@ export default function WalletPage() {
   const handleTopUp = (data: TopUpFormValues) => {
     setBalance((prev) => prev + data.amount);
     const methodLabels: Record<string, string> = {
-      visa: "Visa ••••4242",
-      mastercard: "MasterCard ••••5555",
-      vodafone_cash: "Vodafone Cash",
+      visa: t("visa"),
+      mastercard: t("mastercard"),
+      vodafone_cash: t("vodafoneCash"),
     };
     const newTx: Transaction = {
       id: `tx-${transactions.length + 1}`,
       type: "topup",
       amount: data.amount,
-      description: `Top-up · ${methodLabels[data.paymentMethod]}`,
-      date: "Just now",
+      description: `${t("topUp")} · ${methodLabels[data.paymentMethod]}`,
+      date: t("justNow"),
     };
     setTransactions((prev) => [newTx, ...prev]);
     resetTopUp();
@@ -87,7 +90,7 @@ export default function WalletPage() {
     if (data.amount > balance) {
       setWithdrawError("amount", {
         type: "manual",
-        message: "Insufficient funds in wallet balance",
+        message: "insufficientFunds",
       });
       return;
     }
@@ -96,8 +99,8 @@ export default function WalletPage() {
       id: `tx-${transactions.length + 1}`,
       type: "payment",
       amount: -data.amount,
-      description: `Withdrawal · ${data.destination}`,
-      date: "Just now",
+      description: t("withdrawalDescription", { destination: data.destination }),
+      date: t("justNow"),
     };
     setTransactions((prev) => [newTx, ...prev]);
     resetWithdraw();
@@ -121,7 +124,7 @@ export default function WalletPage() {
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-4xl mx-auto">
-      <h1 className="text-xl font-bold tracking-tight">Wallet</h1>
+      <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
 
       {/* Main Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -135,7 +138,7 @@ export default function WalletPage() {
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                    Available Balance
+                    {t("availableBalance")}
                   </span>
                   <p className="text-3xl font-extrabold text-zinc-100 mt-1.5">
                     EGP {balance.toFixed(2)}
@@ -148,11 +151,11 @@ export default function WalletPage() {
 
               <div className="flex justify-between items-center border-t border-zinc-800/60 pt-3 text-[11px]">
                 <div className="flex flex-col">
-                  <span className="text-zinc-500 font-medium">Wallet ID</span>
+                  <span className="text-zinc-500 font-medium">{t("walletId")}</span>
                   <span className="text-zinc-300 font-bold mt-0.5">SC-W-00412</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-zinc-500 font-medium">Cashback earned</span>
+                  <span className="text-zinc-500 font-medium">{t("cashbackEarned")}</span>
                   <span className="text-emerald-400 font-bold mt-0.5">+EGP 14.50</span>
                 </div>
               </div>
@@ -165,14 +168,14 @@ export default function WalletPage() {
                 className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>Top Up</span>
+                <span>{t("topUp")}</span>
               </button>
               <button
                 onClick={() => setShowWithdrawModal(true)}
                 className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none"
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
-                <span>Withdraw</span>
+                <span>{t("withdraw")}</span>
               </button>
             </div>
           </div>
@@ -182,7 +185,7 @@ export default function WalletPage() {
             {/* Summary Card 1: Loaded */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between min-h-[90px] shadow-sm">
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-                Total Loaded
+                {t("totalLoaded")}
               </span>
               <div className="flex items-center justify-between gap-1.5 mt-2">
                 <span className="text-xs font-bold text-zinc-200">EGP {totalLoaded.toFixed(2)}</span>
@@ -193,7 +196,7 @@ export default function WalletPage() {
             {/* Summary Card 2: Spent */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between min-h-[90px] shadow-sm">
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-                Total Paid
+                {t("totalPaid")}
               </span>
               <div className="flex items-center justify-between gap-1.5 mt-2">
                 <span className="text-xs font-bold text-zinc-200">EGP {totalPaid.toFixed(2)}</span>
@@ -204,7 +207,7 @@ export default function WalletPage() {
             {/* Summary Card 3: Saved/Cashback */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between min-h-[90px] shadow-sm">
               <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-                Total Saved
+                {t("totalSaved")}
               </span>
               <div className="flex items-center justify-between gap-1.5 mt-2">
                 <span className="text-xs font-bold text-zinc-200">EGP {totalSaved.toFixed(2)}</span>
@@ -217,7 +220,7 @@ export default function WalletPage() {
         {/* Right Side: Recent Transactions */}
         <div className="lg:col-span-5 bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
           <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-800 pb-3 mb-4">
-            Recent Transactions
+            {t("recentTransactions")}
           </h2>
 
           <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1">
@@ -265,41 +268,41 @@ export default function WalletPage() {
             >
               <X className="h-4 w-4" />
             </button>
-            <h2 className="text-base font-bold text-zinc-100">Top Up Wallet</h2>
+            <h2 className="text-base font-bold text-zinc-100">{t("topUpTitle")}</h2>
             <p className="text-xs text-zinc-400">
-              Add funds to your wallet using one of our secure payment gateways.
+              {t("topUpSubtitle")}
             </p>
             <form onSubmit={handleTopUpSubmit(handleTopUp)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Amount (EGP)</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("amount")}</label>
                 <input
                   type="number"
                   {...registerTopUp("amount", { valueAsNumber: true })}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-                  placeholder="Enter amount..."
+                  placeholder={t("amountPlaceholder")}
                 />
                 {topUpErrors.amount && (
                   <span className="text-[11px] text-red-400 font-medium">
-                    {topUpErrors.amount.message}
+                    {validation(topUpErrors.amount.message as never)}
                   </span>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Payment Method</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("paymentMethod")}</label>
                 <select
                   {...registerTopUp("paymentMethod")}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors cursor-pointer"
                 >
-                  <option value="visa" className="bg-zinc-900 text-zinc-200">Visa (•••• 4242)</option>
-                  <option value="mastercard" className="bg-zinc-900 text-zinc-200">MasterCard (•••• 5555)</option>
-                  <option value="vodafone_cash" className="bg-zinc-900 text-zinc-200">Vodafone Cash</option>
+                  <option value="visa" className="bg-zinc-900 text-zinc-200">{t("visa")}</option>
+                  <option value="mastercard" className="bg-zinc-900 text-zinc-200">{t("mastercard")}</option>
+                  <option value="vodafone_cash" className="bg-zinc-900 text-zinc-200">{t("vodafoneCash")}</option>
                 </select>
               </div>
               <button
                 type="submit"
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 shadow-md focus:outline-none"
               >
-                Confirm Top Up
+                {t("confirmTopUp")}
               </button>
             </form>
           </div>
@@ -319,38 +322,38 @@ export default function WalletPage() {
             >
               <X className="h-4 w-4" />
             </button>
-            <h2 className="text-base font-bold text-zinc-100">Withdraw Funds</h2>
+            <h2 className="text-base font-bold text-zinc-100">{t("withdrawTitle")}</h2>
             <p className="text-xs text-zinc-400">
-              Withdraw funds from your available balance to Vodafone Cash or Bank Account.
+              {t("withdrawSubtitle")}
             </p>
             <form onSubmit={handleWithdrawSubmit(handleWithdraw)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Amount (EGP)</label>
+                <label className="text-xs font-semibold text-zinc-400">{t("amount")}</label>
                 <input
                   type="number"
                   {...registerWithdraw("amount", { valueAsNumber: true })}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-                  placeholder="Enter amount..."
+                  placeholder={t("amountPlaceholder")}
                 />
                 {withdrawErrors.amount && (
                   <span className="text-[11px] text-red-400 font-medium">
-                    {withdrawErrors.amount.message}
+                    {validation(withdrawErrors.amount.message as never)}
                   </span>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-zinc-400">
-                  Destination (Vodafone Cash No. or Bank Account)
+                  {t("destination")}
                 </label>
                 <input
                   type="text"
                   {...registerWithdraw("destination")}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-                  placeholder="e.g. 01012345678 or EG123456..."
+                  placeholder={t("destinationPlaceholder")}
                 />
                 {withdrawErrors.destination && (
                   <span className="text-[11px] text-red-400 font-medium">
-                    {withdrawErrors.destination.message}
+                    {validation(withdrawErrors.destination.message as never)}
                   </span>
                 )}
               </div>
@@ -358,7 +361,7 @@ export default function WalletPage() {
                 type="submit"
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 shadow-md focus:outline-none"
               >
-                Confirm Withdrawal
+                {t("confirmWithdrawal")}
               </button>
             </form>
           </div>

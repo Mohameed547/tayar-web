@@ -10,7 +10,6 @@ export type ShipmentStatus =
 export type PackageType = "small_box" | "medium_box" | "large_box" | "pallet";
 export type DeliverySpeed = "standard" | "express" | "scheduled";
 
-// import { User } from "./auth";
 import { CustomerProfile } from "@/modules/customer/types/customer-profile";
 
 export interface Shipment {

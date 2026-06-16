@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/context/language-context";
+import { LocaleToggle } from "@/shared/ui/locale-toggle";
+import { ThemeToggle } from "@/shared/ui/theme-toggle";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -17,7 +19,7 @@ export function AuthLayout({
   subtitle,
   className,
 }: AuthLayoutProps) {
-  const { locale, toggleLocale } = useLanguage();
+  const t = useTranslations("auth");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-blue-950/20 dark:to-slate-900 flex items-center justify-center p-4">
@@ -61,13 +63,10 @@ export function AuthLayout({
             </span>
           </Link>
 
-          {/* Language Toggle */}
-          <button
-            onClick={toggleLocale}
-            className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 transition-colors"
-          >
-            {locale === "en" ? "عربي" : "English"}
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LocaleToggle />
+          </div>
         </div>
 
         {/* Card */}
@@ -93,7 +92,7 @@ export function AuthLayout({
         </div>
 
         <p className="mt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} DeliveryHub. جميع الحقوق محفوظة.
+          © {new Date().getFullYear()} DeliveryHub. {t("copyright")}
         </p>
       </div>
     </div>

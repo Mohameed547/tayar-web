@@ -7,12 +7,14 @@ import { useSearchParams } from "next/navigation";
 import { resetPasswordSchema } from "@/lib/validation/common";
 import { AuthLayout } from "@/modules/auth/ui/auth-layout";
 import { PasswordInput } from "@/modules/auth/ui/password-input";
-import { Button } from "@/shared/ui/Button";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useTranslation } from "@/shared/hooks/use-translation";
+import { useTranslations } from "next-intl";
 
 function ResetPasswordForm() {
   const { t } = useTranslation();
+  const validation = useTranslations("validation");
   const searchParams = useSearchParams();
 
   const token = searchParams.get("token") || "";
@@ -31,7 +33,7 @@ function ResetPasswordForm() {
 
     if (!token) {
       setErrors({
-        token: "Reset token is missing or invalid",
+        token: "resetTokenInvalid",
       });
       setIsLoading(false);
       return;
@@ -73,14 +75,18 @@ function ResetPasswordForm() {
       subtitle={t("auth.resetPasswordSubtitle")}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        {errors.token && <p className="text-sm text-red-500">{errors.token}</p>}
+        {errors.token && (
+          <p className="text-sm text-red-500">
+            {validation(errors.token as never)}
+          </p>
+        )}
 
         <PasswordInput
           label={t("auth.password")}
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          error={errors.password}
+          error={errors.password ? validation(errors.password as never) : undefined}
           disabled={isLoading}
         />
 
@@ -89,7 +95,7 @@ function ResetPasswordForm() {
           placeholder="••••••••"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          error={errors.confirmPassword}
+          error={errors.confirmPassword ? validation(errors.confirmPassword as never) : undefined}
           disabled={isLoading}
         />
 
@@ -112,11 +118,13 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  const common = useTranslations("common");
+
   return (
     <React.Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-          <div className="text-sm text-gray-500">Loading...</div>
+          <div className="text-sm text-gray-500">{common("loading")}</div>
         </div>
       }
     >

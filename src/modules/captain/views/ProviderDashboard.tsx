@@ -1,10 +1,12 @@
 'use client'
 import { useEffect } from 'react'
+import { useLocale } from 'next-intl'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { fetchCaptainDashboard } from '@/modules/captain/store/captain-data-slice'
 import {
-  fetchRequests, fetchOffers, fetchOrders,
-  fetchDeliveries, fetchEarnings, fetchWallet, fetchCaptains,
-} from '@/store/features/dataSlice'
+  selectActiveScreen,
+  selectCaptainDataStatus,
+} from '@/modules/captain/store/selectors'
 
 import Sidebar from '../ui/Sidebar'
 import Topbar from '../ui/Topbar'
@@ -25,7 +27,7 @@ import Ratings from './Ratings'
 import Verification from './Verification'
 import Profile from './Profile'
 
-import type { ScreenId } from '@/shared/types'
+import type { ScreenId } from '@/modules/captain/types/provider'
 
 const SCREENS: Record<ScreenId, React.ReactNode> = {
   'overview': <Overview />,
@@ -46,30 +48,16 @@ const SCREENS: Record<ScreenId, React.ReactNode> = {
 
 export default function ProviderDashboard() {
   const dispatch = useAppDispatch()
-  const activeScreen = useAppSelector(s => s.ui.activeScreen)
-  const language = useAppSelector(s => s.ui.language)
-  const theme = useAppSelector(s => s.ui.theme)
-  const isRTL = language === 'ar'
+  const activeScreen = useAppSelector(selectActiveScreen)
+  const dataStatus = useAppSelector(selectCaptainDataStatus)
+  const locale = useLocale()
+  const isRTL = locale === 'ar'
 
-  // التعديل: تفعيل الـ Dark Mode عن طريق إضافة/إزالة كلاس dark من الـ html
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
+    if (dataStatus === 'idle') {
+      dispatch(fetchCaptainDashboard())
     }
-  }, [theme])
-
-  // Fetch all data on mount
-  useEffect(() => {
-    dispatch(fetchRequests())
-    dispatch(fetchOffers())
-    dispatch(fetchOrders())
-    dispatch(fetchDeliveries())
-    dispatch(fetchEarnings())
-    dispatch(fetchWallet())
-    dispatch(fetchCaptains())
-  }, [dispatch])
+  }, [dataStatus, dispatch])
 
   return (
     <div
@@ -78,7 +66,6 @@ export default function ProviderDashboard() {
     >
       <Sidebar />
 
-      {/* الـ Main area سيأخذ المساحة المتبقية بجانب الـ Sidebar */}
       <div className="flex flex-col flex-1 min-h-screen w-0">
         <Topbar />
 

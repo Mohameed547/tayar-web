@@ -1,13 +1,14 @@
 'use client'
 import { useState }          from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { updateProfile }     from '@/store/features/dataSlice'
-import { t }                 from '@/lib/i18n/translations'
+import { updateProfile } from '@/modules/captain/store/captain-data-slice'
+import { selectProfile } from '@/modules/captain/store/selectors'
+import { useCaptainTranslations } from '@/modules/captain/hooks/use-captain-translations'
 
 export default function Profile() {
   const dispatch = useAppDispatch()
-  const language = useAppSelector(s => s.ui.language)
-  const profile  = useAppSelector(s => s.data.profile)
+  const t        = useCaptainTranslations()
+  const profile  = useAppSelector(selectProfile)
 
   const [name,  setName]  = useState(profile.name)
   const [phone, setPhone] = useState(profile.phone)
@@ -17,14 +18,14 @@ export default function Profile() {
   return (
     <div>
       <div className="mb-[22px]">
-        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('profile_title', language)}</h1>
-        <p className="text-[13px] text-[var(--color-text-sub)]">{t('profile_sub', language)}</p>
+        <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">{t('profile_title')}</h1>
+        <p className="text-[13px] text-[var(--color-text-sub)]">{t('profile_sub')}</p>
       </div>
 
       <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-[14px] p-5 max-w-lg">
         <div className="mb-[14px]">
           <label className="block text-[12px] font-semibold text-[var(--color-text-main)] mb-[5px]">
-            {t('legalName', language)}
+            {t('legalName')}
           </label>
           <input
             value={name}
@@ -35,7 +36,7 @@ export default function Profile() {
 
         <div className="mb-[14px]">
           <label className="block text-[12px] font-semibold text-[var(--color-text-main)] mb-[5px]">
-            {t('contactNumber', language)}
+            {t('contactNumber')}
           </label>
           <input
             value={phone}
@@ -48,7 +49,7 @@ export default function Profile() {
           onClick={handleSave}
           className="px-4 py-[6px] bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-semibold rounded-md transition-colors"
         >
-          {t('saveProfile', language)}
+          {t('saveProfile')}
         </button>
       </div>
     </div>

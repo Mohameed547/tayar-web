@@ -1,70 +1,70 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("invalidEmail"),
+  password: z.string().min(6, "passwordMin"),
 });
 
 export const registerCustomerSchema = z
   .object({
-    name: z.string().min(3, "Name must be at least 3 characters"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(11, "Invalid phone number"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    name: z.string().min(3, "nameMin"),
+    email: z.string().email("invalidEmail"),
+    phone: z.string().min(11, "invalidPhone"),
+    password: z.string().min(6, "passwordMin"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "passwordsMismatch",
     path: ["confirmPassword"],
   });
 
 export const registerDriverSchema = z
   .object({
-    name: z.string().min(3, "Name must be at least 3 characters"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(11, "Invalid phone number"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    name: z.string().min(3, "nameMin"),
+    email: z.string().email("invalidEmail"),
+    phone: z.string().min(11, "invalidPhone"),
+    password: z.string().min(6, "passwordMin"),
     confirmPassword: z.string(),
-    licenseNumber: z.string().min(5, "Invalid license number"),
-    vehicleType: z.string().min(2, "Vehicle type is required"),
-    vehiclePlate: z.string().min(3, "Invalid plate number"),
+    licenseNumber: z.string().min(5, "invalidLicense"),
+    vehicleType: z.string().min(2, "vehicleRequired"),
+    vehiclePlate: z.string().min(3, "invalidPlate"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "passwordsMismatch",
     path: ["confirmPassword"],
   });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("invalidEmail"),
 });
 export const verifyOtpSchema = z.object({
-  otp: z.string().length(6, "OTP must be 6 digits"),
+  otp: z.string().length(6, "otpLength"),
   email: z.string().email(),
 });
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(6, "passwordMin"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "passwordsMismatch",
     path: ["confirmPassword"],
   });
 
 export const landingSearchSchema = z.object({
-  from: z.string().min(2, "Pickup location is required"),
-  to: z.string().min(2, "Destination is required"),
+  from: z.string().min(2, "pickupRequired"),
+  to: z.string().min(2, "destinationRequired"),
 });
 
 export const shipmentRequestSchema = z
   .object({
-    pickupAddress: z.string().min(5, "Pickup address is too short"),
-    deliveryAddress: z.string().min(5, "Delivery address is too short"),
-    weight: z.number().positive("Weight must be greater than 0"),
+    pickupAddress: z.string().min(5, "pickupShort"),
+    deliveryAddress: z.string().min(5, "deliveryShort"),
+    weight: z.number().positive("weightPositive"),
     packageType: z.enum(["small_box", "medium_box", "large_box", "pallet"]),
     deliverySpeed: z.enum(["standard", "express", "scheduled"]),
     scheduledDate: z.union([z.string(), z.date()]).optional(),
-    notes: z.string().max(300, "Notes cannot exceed 300 characters").optional(),
+    notes: z.string().max(300, "notesMax").optional(),
   })
   .refine(
     (data) => {
@@ -74,7 +74,7 @@ export const shipmentRequestSchema = z
       return true;
     },
     {
-      message: "Scheduled date is required when delivery speed is Scheduled",
+      message: "scheduledDateRequired",
       path: ["scheduledDate"],
     }
   );
@@ -82,36 +82,36 @@ export const shipmentRequestSchema = z
 export const profileSchema = z.object({
   name: z
     .string()
-    .min(1, "Name is required")
-    .min(3, "Name must be at least 3 characters"),
+    .min(1, "nameRequired")
+    .min(3, "nameMin"),
   email: z
     .string()
-    .min(1, "Email address is required")
-    .email("Must be a valid email address"),
+    .min(1, "emailRequired")
+    .email("validEmail"),
   phone: z
     .string()
-    .min(1, "Phone number is required")
-    .regex(/^01[0-2,5]{1}[0-9]{8}$/, "Must be a valid Egyptian phone number (e.g. 01012345678)"),
+    .min(1, "phoneRequired")
+    .regex(/^01[0-2,5]{1}[0-9]{8}$/, "validEgyptianPhone"),
 });
 
 export const supportTicketSchema = z.object({
-  subject: z.string().min(5, "Subject must be at least 5 characters"),
+  subject: z.string().min(5, "subjectMin"),
   category: z.enum(["delay", "billing", "damage", "other"]),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  message: z.string().min(10, "messageMin"),
 });
 
 export const topUpSchema = z.object({
   amount: z
-    .number({ message: "Amount must be a number" })
-    .min(10, "Minimum top-up amount is 10 EGP"),
+    .number({ message: "amountNumber" })
+    .min(10, "topUpMin"),
   paymentMethod: z.enum(["visa", "mastercard", "vodafone_cash"]),
 });
 
 export const withdrawSchema = z.object({
   amount: z
-    .number({ message: "Amount must be a number" })
-    .min(10, "Minimum withdrawal amount is 10 EGP"),
-  destination: z.string().min(5, "Destination details are required"),
+    .number({ message: "amountNumber" })
+    .min(10, "withdrawalMin"),
+  destination: z.string().min(5, "destinationDetails"),
 });
 
 

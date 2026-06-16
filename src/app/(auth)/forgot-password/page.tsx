@@ -5,13 +5,15 @@ import Link from "next/link";
 
 import { forgotPasswordSchema } from "@/lib/validation/common";
 import { AuthLayout } from "@/modules/auth/ui/auth-layout";
-import { Input } from "@/shared/ui/Input";
-import { Button } from "@/shared/ui/Button";
+import { Input } from "@/shared/ui/input";
+import { Button } from "@/shared/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { useTranslation } from "@/shared/hooks/use-translation";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
+  const validation = useTranslations("validation");
   const [email, setEmail] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSent, setIsSent] = React.useState(false);
@@ -26,7 +28,7 @@ export default function ForgotPasswordPage() {
     const validationResult = forgotPasswordSchema.safeParse({ email });
 
     if (!validationResult.success) {
-      setError(validationResult.error.issues[0].message);
+    setError(validation(validationResult.error.issues[0].message as never));
       setIsLoading(false);
       return;
     }
@@ -62,23 +64,20 @@ export default function ForgotPasswordPage() {
 
           <div className="space-y-2">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Check your email
+              {t("auth.checkEmail")}
             </h3>
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              We sent a reset link to{" "}
-              <span className="font-medium text-gray-900 dark:text-white">
-                {email}
-              </span>
+              {t("auth.resetLinkSent", { email })}
             </p>
           </div>
 
           <Button type="button" onClick={() => setIsSent(false)} fullWidth>
-            Send Again
+            {t("auth.tryAgain")}
           </Button>
 
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            Back to{" "}
+            {t("auth.backTo")}{" "}
             <Link
               href={ROUTES.LOGIN}
               className="font-semibold text-blue-600 hover:underline"
@@ -92,7 +91,7 @@ export default function ForgotPasswordPage() {
           <Input
             label={t("auth.email")}
             type="email"
-            placeholder="name@example.com"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={error}

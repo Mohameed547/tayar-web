@@ -6,16 +6,20 @@ import { ArrowLeft, Phone, MessageSquare, Ship, Navigation } from "lucide-react"
 import { mockShipments, mockTrackingMilestones, mockOffers } from "@/constants/mock-data";
 import TrackingTimeline from "@/modules/customer/ui/tracking-timeline";
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 
 export default function LiveMapTrackingPage() {
+  const t = useTranslations("customer.tracking");
+
   return (
-    <Suspense fallback={<div className="text-zinc-400 text-xs p-6 text-center">Loading tracking details...</div>}>
+    <Suspense fallback={<div className="text-zinc-400 text-xs p-6 text-center">{t("loading")}</div>}>
       <TrackingContent />
     </Suspense>
   );
 }
 
 function TrackingContent() {
+  const t = useTranslations("customer.tracking");
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params.id as string;
@@ -38,14 +42,14 @@ function TrackingContent() {
           .join("")
           .toUpperCase()
           .slice(0, 2),
-        role: selectedOffer.providerType === "office" ? "Office" : "Captain",
+        role: selectedOffer.providerType === "office" ? t("office") : t("captain"),
       }
     : captain
     ? {
         name: captain.name,
         rating: captain.rating || 4.9,
         avatar: captain.avatar || "KM",
-        role: "Captain",
+        role: t("captain"),
       }
     : null;
 
@@ -61,10 +65,10 @@ function TrackingContent() {
         </Link>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-            Live Map Tracking
+            {t("title")}
           </h1>
           <p className="text-xs text-zinc-500 mt-1">
-            Real-time status updates for your delivery
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -95,7 +99,7 @@ function TrackingContent() {
             <div className="absolute left-[20%] bottom-[20%] flex flex-col items-center">
               <div className="h-3 w-3 rounded-full bg-emerald-500 border-2 border-zinc-950 shadow-lg shadow-emerald-500/50" />
               <span className="text-[10px] text-zinc-400 font-bold bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-800/80 mt-1">
-                Pickup
+                {t("pickup")}
               </span>
             </div>
 
@@ -103,7 +107,7 @@ function TrackingContent() {
             <div className="absolute right-[20%] top-[20%] flex flex-col items-center">
               <div className="h-3 w-3 rounded-full bg-red-500 border-2 border-zinc-950 shadow-lg shadow-red-500/50" />
               <span className="text-[10px] text-zinc-400 font-bold bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-800/80 mt-1">
-                Destination
+                {t("destination")}
               </span>
             </div>
 
@@ -117,10 +121,10 @@ function TrackingContent() {
           <div className="absolute top-4 left-4 flex gap-2">
             <span className="flex items-center gap-1 bg-zinc-950/95 border border-zinc-800 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-200 uppercase tracking-wider">
               <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
-              Live
+              {t("live")}
             </span>
             <span className="bg-zinc-950/95 border border-zinc-800 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-200 uppercase tracking-wider">
-              {shipment.etaDescription || "ETA 2h 15m"}
+              {t("defaultEta")}
             </span>
           </div>
         </div>
@@ -169,10 +173,16 @@ function TrackingContent() {
 
                 {/* Quick actions call/chat */}
                 <div className="flex gap-2">
-                  <button className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400 hover:bg-zinc-800 transition-colors focus:outline-none">
+                  <button
+                    aria-label={t("callProvider")}
+                    className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400 hover:bg-zinc-800 transition-colors focus:outline-none"
+                  >
                     <Phone className="h-4 w-4" />
                   </button>
-                  <button className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-blue-400 hover:bg-zinc-800 transition-colors focus:outline-none">
+                  <button
+                    aria-label={t("messageProvider")}
+                    className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-blue-400 hover:bg-zinc-800 transition-colors focus:outline-none"
+                  >
                     <MessageSquare className="h-4 w-4" />
                   </button>
                 </div>

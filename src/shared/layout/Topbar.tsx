@@ -3,6 +3,10 @@
 import { Bell, Search, ChevronDown, User as UserIcon, LogOut, Settings, Menu } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { LocaleToggle } from "@/shared/ui/locale-toggle";
+import { ThemeToggle } from "@/shared/ui/theme-toggle";
+import { useRouter } from "next/navigation";
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -10,6 +14,8 @@ interface TopbarProps {
 
 export default function Topbar({ onMenuClick }: TopbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const t = useTranslations("navigation");
+  const router = useRouter();
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-zinc-950 border-b border-zinc-800 text-zinc-100 gap-4">
@@ -29,7 +35,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <input
             type="text"
-            placeholder="Search shipments, captains, orders..."
+            placeholder={t("searchPlaceholder")}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-1.5 text-sm text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
           />
         </div>
@@ -37,8 +43,15 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
 
       {/* Right side notifications and profile */}
       <div className="flex items-center gap-4">
+        <div className="hidden items-center gap-2 lg:flex">
+          <ThemeToggle className="border-zinc-800 bg-zinc-900 dark:bg-zinc-900" />
+          <LocaleToggle className="border-zinc-800 bg-zinc-900 dark:bg-zinc-900" />
+        </div>
         {/* Notification bell */}
-        <button className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors">
+        <button
+          onClick={() => router.push("/notifications")}
+          className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+        >
           <Bell className="h-5 w-5" />
           <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-zinc-950" />
         </button>
@@ -58,7 +71,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
             </div>
             <div className="hidden sm:flex flex-col items-start text-left">
               <span className="text-sm font-semibold leading-tight text-zinc-200">Mohamed</span>
-              <span className="text-[10px] text-zinc-500">Customer</span>
+              <span className="text-[10px] text-zinc-500">{t("customer")}</span>
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-zinc-500 transition-transform duration-200" style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }} />
           </button>
@@ -78,7 +91,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
                   className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
                 >
                   <UserIcon className="h-4 w-4 text-zinc-500" />
-                  <span>My Profile</span>
+                  <span>{t("myProfile")}</span>
                 </Link>
                 <Link
                   href="/profile?tab=settings"
@@ -86,18 +99,19 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
                   className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
                 >
                   <Settings className="h-4 w-4 text-zinc-500" />
-                  <span>Account Settings</span>
+                  <span>{t("accountSettings")}</span>
                 </Link>
                 <hr className="border-zinc-800 my-1" />
                 <button
                   onClick={() => {
                     setDropdownOpen(false);
+                    router.push("/login");
                     // Add logout logic later
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors text-left"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
+                  <span>{t("signOut")}</span>
                 </button>
               </div>
             </>
