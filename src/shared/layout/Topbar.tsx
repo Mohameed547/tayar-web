@@ -1,12 +1,14 @@
 "use client";
 
 import { Bell, Search, ChevronDown, User as UserIcon, LogOut, Settings, Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LocaleToggle } from "@/shared/ui/locale-toggle";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { useRouter } from "next/navigation";
+import { getCurrentUser, logout } from "@/features/auth/api";
+import type { User } from "@/features/auth/types";
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -14,8 +16,33 @@ interface TopbarProps {
 
 export default function Topbar({ onMenuClick }: TopbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const t = useTranslations("navigation");
   const router = useRouter();
+
+  useEffect(() => {
+    getCurrentUser()
+      .then((data) => setUser(data))
+      .catch((err) => console.error("Error fetching user in Topbar:", err));
+  }, []);
+
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name
+      .trim()
+      .split(/\s+/)
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const getLocalizedRole = (role: string) => {
+    if (role === "customer") return t("customer") || "Customer";
+    if (role === "driver") return "Captain";
+    if (role === "office") return "Office";
+    return role;
+  };
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-zinc-950 border-b border-zinc-800 text-zinc-100 gap-4">
@@ -66,12 +93,16 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
             className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-zinc-900 transition-colors focus:outline-none"
           >
             {/* Avatar badge */}
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 text-white font-bold text-xs">
-              MK
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 text-white font-bold text-xs shrink-0">
+              {user ? getInitials(user.name) : "..."}
             </div>
             <div className="hidden sm:flex flex-col items-start text-left">
-              <span className="text-sm font-semibold leading-tight text-zinc-200">Mohamed</span>
-              <span className="text-[10px] text-zinc-500">{t("customer")}</span>
+              <span className="text-sm font-semibold leading-tight text-zinc-200">
+                {user ? user.name : "Loading..."}
+              </span>
+              <span className="text-[10px] text-zinc-500">
+                {user ? getLocalizedRole(user.role) : "..."}
+              </span>
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-zinc-500 transition-transform duration-200" style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }} />
           </button>
@@ -103,10 +134,14 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
                 </Link>
                 <hr className="border-zinc-800 my-1" />
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setDropdownOpen(false);
+                    try {
+                      await logout();
+                    } catch (e) {
+                      console.error("Sign out error:", e);
+                    }
                     router.push("/login");
-                    // Add logout logic later
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors text-left"
                 >

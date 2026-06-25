@@ -7,7 +7,7 @@ const styles: Record<BadgeVariant, string> = {
   green: 'bg-green-50 dark:bg-green-500/20  text-green-700 dark:text-green-400',
   amber: 'bg-amber-50 dark:bg-amber-500/20  text-amber-700 dark:text-amber-300',
   red:   'bg-red-50   dark:bg-red-500/20    text-red-700   dark:text-red-400',
-  gray:  'bg-[var(--color-bg-muted)]        text-[var(--color-text-sub)]',
+  gray:  'bg-[var(--dh-bg-muted)]        text-[var(--dh-text-sub)]',
 }
 
 interface BadgeProps {

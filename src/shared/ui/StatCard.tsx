@@ -20,22 +20,22 @@ export default function StatCard({
   value,
   icon: Icon,
   description,
-  colorClass = "text-zinc-100",
-  iconColorClass = "text-zinc-500 bg-zinc-900 border-zinc-800",
+  colorClass = "text-[var(--dh-text-main)]",
+  iconColorClass = "text-[var(--dh-text-sub)] bg-[var(--dh-bg-app)] border-[var(--dh-border)]",
   href,
   className,
 }: StatCardProps) {
   const CardContent = (
     <div
       className={cn(
-        "bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[120px] transition-all duration-300",
-        href && "hover:border-zinc-700 cursor-pointer hover:bg-zinc-900/80 active:scale-[0.99]",
+        "bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[120px] transition-all duration-300",
+        href && "hover:border-[var(--dh-border-brand)] cursor-pointer hover:opacity-90 active:scale-[0.99]",
         className
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-[var(--dh-text-sub)] uppercase tracking-wider">
             {title}
           </span>
           <p className={cn("text-3xl font-extrabold tracking-tight mt-0.5", colorClass)}>
@@ -51,7 +51,7 @@ export default function StatCard({
       </div>
 
       {description && (
-        <span className="text-[10px] text-zinc-500 font-semibold mt-2.5">
+        <span className="text-[10px] text-[var(--dh-text-sub)] font-semibold mt-2.5">
           {description}
         </span>
       )}

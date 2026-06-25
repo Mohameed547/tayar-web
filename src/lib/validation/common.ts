@@ -2,15 +2,17 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   email: z.string().email("invalidEmail"),
-  password: z.string().min(6, "passwordMin"),
+  password: z.string().min(8, "passwordMin"),
 });
 
 export const registerCustomerSchema = z
   .object({
     name: z.string().min(3, "nameMin"),
     email: z.string().email("invalidEmail"),
-    phone: z.string().min(11, "invalidPhone"),
-    password: z.string().min(6, "passwordMin"),
+    phone: z
+      .string()
+      .regex(/^01[0-2,5]{1}[0-9]{8}$/, "invalidPhone"),
+    password: z.string().min(8, "passwordMin"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -22,12 +24,32 @@ export const registerDriverSchema = z
   .object({
     name: z.string().min(3, "nameMin"),
     email: z.string().email("invalidEmail"),
-    phone: z.string().min(11, "invalidPhone"),
-    password: z.string().min(6, "passwordMin"),
+    phone: z
+      .string()
+      .regex(/^01[0-2,5]{1}[0-9]{8}$/, "invalidPhone"),
+    password: z.string().min(8, "passwordMin"),
     confirmPassword: z.string(),
     licenseNumber: z.string().min(5, "invalidLicense"),
     vehicleType: z.string().min(2, "vehicleRequired"),
     vehiclePlate: z.string().min(3, "invalidPlate"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "passwordsMismatch",
+    path: ["confirmPassword"],
+  });
+
+export const registerOfficeSchema = z
+  .object({
+    name: z.string().min(3, "nameMin"),
+    email: z.string().email("invalidEmail"),
+    phone: z
+      .string()
+      .regex(/^01[0-2,5]{1}[0-9]{8}$/, "invalidPhone"),
+    password: z.string().min(8, "passwordMin"),
+    confirmPassword: z.string(),
+    businessName: z.string().min(2, "nameRequired"),
+    licenseNumber: z.string().min(5, "invalidLicense"),
+    officeAddress: z.string().min(5, "pickupShort"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "passwordsMismatch",
@@ -39,11 +61,11 @@ export const forgotPasswordSchema = z.object({
 });
 export const verifyOtpSchema = z.object({
   otp: z.string().length(6, "otpLength"),
-  email: z.string().email(),
+  email: z.string(),
 });
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(6, "passwordMin"),
+    password: z.string().min(8, "passwordMin"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -65,6 +87,7 @@ export const shipmentRequestSchema = z
     deliverySpeed: z.enum(["standard", "express", "scheduled"]),
     scheduledDate: z.union([z.string(), z.date()]).optional(),
     notes: z.string().max(300, "notesMax").optional(),
+    price: z.number().positive("pricePositive").optional(),
   })
   .refine(
     (data) => {
@@ -97,6 +120,10 @@ export const profileSchema = z.object({
 export const supportTicketSchema = z.object({
   subject: z.string().min(5, "subjectMin"),
   category: z.enum(["delay", "billing", "damage", "other"]),
+  shipmentId: z
+    .string()
+    .min(1, "shipmentIdRequired")
+    .regex(/^SC-\d{5}$/i, "shipmentIdInvalid"),
   message: z.string().min(10, "messageMin"),
 });
 

@@ -12,14 +12,14 @@ interface DataTableProps<T> {
 
 export default function DataTable<T>({ columns, data, keyField }: DataTableProps<T>) {
   return (
-    <div className="overflow-x-auto rounded-[14px] border border-[var(--color-border)]">
-      <table className="w-full border-collapse text-[13px] bg-[var(--color-bg-card)]">
+    <div className="overflow-x-auto rounded-[14px] border border-[var(--dh-border)]">
+      <table className="w-full border-collapse text-[13px] bg-[var(--dh-bg-card)]">
         <thead>
           <tr>
             {columns.map(col => (
               <th
                 key={String(col.key)}
-                className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.05em] text-[var(--color-text-sub)] border-b border-[var(--color-border)] bg-[var(--color-bg-muted)] text-left rtl:text-right whitespace-nowrap"
+                className="px-4 py-[10px] text-[11px] font-bold uppercase tracking-[.05em] text-[var(--dh-text-sub)] border-b border-[var(--dh-border)] bg-[var(--dh-bg-muted)] text-left rtl:text-right whitespace-nowrap"
               >
                 {col.header}
               </th>
@@ -32,7 +32,7 @@ export default function DataTable<T>({ columns, data, keyField }: DataTableProps
               {columns.map(col => (
                 <td
                   key={String(col.key)}
-                  className="px-4 py-3 border-b border-[var(--color-border)] text-[var(--color-text-sub)] group-hover:bg-[var(--color-bg-muted)] transition-colors align-middle"
+                  className="px-4 py-3 border-b border-[var(--dh-border)] text-[var(--dh-text-sub)] group-hover:bg-[var(--dh-bg-muted)] transition-colors align-middle"
                 >
                   {col.render
                     ? col.render(row)
@@ -43,7 +43,7 @@ export default function DataTable<T>({ columns, data, keyField }: DataTableProps
           ))}
           {data.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-[var(--color-text-sub)] text-[13px]">
+              <td colSpan={columns.length} className="px-4 py-8 text-center text-[var(--dh-text-sub)] text-[13px]">
                 No data available
               </td>
             </tr>
