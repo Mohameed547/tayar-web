@@ -1,36 +1,90 @@
 @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap");
 
 @import "tailwindcss";
+
 :root {
-  --navy: #f8fafc;
-  --navy-mid: #ffffff;
-  --navy-light: #e2e8f0;
-  --blue: #2563eb;
-  --blue-light: #3b82f6;
-  --blue-glow: rgba(37, 99, 235, 0.2);
-  --blue-subtle: rgba(37, 99, 235, 0.12);
-  --landing-text: #0f172a;
-  --text-muted: rgba(15, 23, 42, 0.68);
-  --text-dim: rgba(15, 23, 42, 0.48);
-  --success: #22c55e;
-  --amber: #f59e0b;
-  --border: rgba(15, 23, 42, 0.12);
-  --border-blue: rgba(37, 99, 235, 0.4);
-  --nav-surface: rgba(248, 250, 252, 0.88);
-  --nav-surface-strong: rgba(248, 250, 252, 0.98);
+  /* ── Brand Colors ── */
+  --dh-brand: #2563eb;
+  --dh-brand-light: #3b82f6;
+  --dh-brand-hover: #1d4ed8;
+  --dh-brand-glow: rgba(37, 99, 235, 0.2);
+  --dh-brand-subtle: rgba(37, 99, 235, 0.12);
+
+  /* ── Backgrounds & Surfaces ── */
+  --dh-bg-app: #f1f5f9;
+  --dh-bg-page: #f8fafc;
+  --dh-bg-topbar: #ffffff;
+  --dh-bg-card: #ffffff;
+  --dh-bg-muted: #f1f5f9;
+  --dh-bg-nav: rgba(248, 250, 252, 0.88);
+  --dh-bg-nav-strong: rgba(248, 250, 252, 0.98);
+
+  /* ── Typography / Text ── */
+  --dh-text-main: #0f172a;
+  --dh-text-sub: #64748b;
+  --dh-text-muted: rgba(15, 23, 42, 0.68);
+  --dh-text-dim: rgba(15, 23, 42, 0.48);
+  --dh-text-inverse: #ffffff;
+
+  /* ── Borders ── */
+  --dh-border: #e2e8f0;
+  --dh-border-subtle: rgba(15, 23, 42, 0.12);
+  --dh-border-brand: rgba(37, 99, 235, 0.4);
+
+  /* ── Semantics ── */
+  --dh-success: #22c55e;
+  --dh-warning: #f59e0b;
+  --dh-danger: #ef4444;
+
+  /* ── Backward Compatibility Mappings ── */
+  --navy: var(--dh-bg-page);
+  --navy-mid: var(--dh-bg-card);
+  --navy-light: var(--dh-border);
+  --blue: var(--dh-brand);
+  --blue-light: var(--dh-brand-light);
+  --blue-glow: var(--dh-brand-glow);
+  --blue-subtle: var(--dh-brand-subtle);
+  --landing-text: var(--dh-text-main);
+  --text-muted: var(--dh-text-muted);
+  --text-dim: var(--dh-text-dim);
+  --success: var(--dh-success);
+  --amber: var(--dh-warning);
+  --border: var(--dh-border-subtle);
+  --border-blue: var(--dh-border-brand);
+  --nav-surface: var(--dh-bg-nav);
+  --nav-surface-strong: var(--dh-bg-nav-strong);
+
+  --color-bg-app: var(--dh-bg-app);
+  --color-bg-topbar: var(--dh-bg-topbar);
+  --color-bg-card: var(--dh-bg-card);
+  --color-bg-muted: var(--dh-bg-muted);
+  --color-border: var(--dh-border);
+  --color-text-main: var(--dh-text-main);
+  --color-text-sub: var(--dh-text-sub);
 }
 
 html.dark {
-  --navy: #0b1120;
-  --navy-mid: #131d2e;
-  --navy-light: #1e2d44;
-  --blue-glow: rgba(37, 99, 235, 0.35);
-  --landing-text: #ffffff;
-  --text-muted: rgba(255, 255, 255, 0.55);
-  --text-dim: rgba(255, 255, 255, 0.35);
-  --border: rgba(255, 255, 255, 0.08);
-  --nav-surface: rgba(11, 17, 32, 0.85);
-  --nav-surface-strong: rgba(11, 17, 32, 0.98);
+  /* ── Brand Colors ── */
+  --dh-brand-glow: rgba(37, 99, 235, 0.35);
+
+  /* ── Backgrounds & Surfaces ── */
+  --dh-bg-app: #0f172a;
+  --dh-bg-page: #0b1120;
+  --dh-bg-topbar: #1e293b;
+  --dh-bg-card: #1e293b;
+  --dh-bg-muted: #0f172a;
+  --dh-bg-nav: rgba(11, 17, 32, 0.85);
+  --dh-bg-nav-strong: rgba(11, 17, 32, 0.98);
+
+  /* ── Typography / Text ── */
+  --dh-text-main: #f1f5f9;
+  --dh-text-sub: #94a3b8;
+  --dh-text-muted: rgba(255, 255, 255, 0.55);
+  --dh-text-dim: rgba(255, 255, 255, 0.35);
+
+  /* ── Borders ── */
+  --dh-border: rgba(255, 255, 255, 0.08);
+  --dh-border-subtle: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
@@ -43,28 +97,6 @@ html.dark {
   --color-amber: var(--amber);
   --font-display: "Syne", sans-serif;
   --font-body: "DM Sans", sans-serif;
-}
-
-/* ── Captain Dashboard CSS Variables (Light Mode) ── */
-:root {
-  --color-bg-app:    #f1f5f9;
-  --color-bg-topbar: #ffffff;
-  --color-bg-card:   #ffffff;
-  --color-bg-muted:  #f1f5f9;
-  --color-border:    #e2e8f0;
-  --color-text-main: #0f172a;
-  --color-text-sub:  #64748b;
-}
-
-/* ── Captain Dashboard CSS Variables (Dark Mode) ── */
-html.dark {
-  --color-bg-app:    #0f172a;
-  --color-bg-topbar: #1e293b;
-  --color-bg-card:   #1e293b;
-  --color-bg-muted:  #0f172a;
-  --color-border:    rgba(255,255,255,0.08);
-  --color-text-main: #f1f5f9;
-  --color-text-sub:  #94a3b8;
 }
 
 body {
@@ -87,62 +119,50 @@ html[dir="rtl"] body {
   background: rgba(255, 255, 255, 0.07);
 }
 
-/* Existing landing cards use a dark palette. These scoped mappings provide
-   the matching light palette without leaking into dashboards or auth pages. */
+/* Scoped Landing Palette overrides */
 html:not(.dark) .landing-surface .bg-slate-900 {
   background-color: #ffffff;
 }
-
 html:not(.dark) .landing-surface .bg-slate-800 {
   background-color: #e2e8f0;
 }
-
 html:not(.dark) .landing-surface .border-slate-800,
 html:not(.dark) .landing-surface .border-slate-700 {
   border-color: #dbe3ee;
 }
-
 html:not(.dark) .landing-surface .text-white {
   color: #0f172a;
 }
-
 html:not(.dark) .landing-surface .text-gray-400,
 html:not(.dark) .landing-surface .text-gray-500 {
   color: #64748b;
 }
-
 html:not(.dark) .landing-surface .bg-blue-600,
 html:not(.dark) .landing-surface .bg-blue-500 {
   color: #ffffff;
 }
 
-/* Customer pages were authored with zinc dark tokens. Scoping the light
-   equivalents to the customer shell makes every nested route theme-aware. */
+/* Scoped Customer Palette overrides mapped to new semantic tokens */
 html:not(.dark) .customer-surface .bg-zinc-950 {
-  background-color: #f8fafc;
+  background-color: var(--dh-bg-page);
 }
-
 html:not(.dark) .customer-surface .bg-zinc-900 {
-  background-color: #ffffff;
+  background-color: var(--dh-bg-card);
 }
-
 html:not(.dark) .customer-surface .bg-zinc-800 {
-  background-color: #f1f5f9;
+  background-color: var(--dh-bg-muted);
 }
-
 html:not(.dark) .customer-surface .border-zinc-800,
 html:not(.dark) .customer-surface .border-zinc-700 {
-  border-color: #e2e8f0;
+  border-color: var(--dh-border);
 }
-
 html:not(.dark) .customer-surface .text-zinc-100,
 html:not(.dark) .customer-surface .text-zinc-200,
 html:not(.dark) .customer-surface .text-zinc-300 {
-  color: #1e293b;
+  color: var(--dh-text-main);
 }
-
 html:not(.dark) .customer-surface .text-zinc-400,
 html:not(.dark) .customer-surface .text-zinc-500,
 html:not(.dark) .customer-surface .text-zinc-600 {
-  color: #64748b;
+  color: var(--dh-text-sub);
 }

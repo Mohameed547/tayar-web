@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import captainDashboardReducer from "@/modules/captain/store/captain-dashboard-slice";
-import captainDataReducer from "@/modules/captain/store/captain-data-slice";
+import captainDashboardReducer from "@/features/captain/store/dashboard-slice";
+import captainDataReducer from "@/features/captain/store/data-slice";
 
 export const makeStore = () =>
   configureStore({

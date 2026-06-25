@@ -62,6 +62,14 @@ export const captainMessages = {
     pickup: 'Pickup',
     dropoff: 'Dropoff',
     expiresIn: 'Expires in',
+    offerPrice: 'Offer Price (EGP)',
+    offerPricePlaceholder: 'e.g. 150',
+    estDeliveryTime: 'Estimated Delivery Time',
+    estDeliveryPlaceholder: 'e.g. 3 hours',
+    offerSubmitSuccess: 'Offer submitted successfully!',
+    submitting: 'Submitting...',
+    cancel: 'Cancel',
+    customerBudget: 'Customer Budget',
 
     // Offers
     offers_title: 'Submitted Offers',
@@ -217,6 +225,14 @@ export const captainMessages = {
     pickup: 'نقطة الاستلام',
     dropoff: 'نقطة التسليم',
     expiresIn: 'ينتهي خلال',
+    offerPrice: 'سعر العرض (ج.م)',
+    offerPricePlaceholder: 'مثال: 150',
+    estDeliveryTime: 'مدة التوصيل المتوقعة',
+    estDeliveryPlaceholder: 'مثال: ٣ ساعات، يوم واحد',
+    offerSubmitSuccess: 'تم تقديم عرض السعر بنجاح!',
+    submitting: 'جاري التقديم...',
+    cancel: 'إلغاء',
+    customerBudget: 'ميزانية العميل',
 
     // Offers
     offers_title: 'العروض المقدمة والأسعار',

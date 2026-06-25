@@ -1,0 +1,17 @@
+// Offers feature – request / response DTOs
+
+export interface AcceptOfferRequest {
+  offerId: string;
+}
+
+export interface SubmitOfferRequest {
+  requestId: string;
+  quoteEGP: number;
+  estimatedDelivery?: string;
+  description?: string;
+}
+
+export interface RejectOfferRequest {
+  offerId: string;
+  reason?: string;
+}

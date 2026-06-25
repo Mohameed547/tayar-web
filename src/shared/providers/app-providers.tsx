@@ -19,7 +19,7 @@ export function AppProviders({
   theme,
 }: AppProvidersProps) {
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone="Africa/Cairo">
       <StoreProvider>
         <ThemeProvider initialTheme={theme}>{children}</ThemeProvider>
       </StoreProvider>

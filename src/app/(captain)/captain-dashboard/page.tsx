@@ -1,5 +1,5 @@
-import ProviderDashboard from "@/modules/captain/views/ProviderDashboard";
+import { ProviderDashboard } from "@/features/captain";
 
-export default function Home() {
-  return <ProviderDashboard />
+export default function Page() {
+  return <ProviderDashboard />;
 }

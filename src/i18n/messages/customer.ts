@@ -16,6 +16,7 @@ export const customerMessages = {
       requestShipment: "Request a new shipment",
     },
     shipments: {
+      loading: "Loading shipments...",
       title: "My shipments",
       subtitle: "Manage and monitor your requested routes",
       all: "All",
@@ -73,8 +74,12 @@ export const customerMessages = {
       estimatedPrice: "Estimated price range",
       distanceValue: "About 220 km",
       priceValue: "EGP 80–180",
+      customPrice: "Custom price (EGP)",
+      customPricePlaceholder: "Adjust shipment price...",
+      resetToAuto: "Reset to auto",
     },
     offers: {
+      loading: "Loading offers...",
       received: "{count} offers received",
       confirming: "Confirming...",
       accept: "Accept selected offer",
@@ -167,6 +172,7 @@ export const customerMessages = {
       weekAgo: "1 week ago",
     },
     profile: {
+      loading: "Loading profile...",
       title: "My profile",
       updated: "Profile updated successfully!",
       verified: "Verified account",
@@ -182,6 +188,7 @@ export const customerMessages = {
       saving: "Saving changes...",
       save: "Save changes",
       customerRole: "Customer",
+      notEditable: "Not editable",
     },
     wallet: {
       title: "Wallet",
@@ -240,6 +247,8 @@ export const customerMessages = {
         "Submit a ticket and our customer care team will reply shortly.",
       subject: "Subject",
       subjectPlaceholder: "For example: delayed package delivery...",
+      shipmentId: "Shipment ID",
+      shipmentIdPlaceholder: "For example: SC-00412",
       category: "Category",
       delay: "Delivery delay",
       billing: "Billing or payment issue",
@@ -280,6 +289,7 @@ export const customerMessages = {
       requestShipment: "اطلب شحنة جديدة",
     },
     shipments: {
+      loading: "جاري تحميل الشحنات...",
       title: "شحناتي",
       subtitle: "أدر مسارات الشحن المطلوبة وتابعها",
       all: "الكل",
@@ -337,8 +347,12 @@ export const customerMessages = {
       estimatedPrice: "نطاق السعر المتوقع",
       distanceValue: "حوالي 220 كم",
       priceValue: "80–180 ج.م",
+      customPrice: "السعر المخصص (ج.م)",
+      customPricePlaceholder: "تعديل سعر الشحنة...",
+      resetToAuto: "إعادة التعيين للوضع التلقائي",
     },
     offers: {
+      loading: "جارٍ تحميل العروض...",
       received: "تم استلام {count} عروض",
       confirming: "جارٍ التأكيد...",
       accept: "قبول العرض المحدد",
@@ -430,6 +444,7 @@ export const customerMessages = {
       weekAgo: "منذ أسبوع",
     },
     profile: {
+      loading: "جاري تحميل الملف الشخصي...",
       title: "ملفي الشخصي",
       updated: "تم تحديث الملف الشخصي بنجاح!",
       verified: "حساب موثق",
@@ -445,6 +460,7 @@ export const customerMessages = {
       saving: "جارٍ حفظ التغييرات...",
       save: "حفظ التغييرات",
       customerRole: "عميل",
+      notEditable: "غير قابل للتعديل",
     },
     wallet: {
       title: "المحفظة",
@@ -501,6 +517,8 @@ export const customerMessages = {
       createSubtitle: "أرسل تذكرة وسيرد فريق خدمة العملاء في أقرب وقت.",
       subject: "الموضوع",
       subjectPlaceholder: "مثال: تأخر توصيل الطرد...",
+      shipmentId: "رقم الشحنة",
+      shipmentIdPlaceholder: "مثال: SC-00412",
       category: "التصنيف",
       delay: "تأخر التوصيل",
       billing: "مشكلة في الفوترة أو الدفع",
