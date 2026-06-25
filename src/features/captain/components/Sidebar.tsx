@@ -1,12 +1,15 @@
 'use client'
+
 import clsx from 'clsx'
 import {
   LayoutDashboard, Inbox, Gavel, CheckCircle, Truck, Map,
   Coins, Wallet, Users, MapPin, BarChart2, Star,
-  UserCircle, ShieldCheck, Ship, LogOut, X,
+  UserCircle, ShieldCheck, Ship, LogOut, X, Settings,
 } from 'lucide-react'
 import { useLocale } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { logout } from '@/features/auth/api'
 import { setActiveScreen, setSidebarOpen } from '@/features/captain/store/dashboard-slice'
 import {
   selectAccountType,
@@ -20,39 +23,39 @@ import type { ScreenId } from '@/features/captain/types'
 interface NavEntry {
   id: ScreenId
   labelKey: string
-  icon: React.ReactNode
+  icon: React.ComponentType<any>
   badge?: number
   officeOnly?: boolean
 }
 
 const NAV_ITEMS: NavEntry[] = [
-  { id: 'overview', labelKey: 'nav_overview', icon: <LayoutDashboard size={17} /> },
-  { id: 'requests', labelKey: 'nav_requests', icon: <Inbox size={17} />, badge: 5 },
-  { id: 'offers', labelKey: 'nav_offers', icon: <Gavel size={17} /> },
-  { id: 'orders', labelKey: 'nav_orders', icon: <CheckCircle size={17} />, badge: 2 },
-  { id: 'deliveries', labelKey: 'nav_deliveries', icon: <Truck size={17} />, officeOnly: true },
-  { id: 'tracking', labelKey: 'nav_tracking', icon: <Map size={17} />, officeOnly: true },
+  { id: 'overview', labelKey: 'nav_overview', icon: LayoutDashboard },
+  { id: 'requests', labelKey: 'nav_requests', icon: Inbox, badge: 5 },
+  { id: 'offers', labelKey: 'nav_offers', icon: Gavel },
+  { id: 'orders', labelKey: 'nav_orders', icon: CheckCircle, badge: 2 },
+  { id: 'deliveries', labelKey: 'nav_deliveries', icon: Truck, officeOnly: true },
+  { id: 'tracking', labelKey: 'nav_tracking', icon: Map, officeOnly: true },
 ]
 
 const FINANCE_ITEMS: NavEntry[] = [
-  { id: 'earnings', labelKey: 'nav_earnings', icon: <Coins size={17} /> },
-  { id: 'wallet', labelKey: 'nav_wallet', icon: <Wallet size={17} /> },
+  { id: 'earnings', labelKey: 'nav_earnings', icon: Coins },
+  { id: 'wallet', labelKey: 'nav_wallet', icon: Wallet },
 ]
 
 const TEAM_ITEMS: NavEntry[] = [
-  { id: 'team', labelKey: 'nav_team', icon: <Users size={17} />, officeOnly: true },
-  { id: 'captain-tracking', labelKey: 'nav_captainTracking', icon: <MapPin size={17} />, officeOnly: true },
-  { id: 'performance', labelKey: 'nav_performance', icon: <BarChart2 size={17} />, officeOnly: true },
+  { id: 'team', labelKey: 'nav_team', icon: Users, officeOnly: true },
+  { id: 'captain-tracking', labelKey: 'nav_captainTracking', icon: MapPin, officeOnly: true },
+  { id: 'performance', labelKey: 'nav_performance', icon: BarChart2, officeOnly: true },
 ]
 
 const ACCOUNT_ITEMS: NavEntry[] = [
-  { id: 'ratings', labelKey: 'nav_ratings', icon: <Star size={17} /> },
-  { id: 'profile', labelKey: 'nav_profile', icon: <UserCircle size={17} /> },
-  { id: 'verification', labelKey: 'nav_verification', icon: <ShieldCheck size={17} /> },
+  { id: 'ratings', labelKey: 'nav_ratings', icon: Star },
+  { id: 'verification', labelKey: 'nav_verification', icon: ShieldCheck },
 ]
 
 export default function Sidebar() {
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const accountType = useAppSelector(selectAccountType)
   const activeScreen = useAppSelector(selectActiveScreen)
   const sidebarOpen = useAppSelector(selectSidebarOpen)
@@ -67,27 +70,41 @@ export default function Sidebar() {
     dispatch(setSidebarOpen(false))
   }
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (e) {
+      console.error('Logout error from sidebar:', e)
+    }
+    router.push('/login')
+  }
+
   const renderItem = (item: NavEntry) => {
     if (item.officeOnly && !isOffice) return null
     const active = activeScreen === item.id
+    const Icon = item.icon
     return (
       <button
         key={item.id}
         onClick={() => navigate(item.id)}
         className={clsx(
-          'flex w-full items-center gap-[9px] px-3 py-[9px] rounded-md text-[13px] font-medium mb-[1px] transition-all duration-150',
-          isRTL && 'flex-row-reverse',
+          'flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:text-zinc-200 hover:bg-zinc-900 group',
           active
-            ? 'bg-blue-600/40 text-white font-semibold'
-            : 'text-white/60 hover:bg-white/[0.08] hover:text-white',
+            ? 'bg-blue-600/10 text-blue-500 hover:bg-blue-600/15 hover:text-blue-400'
+            : 'text-zinc-400'
         )}
       >
-        <span className={clsx('shrink-0', isRTL && 'scale-x-[-1]')}>{item.icon}</span>
-        <span className="flex-1 text-left rtl:text-right">
-          {t(item.labelKey)}
-        </span>
+        <div className="flex items-center gap-3">
+          <Icon
+            className={clsx(
+              'h-4 w-4 transition-transform duration-200 group-hover:scale-105 shrink-0',
+              active ? 'text-blue-500' : 'text-zinc-400'
+            )}
+          />
+          <span>{t(item.labelKey)}</span>
+        </div>
         {item.badge !== undefined && (
-          <span className={clsx('bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full', isRTL ? 'mr-auto' : 'ml-auto')}>
+          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold shrink-0">
             {item.badge}
           </span>
         )}
@@ -100,12 +117,12 @@ export default function Sidebar() {
     const visibleItems = items.filter(i => !i.officeOnly || isOffice)
     if (visibleItems.length === 0) return null
     return (
-      <>
-        <p className="px-3 pt-[14px] pb-[6px] text-[10px] font-bold uppercase tracking-[.07em] text-white/30">
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-3 mb-1 mt-3 text-start">
           {t(labelKey)}
         </p>
         {items.map(renderItem)}
-      </>
+      </div>
     )
   }
 
@@ -121,54 +138,74 @@ export default function Sidebar() {
 
       <aside
         className={clsx(
-          'fixed md:static top-0 h-screen md:h-auto w-[252px] shrink-0 bg-[#0F172A] flex flex-col z-50 transition-transform duration-300',
-          isRTL ? 'right-0' : 'left-0',
+          'fixed md:static top-0 h-screen w-[252px] shrink-0 bg-zinc-950 border-r border-zinc-800 text-zinc-400 p-4 flex flex-col justify-between z-50 transition-transform duration-300',
+          isRTL ? 'right-0 border-l border-r-0' : 'left-0',
           sidebarOpen ? 'translate-x-0' : isRTL ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
-        <div className={clsx('flex items-center gap-[10px] px-5 py-[18px] border-b border-white/[0.08]', isRTL && 'flex-row-reverse')}>
-          <div className="w-[34px] h-[34px] bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
-            <Ship size={17} color="#fff" />
-          </div>
-          <span className="text-base font-extrabold text-white">DeliveryHub</span>
-          <button
-            onClick={() => dispatch(setSidebarOpen(false))}
-            className="md:hidden ml-auto text-white/40 hover:text-white"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="px-4 pt-[10px]">
-          <span className={clsx(
-            'text-[10px] font-bold px-2 py-[2px] rounded-full',
-            isOffice ? 'bg-blue-600/30 text-blue-200' : 'bg-amber-500/20 text-amber-200',
-          )}>
-            {t(isOffice ? 'accountType_office' : 'accountType_captain')}
-          </span>
-          <p className="text-[12px] font-semibold text-white mt-[6px]">{profile.name}</p>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto px-2 py-[10px]">
-          {renderSection('nav_shipmentOps', NAV_ITEMS)}
-          {renderSection('nav_finance', FINANCE_ITEMS)}
-          {renderSection('nav_team_mgmt', TEAM_ITEMS, isOffice)}
-          {renderSection('nav_account', ACCOUNT_ITEMS)}
-        </nav>
-
-        <div className="px-[14px] py-3 border-t border-white/[0.08]">
-          <div className={clsx('flex items-center gap-[10px]', isRTL && 'flex-row-reverse')}>
-            <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 font-bold text-[13px] shrink-0">
-              {profile.name.slice(0, 2).toUpperCase()}
+        <div className="flex flex-col gap-5 overflow-y-auto flex-1">
+          {/* Brand Logo */}
+          <div className="flex items-center justify-between gap-2 px-3 py-2 text-blue-500 font-bold text-xl">
+            <div className="flex items-center gap-2">
+              <Ship className="h-6 w-6 stroke-[2.5]" />
+              <span>DeliveryHub</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-white truncate">{profile.name}</p>
-              <p className="text-[11px] text-white/40">
+            <button
+              onClick={() => dispatch(setSidebarOpen(false))}
+              className="md:hidden text-zinc-400 hover:text-zinc-200"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Account Type Header */}
+          <div className="px-3 text-start">
+            <span className={clsx(
+              'text-[10px] font-bold px-2 py-[2px] rounded-full',
+              isOffice ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+            )}>
+              {t(isOffice ? 'accountType_office' : 'accountType_captain')}
+            </span>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-3">
+            {renderSection('nav_shipmentOps', NAV_ITEMS)}
+            {renderSection('nav_finance', FINANCE_ITEMS)}
+            {renderSection('nav_team_mgmt', TEAM_ITEMS, isOffice)}
+            {renderSection('nav_account', ACCOUNT_ITEMS)}
+          </nav>
+        </div>
+
+        {/* Clickable user profile at the bottom */}
+        <div className="pt-3 border-t border-zinc-800 mt-4">
+          <div 
+            onClick={() => navigate('profile')}
+            className={clsx(
+              'flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-all duration-200',
+              activeScreen === 'profile'
+                ? 'bg-blue-600/10 text-blue-500 hover:bg-blue-600/15'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+            )}
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 font-bold text-xs shrink-0">
+              {profile.name ? profile.name.slice(0, 2).toUpperCase() : 'U'}
+            </div>
+            <div className="flex-1 min-w-0 text-start">
+              <p className="text-xs font-semibold truncate leading-tight">{profile.name}</p>
+              <p className="text-[10px] text-zinc-500 mt-0.5">
                 {t(isOffice ? 'accountType_office' : 'accountType_captain')}
               </p>
             </div>
-            <button className="text-white/30 hover:text-white transition-colors">
-              <LogOut size={15} />
+            <button 
+              onClick={(e) => {
+                e.stopPropagation()
+                handleLogout()
+              }}
+              title={locale === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
+              className="text-zinc-500 hover:text-red-400 transition-colors p-1 shrink-0"
+            >
+              <LogOut size={14} />
             </button>
           </div>
         </div>

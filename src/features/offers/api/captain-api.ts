@@ -12,7 +12,7 @@ export async function getCaptainOffers(): Promise<ProviderOffer[]> {
     const response = await api.get<ApiResponse<any[]>>(
       "/api/offers/mine",
     );
-    const offers = response.data.data || [];
+    const offers = Array.isArray(response.data?.data) ? response.data.data : [];
     return offers.map((o: any) => ({
       id: o._id,
       requestId: o.shipment,

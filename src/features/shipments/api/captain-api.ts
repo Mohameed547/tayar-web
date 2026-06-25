@@ -14,7 +14,7 @@ export async function getCaptainRequests(): Promise<ShipmentRequest[]> {
     const response = await api.get<ApiResponse<{ shipments: any[] }>>(
       "/api/shipments/available",
     );
-    const shipments = response.data.data.shipments || [];
+    const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
     return shipments.map((s: any) => ({
       id: s._id,
       route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
@@ -49,7 +49,7 @@ export async function getCaptainOrders(): Promise<ProviderOrder[]> {
     const response = await api.get<ApiResponse<{ shipments: any[] }>>(
       "/api/shipments/mine/assigned",
     );
-    const shipments = response.data.data.shipments || [];
+    const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
     return shipments.map((s: any) => {
       let frontendStatus: ProviderOrder["status"] = "assigned";
       if (s.status === "delivered") {

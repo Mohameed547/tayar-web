@@ -12,7 +12,7 @@ export async function getCaptainDeliveries(): Promise<Delivery[]> {
     const response = await api.get<ApiResponse<{ shipments: any[] }>>(
       "/api/shipments/mine/assigned",
     );
-    const shipments = response.data.data?.shipments || [];
+    const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
     return shipments.map((s: any) => ({
       id: s._id,
       captain: s.captain || "Captain",
