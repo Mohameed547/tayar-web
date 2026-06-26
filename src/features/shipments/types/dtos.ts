@@ -13,6 +13,7 @@ export interface CreateShipmentRequest {
   deliverySpeed: DeliverySpeed;
   notes?: string;
   price?: number;
+  scheduledDate?: string;
 }
 
 export interface UpdateShipmentRequest {
@@ -32,5 +33,5 @@ export interface CancelShipmentRequest {
 // ── Captain/Office-facing request DTOs ───────────────────────────────────────
 
 export interface UpdateOrderStatusRequest {
-  status: "pending_assignment" | "assigned" | "in_progress" | "delivered";
+  status: "pending_assignment" | "assigned" | "in_progress" | "delivered" | "picked_up" | "in_transit";
 }

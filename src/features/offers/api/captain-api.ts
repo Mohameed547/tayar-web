@@ -15,7 +15,9 @@ export async function getCaptainOffers(): Promise<ProviderOffer[]> {
     const offers = response.data.data || [];
     return offers.map((o: any) => ({
       id: o._id,
-      requestId: o.shipment,
+      requestId: typeof o.shipment === "object" && o.shipment
+        ? (o.shipment.trackingNumber || o.shipment._id || String(o.shipment))
+        : (o.shipment || ""),
       quoteEGP: o.price,
       status: o.status || "pending",
     }));
@@ -41,7 +43,9 @@ export async function submitOffer(
   const o = response.data.data;
   return {
     id: o._id,
-    requestId: o.shipment,
+    requestId: typeof o.shipment === "object" && o.shipment
+      ? (o.shipment.trackingNumber || o.shipment._id || String(o.shipment))
+      : (o.shipment || ""),
     quoteEGP: o.price,
     status: o.status || "pending",
   };

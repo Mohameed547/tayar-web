@@ -26,7 +26,7 @@ export function mapShipment(s: any): Shipment {
     estimatedPriceMax: s.estimatedPriceMax || 0,
     price: s.price || s.estimatedPriceMax || undefined,
     createdAt: s.createdAt || new Date().toISOString(),
-    etaDescription: s.etaDescription || undefined,
+    etaDescription: s.etaDescription || s.selectedOfferId?.estimatedDelivery || undefined,
     pickedUpTime: s.pickedUpTime || undefined,
     deliveryProgressPercent: s.deliveryProgressPercent || 0,
     selectedOfferId: s.selectedOfferId?._id || s.selectedOfferId || undefined,

@@ -44,10 +44,15 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
     .slice(0, 2)
     .toUpperCase();
 
+  const isMockOffer = ["offer-1", "offer-2", "offer-3", "offer-4", "OFF-001", "OFF-002", "OFF-003"].includes(offer.id);
+
   const descriptionKey =
     descriptionKeys[offer.id as keyof typeof descriptionKeys] ?? "description1";
   const durationKey =
     durationKeys[offer.id as keyof typeof durationKeys] ?? "duration1";
+
+  const displayDuration = isMockOffer ? t(durationKey) : offer.estDelivery;
+  const displayDescription = isMockOffer ? t(descriptionKey) : offer.description;
 
   return (
     <div
@@ -111,7 +116,7 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
             </span>
           </div>
           <div className="flex flex-col items-center border-x border-zinc-800/60">
-            <span className="text-zinc-200 font-bold text-base">{t(durationKey)}</span>
+            <span className="text-zinc-200 font-bold text-base">{displayDuration}</span>
             <span className="text-[10px] text-zinc-500 font-semibold uppercase mt-0.5">
               {t("estimatedDelivery")}
             </span>
@@ -132,7 +137,7 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
         </div>
 
         <p className="text-xs text-zinc-400 leading-relaxed min-h-[32px]">
-          {t(descriptionKey)}
+          {displayDescription}
         </p>
       </div>
 

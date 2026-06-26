@@ -105,7 +105,7 @@ export default function NewShipmentView() {
     setSubmitting(true);
     console.log("Submitting shipment request payload:", data);
     try {
-      await createShipment({
+      const newShipment = await createShipment({
         pickupAddress: data.pickupAddress,
         deliveryAddress: data.deliveryAddress,
         pickupCoords: [30.0444, 31.2357],
@@ -113,10 +113,13 @@ export default function NewShipmentView() {
         weight: data.weight,
         packageType: data.packageType,
         deliverySpeed: data.deliverySpeed,
-        notes: data.notes,
+        notes: data.notes || undefined,
         price: data.price,
+        ...(data.deliverySpeed === "scheduled" && data.scheduledDate
+          ? { scheduledDate: String(data.scheduledDate) }
+          : {}),
       });
-      router.push("/offers/sc-00412");
+      router.push(`/offers/${newShipment.id}`);
     } catch (err) {
       console.error("Failed to create shipment, proceeding with mock fallback:", err);
       router.push("/offers/sc-00412");

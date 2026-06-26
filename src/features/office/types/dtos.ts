@@ -1,9 +1,12 @@
 import type { Captain } from "./index";
 
 export interface AddTeamCaptainRequest {
-  name: string;
+  fullName: string;
+  email: string;
   phone: string;
-  status: Captain["status"];
+  password?: string;
+  vehicleType: "motorcycle" | "car" | "van" | "truck";
+  plateNumber: string;
 }
 
 export interface UpdateCaptainStatusRequest {
