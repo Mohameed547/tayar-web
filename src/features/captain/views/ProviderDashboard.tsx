@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/features/auth/api'
 import {
   selectActiveScreen,
   selectCaptainDataStatus,
+  selectAccountType,
 } from '@/features/captain/store/selectors'
 
 import Sidebar from '../components/Sidebar'
@@ -84,11 +85,13 @@ export default function ProviderDashboard() {
       })
   }, [router])
 
+  const accountType = useAppSelector(selectAccountType)
+
   useEffect(() => {
     if (authorized && dataStatus === 'idle') {
-      dispatch(fetchCaptainDashboard())
+      dispatch(fetchCaptainDashboard(accountType))
     }
-  }, [authorized, dataStatus, dispatch])
+  }, [authorized, dataStatus, dispatch, accountType])
 
   if (checkingAuth) {
     return (

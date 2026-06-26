@@ -43,15 +43,15 @@ const initialState: CaptainDataState = {
 // Fetches each domain independently — no monolith
 export const fetchCaptainDashboard = createAsyncThunk<
   ProviderDashboardData,
-  void,
+  "office" | "captain" | undefined,
   { rejectValue: string }
->("captainData/fetchDashboard", async (_, { rejectWithValue }) => {
+>("captainData/fetchDashboard", async (accountType, { rejectWithValue }) => {
   try {
     const [requests, offers, orders, deliveries, captains, earnings, wallet, rating] =
       await Promise.all([
         getCaptainRequests(),
         getCaptainOffers(),
-        getCaptainOrders(),
+        getCaptainOrders(accountType),
         getCaptainDeliveries(),
         getTeamCaptains(),
         getCaptainEarnings(),
@@ -78,6 +78,20 @@ const captainDataSlice = createSlice({
     updateProfile(state, action: PayloadAction<Partial<ProviderProfile>>) {
       state.profile = { ...state.profile, ...action.payload };
     },
+    addCaptainToStore(state, action: PayloadAction<any>) {
+      if (!Array.isArray(state.captains)) {
+        state.captains = [];
+      }
+      state.captains.unshift(action.payload);
+    },
+    updateCaptainStatusInStore(state, action: PayloadAction<{ id: string; status: any }>) {
+      if (Array.isArray(state.captains)) {
+        const captain = state.captains.find((c: any) => (c.id === action.payload.id || c._id === action.payload.id));
+        if (captain) {
+          captain.status = action.payload.status;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -96,7 +110,7 @@ const captainDataSlice = createSlice({
   },
 });
 
-export const { switchAccountTypeData, updateProfile } =
+export const { switchAccountTypeData, updateProfile, addCaptainToStore, updateCaptainStatusInStore } =
   captainDataSlice.actions;
 
 export default captainDataSlice.reducer;
