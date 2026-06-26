@@ -36,7 +36,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
 
   const statusLabels: Record<ShipmentStatus, string> = {
     in_transit: t("inTransit"),
-    captain_assignment: t("captainAssignment"),
+    captain_assignment: captain ? t("captainAssigned") : t("captainAssignment"),
     delivered: t("delivered"),
     pending_offers: t("pendingOffers"),
     picked_up: t("offerAccepted"),
@@ -57,7 +57,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
               <span>{deliveryAddress.split(",")[0]}</span>
             </div>
           </div>
-          <div className="text-xs text-zinc-400">
+          <p className="text-xs text-zinc-400">
             {status === "captain_assignment" && !captain ? (
               <span className="text-zinc-500 font-medium">
                 Nour Logistics · {t("awaitingCaptain")}

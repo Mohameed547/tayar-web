@@ -21,14 +21,24 @@ export async function getTeamCaptains(): Promise<Captain[]> {
     const response = await api.get<ApiResponse<any>>(
       "/api/office/captains",
     );
-    const data = response.data.data;
-    if (data && Array.isArray(data.captains)) {
-      return data.captains.map(mapCaptain);
-    }
+    const data = response?.data?.data;
+    let list: any[] = [];
     if (Array.isArray(data)) {
-      return data.map(mapCaptain);
+      list = data;
+    } else if (data && Array.isArray((data as any).captains)) {
+      list = (data as any).captains;
+    } else if (data && Array.isArray((data as any).data)) {
+      list = (data as any).data;
+    } else {
+      return mockProviderDashboardData.captains;
     }
-    return [];
+
+    return list.map((c: any) => ({
+      id: c.id || c._id || "",
+      name: c.fullName || c.name || "Captain",
+      phone: c.phone || "",
+      status: c.status || "offline",
+    }));
   } catch {
     return mockProviderDashboardData.captains;
   }
@@ -36,13 +46,21 @@ export async function getTeamCaptains(): Promise<Captain[]> {
 
 export async function addTeamCaptain(
   data: AddTeamCaptainRequest,
-): Promise<Captain> {
+): Promise<{ captain: Captain; temporaryPassword?: string }> {
   const response = await api.post<ApiResponse<any>>(
     "/api/office/captains",
     data,
   );
-  const captainObj = response.data.data?.captain || response.data.data;
-  return mapCaptain(captainObj);
+  const result = response.data.data;
+  return {
+    captain: {
+      id: result?.captain?.id || result?.captain?._id || "",
+      name: result?.captain?.fullName || result?.captain?.name || "",
+      phone: result?.captain?.phone || "",
+      status: result?.captain?.status || "offline",
+    },
+    temporaryPassword: result?.temporaryPassword,
+  };
 }
 
 export async function updateCaptainStatus(
@@ -53,33 +71,29 @@ export async function updateCaptainStatus(
     `/api/office/captains/${id}/status`,
     { status } as UpdateCaptainStatusRequest,
   );
-  const captainObj = response.data.data?.captain || response.data.data;
-  return mapCaptain(captainObj);
+  const result = response.data.data;
+  return {
+    id: result?.id || result?._id || id,
+    name: result?.fullName || result?.name || "",
+    phone: result?.phone || "",
+    status: result?.status || status,
+  };
 }
 
 export async function assignShipmentToCaptain(
   shipmentId: string,
   captainId: string,
-): Promise<any> {
-  const response = await api.patch<ApiResponse<any>>(
-    `/api/office/offers/${shipmentId}/assign/${captainId}`,
+): Promise<void> {
+  await api.patch<ApiResponse<void>>(
+    `/api/office/offers/${shipmentId}/assign/${captainId}`
   );
-  return response.data.data;
 }
 
 export async function reassignShipmentToCaptain(
   shipmentId: string,
   captainId: string,
-): Promise<any> {
-  const response = await api.patch<ApiResponse<any>>(
-    `/api/office/offers/${shipmentId}/reassign/${captainId}`,
+): Promise<void> {
+  await api.patch<ApiResponse<void>>(
+    `/api/office/offers/${shipmentId}/reassign/${captainId}`
   );
-  return response.data.data;
-}
-
-export async function deleteTeamCaptain(id: string): Promise<any> {
-  const response = await api.delete<ApiResponse<any>>(
-    `/api/office/captains/${id}`,
-  );
-  return response.data.data;
 }

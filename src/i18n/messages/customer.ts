@@ -26,6 +26,7 @@ export const customerMessages = {
       empty: "No shipments match this filter.",
       inTransit: "In transit",
       captainAssignment: "Captain assignment",
+      captainAssigned: "Captain assigned",
       delivered: "Delivered",
       pickedUpStatus: "Picked up",
       offerAccepted: "Offer accepted",
@@ -120,6 +121,8 @@ export const customerMessages = {
       action: "Track live status",
       tryTracking: "Try tracking",
       or: "or",
+      yourShipments: "Your shipments:",
+      noActiveShipments: "You don't have any shipments to track.",
     },
     tracking: {
       loading: "Loading tracking details...",
@@ -303,6 +306,7 @@ export const customerMessages = {
       empty: "لا توجد شحنات مطابقة لهذا الفلتر.",
       inTransit: "في الطريق",
       captainAssignment: "جارٍ تعيين كابتن",
+      captainAssigned: "تم تعيين الكابتن",
       delivered: "تم التسليم",
       pickedUpStatus: "تم الاستلام",
       offerAccepted: "تم قبول العرض",
@@ -397,6 +401,8 @@ export const customerMessages = {
       action: "تتبع الحالة مباشرة",
       tryTracking: "جرّب تتبع",
       or: "أو",
+      yourShipments: "شحناتك:",
+      noActiveShipments: "ليس لديك أي شحنات لتتبعها حالياً.",
     },
     tracking: {
       loading: "جارٍ تحميل تفاصيل التتبع...",

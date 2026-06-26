@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/features/auth/api'
 import {
   selectActiveScreen,
   selectCaptainDataStatus,
+  selectAccountType,
 } from '@/features/captain/store/selectors'
 
 import Sidebar from '../components/Sidebar'
@@ -84,15 +85,17 @@ export default function ProviderDashboard() {
       })
   }, [router])
 
+  const accountType = useAppSelector(selectAccountType)
+
   useEffect(() => {
     if (authorized && dataStatus === 'idle') {
-      dispatch(fetchCaptainDashboard())
+      dispatch(fetchCaptainDashboard(accountType))
     }
-  }, [authorized, dataStatus, dispatch])
+  }, [authorized, dataStatus, dispatch, accountType])
 
   if (checkingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0B0F19] text-zinc-400 text-sm font-semibold">
+      <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-zinc-400 text-sm font-semibold">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 rounded-full border-2 border-t-blue-500 border-zinc-800 animate-spin" />
           <span>{locale === 'ar' ? 'جاري التحقق من الصلاحيات...' : 'Verifying permissions...'}</span>
@@ -107,15 +110,16 @@ export default function ProviderDashboard() {
 
   return (
     <div
-      className="flex min-h-screen bg-[var(--color-bg-app)]"
+      className="customer-surface flex h-screen w-screen overflow-hidden bg-zinc-950"
+      data-surface="customer"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       <Sidebar />
 
-      <div className="flex flex-col flex-1 min-h-screen w-0">
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         <Topbar />
 
-        <main className="flex-1 p-6 md:p-7">
+        <main className="flex-1 overflow-y-auto p-6 bg-zinc-950">
           {SCREENS[activeScreen] ?? <Overview />}
         </main>
       </div>

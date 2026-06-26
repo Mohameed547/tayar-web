@@ -1,18 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getShipmentById } from "@/features/shipments/api";
-import { mockShipments } from "@/constants/mock-data";
+import { getShipments } from "@/features/shipments/api";
+import type { Shipment } from "@/features/shipments/types";
 
 export default function TrackingListView() {
   const t = useTranslations("customer.trackingSearch");
   const router = useRouter();
   const [trackingId, setTrackingId] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getShipments()
+      .then((data) => {
+        // filter shipments that have trackingNumber
+        setShipments(data.filter((s) => s.trackingNumber));
+      })
+      .catch((err) => {
+        console.error("Failed to load customer shipments for tracking:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,29 +110,37 @@ export default function TrackingListView() {
         </button>
       </form>
 
-      <div className="text-center text-[10px] text-zinc-500 mt-2">
-        <span>{t("tryTracking")} </span>
-        <button
-          onClick={() => {
-            setTrackingId("SC-00412");
-            setError("");
-          }}
-          disabled={loading}
-          className="text-blue-500 hover:underline font-semibold focus:outline-none disabled:opacity-50 disabled:no-underline"
-        >
-          SC-00412
-        </button>
-        <span> {t("or")} </span>
-        <button
-          onClick={() => {
-            setTrackingId("SC-00408");
-            setError("");
-          }}
-          disabled={loading}
-          className="text-blue-500 hover:underline font-semibold focus:outline-none disabled:opacity-50 disabled:no-underline"
-        >
-          SC-00408
-        </button>
+      <div className="bg-zinc-900/50 border border-zinc-800/60 rounded-xl p-5 mt-2 flex flex-col gap-3">
+        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+          {t("yourShipments")}
+        </h3>
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
+          </div>
+        ) : shipments.length === 0 ? (
+          <p className="text-xs text-zinc-500 py-2 italic">
+            {t("noActiveShipments")}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {shipments.map((shipment) => (
+              <button
+                key={shipment.id}
+                onClick={() => {
+                  setTrackingId(shipment.trackingNumber);
+                  setError("");
+                }}
+                className="text-xs font-semibold px-3 py-2 rounded-lg bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 text-blue-400 hover:text-blue-300 transition-all flex items-center gap-1.5 focus:outline-none"
+              >
+                <span>{shipment.trackingNumber}</span>
+                <span className="text-[10px] text-zinc-500 font-normal">
+                  ({shipment.pickupAddress.split(",")[0]} → {shipment.deliveryAddress.split(",")[0]})
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

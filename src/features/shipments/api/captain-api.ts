@@ -14,27 +14,21 @@ export async function getCaptainRequests(): Promise<ShipmentRequest[]> {
     const response = await api.get<ApiResponse<{ shipments: any[] }>>(
       "/api/shipments/available",
     );
-    const shipments = response.data.data.shipments || [];
-    return shipments.map((s: any) => {
-      const calculatedOriginalPrice = s.estimatedPriceMin && s.estimatedPriceMax 
-        ? Math.round((s.estimatedPriceMin + s.estimatedPriceMax) / 2) 
-        : undefined;
-
-      return {
-        id: s._id,
-        route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
-        weight: `${s.weight} kg`,
-        packageType: s.packageType,
-        expiresIn: "",
-        pickup: s.pickupAddress,
-        dropoff: s.deliveryAddress,
-        price: s.price || calculatedOriginalPrice,
-        estimatedPriceMin: s.estimatedPriceMin,
-        estimatedPriceMax: s.estimatedPriceMax,
-      };
-    });
-  } catch {
-    return mockProviderDashboardData.requests;
+    const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
+    return shipments.map((s: any) => ({
+      id: s._id,
+      route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
+      weight: `${s.weight} kg`,
+      packageType: s.packageType,
+      expiresIn: "",
+      pickup: s.pickupAddress,
+      dropoff: s.deliveryAddress,
+      price: s.price,
+      estimatedPriceMin: s.estimatedPriceMin,
+      estimatedPriceMax: s.estimatedPriceMax,
+    }));
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -50,12 +44,49 @@ export async function getCaptainRequestById(
   return req;
 }
 
-export async function getCaptainOrders(): Promise<ProviderOrder[]> {
+export async function getCaptainOrders(accountType?: "office" | "captain"): Promise<ProviderOrder[]> {
+  if (accountType === "office") {
+    try {
+      const [pendingRes, assignedRes] = await Promise.all([
+        api.get<ApiResponse<any[]>>("/api/office/offers"),
+        api.get<ApiResponse<any[]>>("/api/office/offers/assigned"),
+      ]);
+      const pending = Array.isArray(pendingRes.data?.data) ? pendingRes.data.data : [];
+      const assigned = Array.isArray(assignedRes.data?.data) ? assignedRes.data.data : [];
+      
+      const allShipments = [...pending, ...assigned];
+      return allShipments.map((s: any) => {
+        let frontendStatus: ProviderOrder["status"] = "assigned";
+        if (s.status === "delivered") {
+          frontendStatus = "delivered";
+        } else if (s.status === "in_transit" || s.status === "picked_up" || s.status === "out_for_delivery") {
+          frontendStatus = "in_progress";
+        } else if (!s.captain) {
+          frontendStatus = "pending_assignment";
+        }
+        
+        return {
+          id: s.id || s._id,
+          clientName: s.customer?.fullName || s.customer?.name || "Client",
+          priceEGP: s.price || s.estimatedPriceMax || 0,
+          status: frontendStatus,
+          captain: s.captain ? {
+            id: s.captain.id || s.captain._id || "",
+            name: s.captain.fullName || s.captain.name || "",
+            phone: s.captain.phone || "",
+          } : undefined,
+        };
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   try {
     const response = await api.get<ApiResponse<{ shipments: any[] }>>(
       "/api/shipments/mine/assigned",
     );
-    const shipments = response.data.data.shipments || [];
+    const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
     return shipments.map((s: any) => {
       let frontendStatus: ProviderOrder["status"] = "assigned";
       if (s.status === "delivered") {
@@ -79,8 +110,8 @@ export async function getCaptainOrders(): Promise<ProviderOrder[]> {
         captain: s.captain,
       };
     });
-  } catch {
-    return mockProviderDashboardData.orders;
+  } catch (error) {
+    throw error;
   }
 }
 

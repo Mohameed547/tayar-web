@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
-import { selectRequests } from '@/features/captain/store/selectors'
+import { selectRequests, selectAccountType } from '@/features/captain/store/selectors'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { submitOffer } from '@/features/offers'
 import Card from '@/shared/ui/Card'
@@ -13,6 +13,7 @@ import { useLocale } from 'next-intl'
 export default function Requests() {
   const t = useCaptainTranslations()
   const requests = useAppSelector(selectRequests)
+  const accountType = useAppSelector(selectAccountType)
   const dispatch = useAppDispatch()
   const locale = useLocale()
   const isRTL = locale === 'ar'
@@ -60,7 +61,7 @@ export default function Requests() {
       })
 
       setSuccessMessage(t('offerSubmitSuccess'))
-      dispatch(fetchCaptainDashboard())
+      dispatch(fetchCaptainDashboard(accountType))
       
       setTimeout(() => {
         handleCloseModal()
