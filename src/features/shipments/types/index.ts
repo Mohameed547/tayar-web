@@ -59,4 +59,9 @@ export interface ProviderOrder {
   clientName: string;
   priceEGP: number;
   status: "pending_assignment" | "assigned" | "in_progress" | "delivered";
+  captain?: {
+    id: string;
+    name: string;
+    phone: string;
+  };
 }

@@ -13,16 +13,23 @@ export async function getTeamCaptains(): Promise<Captain[]> {
       "/api/office/captains",
     );
     const data = response?.data?.data;
+    let list: any[] = [];
     if (Array.isArray(data)) {
-      return data;
+      list = data;
+    } else if (data && Array.isArray((data as any).captains)) {
+      list = (data as any).captains;
+    } else if (data && Array.isArray((data as any).data)) {
+      list = (data as any).data;
+    } else {
+      return mockProviderDashboardData.captains;
     }
-    if (data && Array.isArray((data as any).captains)) {
-      return (data as any).captains;
-    }
-    if (data && Array.isArray((data as any).data)) {
-      return (data as any).data;
-    }
-    return mockProviderDashboardData.captains;
+
+    return list.map((c: any) => ({
+      id: c.id || c._id || "",
+      name: c.fullName || c.name || "Captain",
+      phone: c.phone || "",
+      status: c.status || "offline",
+    }));
   } catch {
     return mockProviderDashboardData.captains;
   }
@@ -30,21 +37,54 @@ export async function getTeamCaptains(): Promise<Captain[]> {
 
 export async function addTeamCaptain(
   data: AddTeamCaptainRequest,
-): Promise<Captain> {
-  const response = await api.post<ApiResponse<Captain>>(
+): Promise<{ captain: Captain; temporaryPassword?: string }> {
+  const response = await api.post<ApiResponse<any>>(
     "/api/office/captains",
     data,
   );
-  return response.data.data;
+  const result = response.data.data;
+  return {
+    captain: {
+      id: result?.captain?.id || result?.captain?._id || "",
+      name: result?.captain?.fullName || result?.captain?.name || "",
+      phone: result?.captain?.phone || "",
+      status: result?.captain?.status || "offline",
+    },
+    temporaryPassword: result?.temporaryPassword,
+  };
 }
 
 export async function updateCaptainStatus(
   id: string,
   status: Captain["status"],
 ): Promise<Captain> {
-  const response = await api.put<ApiResponse<Captain>>(
+  const response = await api.patch<ApiResponse<any>>(
     `/api/office/captains/${id}/status`,
     { status } as UpdateCaptainStatusRequest,
   );
-  return response.data.data;
+  const result = response.data.data;
+  return {
+    id: result?.id || result?._id || id,
+    name: result?.fullName || result?.name || "",
+    phone: result?.phone || "",
+    status: result?.status || status,
+  };
+}
+
+export async function assignShipmentToCaptain(
+  shipmentId: string,
+  captainId: string,
+): Promise<void> {
+  await api.patch<ApiResponse<void>>(
+    `/api/office/offers/${shipmentId}/assign/${captainId}`
+  );
+}
+
+export async function reassignShipmentToCaptain(
+  shipmentId: string,
+  captainId: string,
+): Promise<void> {
+  await api.patch<ApiResponse<void>>(
+    `/api/office/offers/${shipmentId}/reassign/${captainId}`
+  );
 }

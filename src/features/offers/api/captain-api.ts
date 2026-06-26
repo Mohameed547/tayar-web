@@ -15,12 +15,14 @@ export async function getCaptainOffers(): Promise<ProviderOffer[]> {
     const offers = Array.isArray(response.data?.data) ? response.data.data : [];
     return offers.map((o: any) => ({
       id: o._id,
-      requestId: o.shipment,
+      requestId: o.shipment && typeof o.shipment === 'object'
+        ? (o.shipment.trackingNumber || o.shipment._id || 'Shipment')
+        : (o.shipment || 'Shipment'),
       quoteEGP: o.price,
       status: o.status || "pending",
     }));
-  } catch {
-    return mockProviderDashboardData.offers;
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -41,7 +43,9 @@ export async function submitOffer(
   const o = response.data.data;
   return {
     id: o._id,
-    requestId: o.shipment,
+    requestId: o.shipment && typeof o.shipment === 'object'
+      ? (o.shipment.trackingNumber || o.shipment._id || 'Shipment')
+      : (o.shipment || 'Shipment'),
     quoteEGP: o.price,
     status: o.status || "pending",
   };
