@@ -52,13 +52,18 @@ export interface ShipmentRequest {
   price?: number;
   estimatedPriceMin?: number;
   estimatedPriceMax?: number;
+  notes?: string;
+  deliverySpeed?: string;
+  scheduledDate?: string;
 }
 
 export interface ProviderOrder {
   id: string;
   clientName: string;
+  clientPhone?: string;
   priceEGP: number;
   status: "pending_assignment" | "assigned" | "in_progress" | "delivered";
+  rawStatus?: string;
   captain?: {
     id: string;
     name: string;
