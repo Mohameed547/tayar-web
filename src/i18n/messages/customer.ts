@@ -29,6 +29,7 @@ export const customerMessages = {
       captainAssigned: "Captain assigned",
       delivered: "Delivered",
       pickedUpStatus: "Picked up",
+      offerAccepted: "Offer accepted",
       outForDelivery: "Out for delivery",
       cancelled: "Cancelled",
       pendingOffers: "Pending offers",
@@ -41,6 +42,7 @@ export const customerMessages = {
       delivering: "Delivering... {progress}%",
       eta: "Estimated arrival: {time}",
       etaDuration: "2 h 15 min",
+      captainAssigned: "Captain assigned",
     },
     newShipment: {
       title: "New shipment request",
@@ -115,6 +117,7 @@ export const customerMessages = {
       trackingId: "Tracking ID",
       placeholder: "For example: SC-00412",
       invalid: "Enter a valid tracking number",
+      notFound: "Shipment not found",
       action: "Track live status",
       tryTracking: "Try tracking",
       or: "or",
@@ -123,6 +126,7 @@ export const customerMessages = {
     },
     tracking: {
       loading: "Loading tracking details...",
+      notFound: "Shipment not found",
       title: "Live map tracking",
       subtitle: "Real-time status updates for your delivery",
       office: "Office",
@@ -305,6 +309,7 @@ export const customerMessages = {
       captainAssigned: "تم تعيين الكابتن",
       delivered: "تم التسليم",
       pickedUpStatus: "تم الاستلام",
+      offerAccepted: "تم قبول العرض",
       outForDelivery: "خرجت للتسليم",
       cancelled: "ملغاة",
       pendingOffers: "عروض قيد الانتظار",
@@ -317,6 +322,7 @@ export const customerMessages = {
       delivering: "جارٍ التوصيل... {progress}%",
       eta: "الوصول المتوقع: {time}",
       etaDuration: "ساعتان و15 دقيقة",
+      captainAssigned: "تم تعيين الكابتن",
     },
     newShipment: {
       title: "طلب شحنة جديدة",
@@ -391,6 +397,7 @@ export const customerMessages = {
       trackingId: "رقم التتبع",
       placeholder: "مثال: SC-00412",
       invalid: "أدخل رقم تتبع صحيحًا",
+      notFound: "الشحنة غير موجودة",
       action: "تتبع الحالة مباشرة",
       tryTracking: "جرّب تتبع",
       or: "أو",
@@ -399,6 +406,7 @@ export const customerMessages = {
     },
     tracking: {
       loading: "جارٍ تحميل تفاصيل التتبع...",
+      notFound: "الشحنة غير موجودة",
       title: "التتبع المباشر على الخريطة",
       subtitle: "تحديثات لحظية لحالة عملية التوصيل",
       office: "مكتب",

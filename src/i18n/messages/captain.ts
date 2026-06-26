@@ -87,6 +87,9 @@ export const captainMessages = {
     orders_sub: 'Confirmed jobs by the client. Ready to proceed.',
     assignCaptain: 'Assign Captain',
     pickUpCargo: 'Pick Up Cargo',
+    startRoute: 'Start Delivery Route',
+    markDelivered: 'Mark as Delivered',
+    deliveredStatus: 'Delivered',
     clientConfirmed: 'Client confirmed pricing:',
 
     // Deliveries
@@ -250,6 +253,9 @@ export const captainMessages = {
     orders_sub: 'الطلبات المؤكدة من العميل وجاهزة للتنفيذ فوراً.',
     assignCaptain: 'تعيين كابتن',
     pickUpCargo: 'بدء الشحنة واستلامها',
+    startRoute: 'بدء رحلة التوصيل',
+    markDelivered: 'تأكيد التوصيل والتسليم',
+    deliveredStatus: 'تم التوصيل',
     clientConfirmed: 'تسعيرة العميل المؤكدة:',
 
     // Deliveries

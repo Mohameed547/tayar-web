@@ -7,6 +7,7 @@ import type { TrackingMilestone } from "@/features/tracking/types";
 
 interface TrackingTimelineProps {
   milestones: TrackingMilestone[];
+  progressPercent?: number;
 }
 
 const titleKeys = {
@@ -14,11 +15,10 @@ const titleKeys = {
   2: "offerAccepted",
   3: "packagePickedUp",
   4: "inTransit",
-  5: "outForDelivery",
-  6: "delivered",
+  5: "delivered",
 } as const;
 
-export default function TrackingTimeline({ milestones }: TrackingTimelineProps) {
+export default function TrackingTimeline({ milestones, progressPercent = 65 }: TrackingTimelineProps) {
   const t = useTranslations("customer.tracking");
 
   return (
@@ -71,7 +71,7 @@ export default function TrackingTimeline({ milestones }: TrackingTimelineProps) 
               </div>
               {isActive && (
                 <p className="text-xs mt-0.5 leading-normal text-blue-400 font-medium animate-pulse">
-                  {t("progress", { progress: 65 })}
+                  {t("progress", { progress: progressPercent })}
                 </p>
               )}
             </div>

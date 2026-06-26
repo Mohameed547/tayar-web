@@ -93,15 +93,21 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
         frontendStatus = "delivered";
       } else if (s.status === "in_transit" || s.status === "picked_up" || s.status === "out_for_delivery") {
         frontendStatus = "in_progress";
-      } else if (s.status === "captain_assignment" || s.status === "pending_offers") {
+      } else if ((s.status === "captain_assignment" && !s.captain) || s.status === "pending_offers") {
         frontendStatus = "pending_assignment";
       }
+
+      const calculatedOriginalPrice = s.estimatedPriceMin && s.estimatedPriceMax 
+        ? Math.round((s.estimatedPriceMin + s.estimatedPriceMax) / 2) 
+        : undefined;
 
       return {
         id: s._id,
         clientName: s.customer?.fullName || s.customer?.name || "Client",
-        priceEGP: s.price || s.estimatedPriceMax || 0,
+        priceEGP: s.price || calculatedOriginalPrice || s.estimatedPriceMax || 0,
         status: frontendStatus,
+        rawStatus: s.status,
+        captain: s.captain,
       };
     });
   } catch (error) {
@@ -122,11 +128,9 @@ export async function updateOrderStatus(
   id: string,
   data: UpdateOrderStatusRequest,
 ): Promise<ProviderOrder> {
-  let backendStatus = "assigned";
+  let backendStatus = data.status;
   if (data.status === "in_progress") {
     backendStatus = "in_transit";
-  } else if (data.status === "delivered") {
-    backendStatus = "delivered";
   }
 
   await api.post<ApiResponse<any>>(
@@ -141,6 +145,6 @@ export async function updateOrderStatus(
     id,
     clientName: "Client",
     priceEGP: 0,
-    status: data.status,
+    status: data.status === "picked_up" || data.status === "in_transit" ? "in_progress" : data.status as any,
   };
 }

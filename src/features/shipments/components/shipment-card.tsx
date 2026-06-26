@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Eye, Navigation } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { Shipment, ShipmentStatus } from "@/features/shipments/types";
 
 interface ShipmentCardProps {
@@ -11,6 +11,7 @@ interface ShipmentCardProps {
 
 export default function ShipmentCard({ shipment }: ShipmentCardProps) {
   const t = useTranslations("customer.shipments");
+  const locale = useLocale();
   const {
     id,
     trackingNumber,
@@ -20,6 +21,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
     captain,
     pickedUpTime,
     deliveryProgressPercent = 0,
+    etaDescription,
   } = shipment;
 
   const statusStyles: Record<ShipmentStatus, string> = {
@@ -37,7 +39,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
     captain_assignment: captain ? t("captainAssigned") : t("captainAssignment"),
     delivered: t("delivered"),
     pending_offers: t("pendingOffers"),
-    picked_up: t("pickedUpStatus"),
+    picked_up: t("offerAccepted"),
     out_for_delivery: t("outForDelivery"),
     cancelled: t("cancelled"),
   };
@@ -61,12 +63,19 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                 Nour Logistics · {t("awaitingCaptain")}
               </span>
             ) : (
-              <span>
-                {t("captain", { name: captain?.name || t("unassigned") })}
-                {` · ${t("eta", { time: t("etaDuration") })}`}
-              </span>
+              <div className="flex flex-col gap-1.5">
+                <span className="font-semibold text-zinc-300">
+                  {t("captain", { name: captain?.name || t("unassigned") })}
+                  {` · ${t("eta", { time: etaDescription || t("etaDuration") })}`}
+                </span>
+                {captain?.phone && (
+                  <span className="text-[11px] text-zinc-500 flex items-center gap-1 font-medium">
+                    📞 {captain.phone}
+                  </span>
+                )}
+              </div>
             )}
-          </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -76,9 +85,11 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             {status === "in_transit" && (
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
             )}
-            {statusLabels[status]}
+            {status === "captain_assignment" && captain 
+              ? (t("captainAssigned") || (locale === "ar" ? "تم تعيين الكابتن" : "Captain Assigned"))
+              : statusLabels[status]}
           </span>
-          {status === "in_transit" && (
+          {(status === "in_transit" || status === "picked_up") && (
             <Link
               href={`/tracking/${id}`}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 transition-all duration-200"
@@ -112,7 +123,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             <span className="text-blue-400 font-semibold">
               {t("delivering", { progress: deliveryProgressPercent })}
             </span>
-            <span>{t("eta", { time: t("etaDuration") })}</span>
+            <span>{t("eta", { time: etaDescription || t("etaDuration") })}</span>
           </div>
         </div>
       )}

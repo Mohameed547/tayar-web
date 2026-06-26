@@ -5,6 +5,15 @@ import type { ApiResponse } from "@/shared/types/api";
 import type { AddTeamCaptainRequest, UpdateCaptainStatusRequest } from "@/features/office/types/dtos";
 import { mockProviderDashboardData } from "@/features/captain/data/mock-dashboard-data";
 
+export function mapCaptain(c: any): Captain {
+  return {
+    id: c.id || c._id,
+    name: c.fullName || c.name || "Captain",
+    phone: c.phone || "",
+    status: c.status || "offline",
+  };
+}
+
 // ── Office Team API ───────────────────────────────────────────────────────────
 
 export async function getTeamCaptains(): Promise<Captain[]> {

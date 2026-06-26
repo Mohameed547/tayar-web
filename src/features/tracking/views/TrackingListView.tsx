@@ -29,7 +29,7 @@ export default function TrackingListView() {
       });
   }, []);
 
-  const handleTrack = (e: React.FormEvent) => {
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanId = trackingId.trim().toLowerCase();
 
@@ -38,8 +38,28 @@ export default function TrackingListView() {
       return;
     }
 
+    setLoading(true);
     setError("");
-    router.push(`/tracking/${cleanId}`);
+
+    try {
+      await getShipmentById(cleanId);
+      router.push(`/tracking/${cleanId}`);
+    } catch (err) {
+      const isMock = mockShipments.some(
+        (s) =>
+          s.id.toLowerCase() === cleanId ||
+          s.trackingNumber.toLowerCase() === cleanId
+      );
+
+      if (isMock) {
+        router.push(`/tracking/${cleanId}`);
+      } else {
+        console.error("Tracking lookup failed:", err);
+        setError(t("notFound") || "Shipment not found in database");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,7 +85,8 @@ export default function TrackingListView() {
               type="text"
               value={trackingId}
               onChange={(e) => setTrackingId(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-10 pr-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors uppercase placeholder-zinc-500"
+              disabled={loading}
+              className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-10 pr-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors uppercase placeholder-zinc-500"
               placeholder={t("placeholder")}
             />
           </div>
@@ -78,9 +99,14 @@ export default function TrackingListView() {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-md focus:outline-none"
+          disabled={loading}
+          className="w-full py-3 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white transition-all shadow-md focus:outline-none flex items-center justify-center gap-2"
         >
-          {t("action")}
+          {loading ? (
+            <span className="h-3.5 w-3.5 rounded-full border-2 border-t-white border-white/20 animate-spin" />
+          ) : (
+            t("action")
+          )}
         </button>
       </form>
 

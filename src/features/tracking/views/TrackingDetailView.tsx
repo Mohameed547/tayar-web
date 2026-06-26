@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Phone, MessageSquare, Ship, Navigation } from "lucide-react";
 import { mockShipments, mockOffers } from "@/constants/mock-data";
 import TrackingTimeline from "../components/tracking-timeline";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { getShipmentById } from "@/features/shipments/api";
 import { getOffersForShipment } from "@/features/offers/api";
 import type { Shipment } from "@/features/shipments/types";
@@ -19,29 +19,40 @@ interface TrackingDetailViewProps {
 
 export default function TrackingDetailView({ id, offerId }: TrackingDetailViewProps) {
   const t = useTranslations("customer.tracking");
+  const locale = useLocale();
 
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
       getShipmentById(id).catch((err) => {
-        console.error("Failed to fetch shipment details, using mock fallback:", err);
-        return mockShipments.find((s) => s.id === id) || mockShipments[0];
+        console.error("Failed to fetch shipment details, checking mock fallback:", err);
+        const mock = mockShipments.find(
+          (s) =>
+            s.id.toLowerCase() === id.toLowerCase() ||
+            s.trackingNumber.toLowerCase() === id.toLowerCase()
+        );
+        if (mock) return mock;
+        setError(t("notFound") || "Shipment not found");
+        return null;
       }),
       getOffersForShipment(id).catch((err) => {
         console.error("Failed to fetch offers, using mock fallback:", err);
         return mockOffers;
       }),
     ]).then(([loadedShipment, loadedOffers]) => {
-      setShipment(loadedShipment);
-      setOffers(loadedOffers);
+      if (loadedShipment) {
+        setShipment(loadedShipment);
+        setOffers(loadedOffers);
+      }
       setLoading(false);
     });
   }, [id]);
 
-  if (loading || !shipment) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-sm font-semibold">
         <span>{t("loading") || "Loading tracking details..."}</span>
@@ -49,9 +60,38 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     );
   }
 
+  if (error || !shipment) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-zinc-400 text-sm font-semibold gap-4">
+        <span>{error || t("notFound") || "Shipment not found"}</span>
+        <Link
+          href="/tracking"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors shadow-md"
+        >
+          {locale === "ar" ? "العودة للتتبع" : "Back to Tracking"}
+        </Link>
+      </div>
+    );
+  }
+
   const captain = shipment.captain;
   const selectedOffer = offers.find((o) => o.id === offerId);
-  const displayProvider = selectedOffer
+  const displayProvider = captain
+    ? {
+        name: captain.name,
+        rating: 4.9,
+        avatar: captain.avatar || (captain.name
+          ? captain.name
+              .split(" ")
+              .map((w: string) => w[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)
+          : "KM"),
+        role: t("captain"),
+        phone: captain.phone,
+      }
+    : selectedOffer
     ? {
         name: selectedOffer.providerName,
         rating: selectedOffer.providerRating,
@@ -62,13 +102,7 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
           .toUpperCase()
           .slice(0, 2),
         role: selectedOffer.providerType === "office" ? t("office") : t("captain"),
-      }
-    : captain
-    ? {
-        name: captain.name,
-        rating: captain.rating || 4.9,
-        avatar: captain.avatar || "KM",
-        role: t("captain"),
+        phone: undefined,
       }
     : null;
 
@@ -94,14 +128,29 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     {
       step: 3,
       title: t("packagePickedUp") || "Package picked up",
-      timestamp: (shipment.status === "in_transit" || shipment.status === "delivered") ? shipment.pickedUpTime || "Completed" : undefined,
-      status: getStatus(shipment.status === "in_transit" || shipment.status === "delivered", shipment.status === "in_transit" && (shipment.deliveryProgressPercent ?? 0) < 100),
+      timestamp: ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? shipment.pickedUpTime || "Completed" : undefined,
+      status: getStatus(
+        ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status),
+        shipment.status === "picked_up"
+      ),
     },
     {
       step: 4,
+      title: t("inTransit") || "In transit",
+      timestamp: ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined,
+      status: getStatus(
+        ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status),
+        ["in_transit", "out_for_delivery"].includes(shipment.status)
+      ),
+    },
+    {
+      step: 5,
       title: t("delivered") || "Delivered",
       timestamp: shipment.status === "delivered" ? "Completed" : undefined,
-      status: getStatus(shipment.status === "delivered", shipment.status === "delivered"),
+      status: getStatus(
+        shipment.status === "delivered",
+        shipment.status === "delivered"
+      ),
     },
   ];
 
@@ -166,7 +215,9 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
               {t("live")}
             </span>
             <span className="bg-zinc-950/95 border border-zinc-800 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-200 uppercase tracking-wider">
-              {t("defaultEta")}
+              {shipment.etaDescription 
+                ? `${locale === "ar" ? "الوصول المتوقع خلال" : "Estimated arrival in"} ${shipment.etaDescription}`
+                : t("defaultEta")}
             </span>
           </div>
         </div>
@@ -186,7 +237,10 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                 <Ship className="h-5 w-5 text-blue-500" />
               </div>
 
-              <TrackingTimeline milestones={milestones} />
+              <TrackingTimeline 
+                milestones={milestones} 
+                progressPercent={shipment.deliveryProgressPercent}
+              />
             </div>
 
             {displayProvider && (
@@ -208,19 +262,49 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    aria-label={t("callProvider")}
-                    className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400 hover:bg-zinc-800 transition-colors focus:outline-none"
-                  >
-                    <Phone className="h-4 w-4" />
-                  </button>
-                  <button
-                    aria-label={t("messageProvider")}
-                    className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-blue-400 hover:bg-zinc-800 transition-colors focus:outline-none"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                  </button>
+                 <div className="flex gap-2">
+                  {displayProvider.phone ? (
+                    <a
+                      href={`tel:${displayProvider.phone}`}
+                      aria-label={t("callProvider")}
+                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400 hover:bg-zinc-800 transition-colors focus:outline-none flex items-center justify-center"
+                    >
+                      <Phone className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      aria-label={t("callProvider")}
+                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed focus:outline-none flex items-center justify-center"
+                    >
+                      <Phone className="h-4 w-4" />
+                    </button>
+                  )}
+                  {displayProvider.phone ? (
+                    <a
+                      href={`https://wa.me/${(() => {
+                        const cleaned = displayProvider.phone.replace(/\D/g, "");
+                        if (cleaned.startsWith("01") && cleaned.length === 11) {
+                          return "20" + cleaned.slice(1);
+                        }
+                        return cleaned;
+                      })()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t("messageProvider")}
+                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-blue-400 hover:bg-zinc-800 transition-colors focus:outline-none flex items-center justify-center"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      aria-label={t("messageProvider")}
+                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed focus:outline-none flex items-center justify-center"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             )}
