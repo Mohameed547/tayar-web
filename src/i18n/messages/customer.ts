@@ -102,7 +102,8 @@ export const customerMessages = {
       selectThis: "Selected offer",
       select: "Select",
       description1: "Fleet of 12 trucks with guaranteed same-day pickup.",
-      description2: "Independent driver with a Toyota Hilux. The fastest option.",
+      description2:
+        "Independent driver with a Toyota Hilux. The fastest option.",
       description3: "Reliable courier company operating nationwide.",
       description4: "Express shipping services across all governorates.",
       duration1: "1 day 4 hours",
@@ -162,6 +163,9 @@ export const customerMessages = {
       deliveredTitle: "Delivered",
       deliveredMessage: "SC-00408 was delivered successfully.",
       yesterday: "Yesterday",
+      loadError:
+        "Something went wrong while loading notifications. Please try again.",
+      empty: "No notifications yet",
     },
     reviews: {
       title: "Reviews and ratings",
@@ -442,6 +446,8 @@ export const customerMessages = {
       deliveredTitle: "تم التسليم",
       deliveredMessage: "تم توصيل الشحنة SC-00408 بنجاح.",
       yesterday: "أمس",
+      loadError: "حدث خطأ في تحميل الإشعارات، حاول مرة أخرى.",
+      empty: "لا توجد إشعارات حاليًا",
     },
     reviews: {
       title: "التقييمات والآراء",
@@ -505,8 +511,7 @@ export const customerMessages = {
       vodafoneCash: "فودافون كاش",
       confirmTopUp: "تأكيد الشحن",
       withdrawTitle: "سحب الأموال",
-      withdrawSubtitle:
-        "حوّل رصيدك المتاح إلى فودافون كاش أو حساب بنكي.",
+      withdrawSubtitle: "حوّل رصيدك المتاح إلى فودافون كاش أو حساب بنكي.",
       destination: "جهة التحويل (رقم فودافون كاش أو حساب بنكي)",
       destinationPlaceholder: "مثال: 01012345678 أو EG123456...",
       confirmWithdrawal: "تأكيد السحب",

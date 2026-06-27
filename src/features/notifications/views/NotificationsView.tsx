@@ -1,60 +1,84 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Truck, Check, Wallet, CheckCircle, Info } from "lucide-react";
 import { Notification, NotificationType } from "../types";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { getNotifications, markAsRead, markAllAsRead } from "../api"; // عدّل المسار حسب مكان الملف عندك
 
 export default function NotificationsView() {
   const t = useTranslations("customer.notifications");
-  const [notifications, setNotifications] = useState<Notification[]>(() => [
-    {
-      id: "nt-1",
-      title: t("pickupTitle"),
-      message: t("pickupMessage"),
-      time: t("pickupTime"),
-      type: "pickup",
-      isRead: false,
-      shipmentId: "sc-00412",
-    },
-    {
-      id: "nt-2",
-      title: t("acceptedTitle"),
-      message: t("acceptedMessage"),
-      time: t("acceptedTime"),
-      type: "offer",
-      isRead: false,
-      shipmentId: "sc-00412",
-    },
-    {
-      id: "nt-3",
-      title: t("receivedTitle"),
-      message: t("receivedMessage"),
-      time: t("receivedTime"),
-      type: "received",
-      isRead: false,
-      shipmentId: "sc-00412",
-    },
-    {
-      id: "nt-4",
-      title: t("deliveredTitle"),
-      message: t("deliveredMessage"),
-      time: t("yesterday"),
-      type: "delivered",
-      isRead: true,
-      shipmentId: "sc-00408",
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleMarkRead = (id: string) => {
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchNotifications() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await getNotifications();
+        if (isMounted) {
+          setNotifications(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError("حدث خطأ في تحميل الإشعارات، حاول مرة أخرى."); // عدّلها أو استبدلها بـ t("loadError") بعد إضافة المفتاح للترجمة
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [t]);
+
+  const handleMarkRead = async (id: string) => {
+    const target = notifications.find((n) => n.id === id);
+    if (!target || target.isRead) return;
+
+    // optimistic update
     setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif))
+      prev.map((notif) =>
+        notif.id === id ? { ...notif, isRead: true } : notif,
+      ),
     );
+
+    try {
+      await markAsRead(id);
+    } catch (err) {
+      // rollback لو الطلب فشل
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === id ? { ...notif, isRead: false } : notif,
+        ),
+      );
+    }
   };
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+  const handleMarkAllRead = async () => {
+    const previous = notifications;
+
+    // optimistic update
+    setNotifications((prev) =>
+      prev.map((notif) => ({ ...notif, isRead: true })),
+    );
+
+    try {
+      await markAllAsRead();
+    } catch (err) {
+      // rollback لو الطلب فشل
+      setNotifications(previous);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -115,46 +139,76 @@ export default function NotificationsView() {
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
-        {notifications.map((item) => {
-          const config = getTypeConfig(item.type);
-          const Icon = config.icon;
-
-          return (
+      {isLoading && (
+        <div className="flex flex-col gap-3">
+          {[...Array(3)].map((_, i) => (
             <div
-              key={item.id}
-              onClick={() => handleMarkRead(item.id)}
-              className={cn(
-                "bg-zinc-900 border border-zinc-800 border-l-0 rounded-r-xl p-4 flex gap-4 items-start shadow-sm transition-all cursor-pointer",
-                config.borderColor,
-                item.isRead ? "opacity-65 hover:bg-zinc-900/60" : "hover:bg-zinc-900/80 hover:border-zinc-750"
-              )}
-            >
-              <div className={cn("p-2.5 rounded-lg border shrink-0", config.iconColor)}>
-                <Icon className="h-4 w-4" />
-              </div>
-              <div className="flex flex-col gap-0.5 flex-1">
-                <div className="flex justify-between items-baseline gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-zinc-200">
-                      {item.title}
-                    </span>
-                    {!item.isRead && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    )}
-                  </div>
-                  <span className="text-[10px] text-zinc-500 shrink-0 font-medium">
-                    {item.time}
-                  </span>
+              key={i}
+              className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 h-[72px] animate-pulse"
+            />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <p className="text-sm text-red-400 text-center py-8">{error}</p>
+      )}
+
+      {!isLoading && !error && notifications.length === 0 && (
+        <p className="text-sm text-zinc-500 text-center py-8">
+          لا توجد إشعارات حاليًا
+        </p>
+      )}
+
+      {!isLoading && !error && notifications.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {notifications.map((item) => {
+            const config = getTypeConfig(item.type);
+            const Icon = config.icon;
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleMarkRead(item.id)}
+                className={cn(
+                  "bg-zinc-900 border border-zinc-800 border-l-0 rounded-r-xl p-4 flex gap-4 items-start shadow-sm transition-all cursor-pointer",
+                  config.borderColor,
+                  item.isRead
+                    ? "opacity-65 hover:bg-zinc-900/60"
+                    : "hover:bg-zinc-900/80 hover:border-zinc-750",
+                )}
+              >
+                <div
+                  className={cn(
+                    "p-2.5 rounded-lg border shrink-0",
+                    config.iconColor,
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
                 </div>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  {item.message}
-                </p>
+                <div className="flex flex-col gap-0.5 flex-1">
+                  <div className="flex justify-between items-baseline gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-zinc-200">
+                        {item.title}
+                      </span>
+                      {!item.isRead && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                      )}
+                    </div>
+                    <span className="text-[10px] text-zinc-500 shrink-0 font-medium">
+                      {item.time}
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    {item.message}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -49,7 +49,9 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-500">{trackingNumber}</span>
+            <span className="text-sm font-semibold text-zinc-500">
+              {trackingNumber}
+            </span>
             <span className="text-zinc-700">·</span>
             <div className="flex items-center gap-1.5 text-zinc-200 font-semibold text-base">
               <span>{pickupAddress.split(",")[0]}</span>
@@ -75,7 +77,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                 )}
               </div>
             )}
-          </div>
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -85,8 +87,9 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             {status === "in_transit" && (
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
             )}
-            {status === "captain_assignment" && captain 
-              ? (t("captainAssigned") || (locale === "ar" ? "تم تعيين الكابتن" : "Captain Assigned"))
+            {status === "captain_assignment" && captain
+              ? t("captainAssigned") ||
+                (locale === "ar" ? "تم تعيين الكابتن" : "Captain Assigned")
               : statusLabels[status]}
           </span>
           {(status === "in_transit" || status === "picked_up") && (
@@ -123,7 +126,9 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             <span className="text-blue-400 font-semibold">
               {t("delivering", { progress: deliveryProgressPercent })}
             </span>
-            <span>{t("eta", { time: etaDescription || t("etaDuration") })}</span>
+            <span>
+              {t("eta", { time: etaDescription || t("etaDuration") })}
+            </span>
           </div>
         </div>
       )}
