@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getShipments } from "@/features/shipments/api";
+import { getShipments, getShipmentById } from "@/features/shipments/api";
+import { mockShipments } from "@/constants/mock-data";
 import type { Shipment } from "@/features/shipments/types";
 
 export default function TrackingListView() {
@@ -46,7 +47,7 @@ export default function TrackingListView() {
       router.push(`/tracking/${cleanId}`);
     } catch (err) {
       const isMock = mockShipments.some(
-        (s) =>
+        (s: Shipment) =>
           s.id.toLowerCase() === cleanId ||
           s.trackingNumber.toLowerCase() === cleanId
       );

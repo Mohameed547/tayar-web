@@ -42,7 +42,6 @@ export const customerMessages = {
       delivering: "Delivering... {progress}%",
       eta: "Estimated arrival: {time}",
       etaDuration: "2 h 15 min",
-      captainAssigned: "Captain assigned",
     },
     newShipment: {
       title: "New shipment request",
@@ -326,7 +325,6 @@ export const customerMessages = {
       delivering: "جارٍ التوصيل... {progress}%",
       eta: "الوصول المتوقع: {time}",
       etaDuration: "ساعتان و15 دقيقة",
-      captainAssigned: "تم تعيين الكابتن",
     },
     newShipment: {
       title: "طلب شحنة جديدة",

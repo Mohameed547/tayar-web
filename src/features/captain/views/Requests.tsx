@@ -18,6 +18,34 @@ export default function Requests() {
   const locale = useLocale()
   const isRTL = locale === 'ar'
 
+  const getPackageTypeLabel = (val: string) => {
+    switch (val) {
+      case "small_box":
+        return locale === 'ar' ? 'طرد صغير' : 'Small Box';
+      case "medium_box":
+        return locale === 'ar' ? 'طرد متوسط' : 'Medium Box';
+      case "large_box":
+        return locale === 'ar' ? 'طرد كبير' : 'Large Box';
+      case "pallet":
+        return locale === 'ar' ? 'طبلية شحن' : 'Pallet';
+      default:
+        return val;
+    }
+  };
+
+  const getSpeedLabel = (val: string) => {
+    switch (val) {
+      case "standard":
+        return locale === 'ar' ? 'توصيل عادي' : 'Standard Delivery';
+      case "express":
+        return locale === 'ar' ? 'توصيل سريع' : 'Express Delivery';
+      case "scheduled":
+        return locale === 'ar' ? 'توصيل مجدول' : 'Scheduled Delivery';
+      default:
+        return val;
+    }
+  };
+
   const [activeRequest, setActiveRequest] = React.useState<any | null>(null)
   const [price, setPrice] = React.useState('')
   const [estimatedDelivery, setEstimatedDelivery] = React.useState('2 hours')
@@ -96,7 +124,7 @@ export default function Requests() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="blue">{req.id}</Badge>
                   <span className="text-[12px] text-[var(--color-text-sub)]">
-                    📦 {req.packageType} ({req.weight})
+                    📦 {getPackageTypeLabel(req.packageType)} ({req.weight})
                   </span>
                 </div>
                 <button
@@ -109,6 +137,15 @@ export default function Requests() {
               <div className="text-[13px] text-[var(--color-text-main)] space-y-1">
                 <p><strong>{t('pickup')}:</strong> {req.pickup}</p>
                 <p><strong>{t('dropoff')}:</strong> {req.dropoff}</p>
+                {req.deliverySpeed && (
+                  <p>
+                    <strong>{locale === 'ar' ? 'سرعة التوصيل' : 'Delivery Speed'}:</strong>{' '}
+                    <span className="text-blue-400 font-semibold">{getSpeedLabel(req.deliverySpeed)}</span>
+                    {req.deliverySpeed === 'scheduled' && req.scheduledDate && (
+                      <span className="text-zinc-500"> ({req.scheduledDate})</span>
+                    )}
+                  </p>
+                )}
                 {(req.price || req.estimatedPriceMin || req.estimatedPriceMax) && (
                   <p className="text-[13px] text-emerald-500 font-semibold flex items-center gap-1">
                     💰 <strong>{t('customerBudget')}:</strong>{' '}
@@ -117,6 +154,11 @@ export default function Requests() {
                         ? `${req.price} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
                         : `${req.estimatedPriceMin || 0} - ${req.estimatedPriceMax || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
                     </span>
+                  </p>
+                )}
+                {req.notes && (
+                  <p className="text-amber-400/90 italic bg-zinc-950/40 p-2.5 rounded-lg mt-2 border border-zinc-800/30">
+                    <strong>{locale === 'ar' ? '💬 ملاحظات العميل' : '💬 Customer Notes'}:</strong> "{req.notes}"
                   </p>
                 )}
               </div>
@@ -143,6 +185,37 @@ export default function Requests() {
               >
                 ✕
               </button>
+            </div>
+
+            <div className="px-5 py-3.5 bg-zinc-950/60 border-b border-zinc-800/80 text-xs text-zinc-300 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'نوع الشحنة:' : 'Package Type:'}</span>
+                <span className="text-white">{getPackageTypeLabel(activeRequest.packageType)} ({activeRequest.weight})</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'سرعة التوصيل:' : 'Delivery Speed:'}</span>
+                <span className="text-blue-400">{getSpeedLabel(activeRequest.deliverySpeed)}</span>
+              </div>
+              {activeRequest.deliverySpeed === 'scheduled' && activeRequest.scheduledDate && (
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'التاريخ المجدول:' : 'Scheduled Date:'}</span>
+                  <span className="text-zinc-300">{activeRequest.scheduledDate}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'ميزانية العميل:' : 'Customer Budget:'}</span>
+                <span className="text-emerald-400 font-semibold">
+                  {activeRequest.price
+                    ? `${activeRequest.price} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
+                    : `${activeRequest.estimatedPriceMin || 0} - ${activeRequest.estimatedPriceMax || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
+                </span>
+              </div>
+              {activeRequest.notes && (
+                <div className="pt-2 border-t border-zinc-800/50 mt-1">
+                  <span className="block font-semibold text-amber-400 mb-0.5">{locale === 'ar' ? '💬 ملاحظات العميل:' : '💬 Customer Notes:'}</span>
+                  <p className="text-zinc-400 italic bg-zinc-900/40 p-2 rounded border border-zinc-800/40 font-normal">"{activeRequest.notes}"</p>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4">

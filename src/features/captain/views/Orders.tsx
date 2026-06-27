@@ -11,6 +11,7 @@ import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-tra
 import Card from '@/shared/ui/Card'
 import Badge from '@/shared/ui/Badge'
 import { assignShipmentToCaptain, reassignShipmentToCaptain } from '@/features/office'
+import { updateOrderStatus } from '@/features/shipments'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { useLocale } from 'next-intl'
 
@@ -81,6 +82,62 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
   )
 }
 
+function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boolean; t: any }) {
+  const dispatch = useAppDispatch()
+  const [loading, setLoading] = useState(false)
+
+  const currentStatus = order.rawStatus || order.status;
+
+  if (currentStatus === 'delivered') {
+    return null
+  }
+
+  const handleAction = async () => {
+    setLoading(true)
+    try {
+      let nextStatus = 'delivered';
+      if (currentStatus === 'assigned' || currentStatus === 'captain_assignment') {
+        nextStatus = 'picked_up';
+      } else if (currentStatus === 'picked_up') {
+        nextStatus = 'in_transit';
+      } else if (currentStatus === 'in_transit' || currentStatus === 'out_for_delivery') {
+        nextStatus = 'delivered';
+      }
+      
+      await updateOrderStatus(order.id, { status: nextStatus as any })
+      dispatch(fetchCaptainDashboard('captain'))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  let buttonText = t('markDelivered')
+  let buttonBg = 'bg-blue-600 hover:bg-blue-700'
+
+  if (currentStatus === 'assigned' || currentStatus === 'captain_assignment') {
+    buttonText = t('pickUpCargo')
+    buttonBg = 'bg-green-600 hover:bg-green-700'
+  } else if (currentStatus === 'picked_up') {
+    buttonText = t('startRoute')
+    buttonBg = 'bg-amber-600 hover:bg-amber-700'
+  }
+
+  return (
+    <button 
+      onClick={handleAction}
+      disabled={loading}
+      className={`px-3 py-[6px] ${buttonBg} text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50`}
+    >
+      {loading && (
+        <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+      )}
+      {buttonText}
+    </button>
+  )
+}
+
 export default function Orders() {
   const dispatch    = useAppDispatch()
   const t           = useCaptainTranslations()
@@ -91,8 +148,9 @@ export default function Orders() {
   const isRTL        = locale === 'ar'
   const isOffice    = accountType === 'office'
 
-  const getStatusBadge = (status: string, captainName?: string) => {
-    switch (status) {
+  const getStatusBadge = (status: string, captainName?: string, rawStatus?: string) => {
+    const finalStatus = rawStatus || status;
+    switch (finalStatus) {
       case 'pending_assignment':
         return <Badge variant="amber">{isRTL ? 'في انتظار التعيين' : 'Pending Assignment'}</Badge>
       case 'assigned':
@@ -101,7 +159,10 @@ export default function Orders() {
             {isRTL ? `تم التعيين: ${captainName || ''}` : `Assigned to: ${captainName || 'Captain'}`}
           </Badge>
         )
+      case 'picked_up':
+        return <Badge variant="amber">{isRTL ? 'تم الاستلام' : 'Picked Up'}</Badge>
       case 'in_progress':
+      case 'in_transit':
         return <Badge variant="green">{isRTL ? 'قيد التوصيل' : 'In Progress'}</Badge>
       case 'delivered':
         return <Badge variant="gray">{isRTL ? 'تم التوصيل' : 'Delivered'}</Badge>
@@ -131,24 +192,30 @@ export default function Orders() {
                     <h3 className="text-[14px] font-semibold text-[var(--color-text-main)]">
                       {isRTL ? 'شحنة رقم' : 'Order'} #{order.id.slice(-6).toUpperCase()}
                     </h3>
-                    {getStatusBadge(order.status, order.captain?.name)}
+                    {getStatusBadge(order.status, order.captain?.name, order.rawStatus)}
                   </div>
                   <p className="text-[12px] text-[var(--color-text-sub)]">
                     {t('clientConfirmed')} EGP {order.priceEGP}
                   </p>
-                  {order.captain && (
-                    <p className="text-[11px] text-[var(--color-text-sub)] mt-1">
-                      {isRTL ? 'الهاتف: ' : 'Phone: '} {order.captain.phone}
-                    </p>
+                  {isOffice ? (
+                    order.captain && (
+                      <p className="text-[11px] text-[var(--color-text-sub)] mt-1">
+                        {isRTL ? 'الهاتف: ' : 'Phone: '} {order.captain.phone}
+                      </p>
+                    )
+                  ) : (
+                    order.clientPhone && (
+                      <p className="text-[11px] text-[var(--color-text-sub)] mt-1">
+                        {isRTL ? 'الهاتف: ' : 'Phone: '} {order.clientPhone}
+                      </p>
+                    )
                   )}
                 </div>
                 <div>
                   {isOffice ? (
                     <OrderAssignmentControl order={order} captains={captains} isRTL={isRTL} />
                   ) : (
-                    <button className="px-3 py-[6px] bg-green-600 hover:bg-green-700 text-white text-[12px] font-semibold rounded-md transition-colors">
-                      {t('pickUpCargo')}
-                    </button>
+                    <CaptainOrderActionControl order={order} isRTL={isRTL} t={t} />
                   )}
                 </div>
               </div>

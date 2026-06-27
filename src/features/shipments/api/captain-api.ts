@@ -26,6 +26,9 @@ export async function getCaptainRequests(): Promise<ShipmentRequest[]> {
       price: s.price,
       estimatedPriceMin: s.estimatedPriceMin,
       estimatedPriceMax: s.estimatedPriceMax,
+      notes: s.notes || s.description || "",
+      deliverySpeed: s.deliverySpeed,
+      scheduledDate: s.scheduledDate,
     }));
   } catch (error) {
     throw error;
@@ -68,8 +71,10 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
         return {
           id: s.id || s._id,
           clientName: s.customer?.fullName || s.customer?.name || "Client",
+          clientPhone: s.customer?.phone || "",
           priceEGP: s.price || s.estimatedPriceMax || 0,
           status: frontendStatus,
+          rawStatus: s.status,
           captain: s.captain ? {
             id: s.captain.id || s.captain._id || "",
             name: s.captain.fullName || s.captain.name || "",
@@ -104,6 +109,7 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
       return {
         id: s._id,
         clientName: s.customer?.fullName || s.customer?.name || "Client",
+        clientPhone: s.customer?.phone || "",
         priceEGP: s.price || calculatedOriginalPrice || s.estimatedPriceMax || 0,
         status: frontendStatus,
         rawStatus: s.status,

@@ -59,7 +59,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
               <span>{deliveryAddress.split(",")[0]}</span>
             </div>
           </div>
-          <p className="text-xs text-zinc-400">
+          <div className="text-xs text-zinc-400">
             {status === "captain_assignment" && !captain ? (
               <span className="text-zinc-500 font-medium">
                 Nour Logistics · {t("awaitingCaptain")}
@@ -92,7 +92,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                 (locale === "ar" ? "تم تعيين الكابتن" : "Captain Assigned")
               : statusLabels[status]}
           </span>
-          {(status === "in_transit" || status === "picked_up") && (
+          {(status === "in_transit" || status === "picked_up" || status === "out_for_delivery" || (status === "captain_assignment" && captain)) && (
             <Link
               href={`/tracking/${id}`}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 transition-all duration-200"
