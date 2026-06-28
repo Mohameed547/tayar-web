@@ -54,7 +54,7 @@ export const fetchCaptainDashboard = createAsyncThunk<
         getCaptainOrders(accountType),
         getCaptainDeliveries(),
         getTeamCaptains(),
-        getCaptainEarnings(),
+        getCaptainEarnings(accountType),
         getCaptainWallet(),
         getProviderRating(),
       ]);

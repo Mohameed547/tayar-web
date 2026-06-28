@@ -12,6 +12,7 @@ export interface Transaction {
 export interface Wallet {
   id: string;
   balance: number;
+  lockedBalance?: number;
   cashbackEarned: number;
   transactions: Transaction[];
 }
