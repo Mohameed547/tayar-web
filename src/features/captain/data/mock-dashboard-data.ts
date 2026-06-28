@@ -103,7 +103,7 @@ export const mockProviderDashboardData: ProviderDashboardData = {
       { id: "T3", description: "Order #ORD-4408 payment", amountEGP: 520, type: "credit", date: "Jun 1, 2026" },
     ],
   },
-  rating: { score: 4.9, totalReviews: 140 },
+  rating: { score: 4.9, totalReviews: 140, averageRating: 4.9, ratingsCount: 140, reviews: [] },
 };
 
 export const mockVerificationByAccount: Record<AccountType, VerificationStatus> = {

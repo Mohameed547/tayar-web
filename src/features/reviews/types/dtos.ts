@@ -1,9 +1,9 @@
 // Reviews feature – request / response DTOs
 
 export interface CreateReviewRequest {
-  captainId: string;
-  officeId?: string;
   shipmentId: string;
+  revieweeType: "Driver" | "Office";
+  revieweeId: string;
   rating: number;
   comment?: string;
 }

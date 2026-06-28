@@ -124,3 +124,10 @@ export async function getCaptainTracking(captainId: string): Promise<any> {
   );
   return response.data.data;
 }
+
+export async function getCaptainPerformance(captainId: string): Promise<any> {
+  const response = await api.get<ApiResponse<any>>(
+    `/api/office/captains/${captainId}/performance`
+  );
+  return response.data.data;
+}

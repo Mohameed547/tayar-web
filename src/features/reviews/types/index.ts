@@ -1,21 +1,51 @@
 // ─── Customer-facing review types ─────────────────────────────────────────────
-// Placeholder — will be expanded when review API is integrated
+
+export interface Reviewee {
+  _id: string;
+  fullName: string;
+  profileImage?: string;
+}
+
+export interface ReviewShipment {
+  _id: string;
+  trackingNumber: string;
+  status: string;
+}
 
 export interface Review {
-  id: string;
-  captainId: string;
-  officeId?: string;
+  _id: string;
+  shipment: ReviewShipment;
+  reviewer: Reviewee;
+  revieweeType: "Driver" | "Office";
+  reviewee: Reviewee;
   rating: number;
   comment?: string;
-  shipmentId: string;
   createdAt: string;
 }
 
+export interface PendingReview {
+  _id: string;
+  trackingNumber: string;
+  revieweeId: string;
+  revieweeType: "Driver" | "Office";
+  revieweeName: string;
+  updatedAt: string;
+}
+
+export interface MyReviewsData {
+  averageRating: number;
+  totalReviews: number;
+  pendingReviews: number;
+  pendingReviewsList: PendingReview[];
+  reviews: Review[];
+}
+
 // ─── Captain/Office-facing rating types ───────────────────────────────────────
-// Source of truth for: captain/types/provider.ts → ProviderRating
 
 export interface ProviderRating {
+  averageRating: number;
+  ratingsCount: number;
+  reviews: Review[];
   score: number;
   totalReviews: number;
-  recentNote?: string;
 }

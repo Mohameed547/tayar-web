@@ -10,7 +10,7 @@ import { getCaptainOffers }                      from "@/features/offers";
 import { getCaptainDeliveries }                  from "@/features/tracking";
 import { getTeamCaptains }                       from "@/features/office";
 import { getCaptainEarnings, getCaptainWallet }  from "@/features/wallet";
-import { getProviderRating }                     from "@/features/reviews";
+import { getProviderRating }                     from "@/features/reviews/api/captain-api";
 
 import {
   mockProviderDashboardData,
@@ -47,16 +47,44 @@ export const fetchCaptainDashboard = createAsyncThunk<
   { rejectValue: string }
 >("captainData/fetchDashboard", async (accountType, { rejectWithValue }) => {
   try {
+    const isOffice = accountType === "office";
+
     const [requests, offers, orders, deliveries, captains, earnings, wallet, rating] =
       await Promise.all([
-        getCaptainRequests(),
-        getCaptainOffers(),
-        getCaptainOrders(accountType),
-        getCaptainDeliveries(),
-        getTeamCaptains(),
-        getCaptainEarnings(accountType),
-        getCaptainWallet(),
-        getProviderRating(),
+        getCaptainRequests().catch((err) => {
+          console.error("Failed to fetch requests:", err);
+          return [];
+        }),
+        getCaptainOffers().catch((err) => {
+          console.error("Failed to fetch offers:", err);
+          return [];
+        }),
+        getCaptainOrders(accountType).catch((err) => {
+          console.error("Failed to fetch orders:", err);
+          return [];
+        }),
+        getCaptainDeliveries().catch((err) => {
+          console.error("Failed to fetch deliveries:", err);
+          return [];
+        }),
+        isOffice
+          ? getTeamCaptains().catch((err) => {
+              console.error("Failed to fetch team captains:", err);
+              return [];
+            })
+          : Promise.resolve([]),
+        getCaptainEarnings(accountType).catch((err) => {
+          console.error("Failed to fetch earnings:", err);
+          return mockProviderDashboardData.earnings;
+        }),
+        getCaptainWallet().catch((err) => {
+          console.error("Failed to fetch wallet:", err);
+          return mockProviderDashboardData.wallet;
+        }),
+        getProviderRating(accountType).catch((err) => {
+          console.error("Failed to fetch rating:", err);
+          return mockProviderDashboardData.rating;
+        }),
       ]);
 
     return { requests, offers, orders, deliveries, captains, earnings, wallet, rating };
