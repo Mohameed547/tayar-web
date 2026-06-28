@@ -80,6 +80,26 @@ export async function updateCaptainStatus(
   };
 }
 
+export async function updateDriverAvailability(
+  status: "available" | "busy" | "offline",
+): Promise<any> {
+  const response = await api.patch<ApiResponse<any>>(
+    "/api/drivers/availability",
+    { status }
+  );
+  return response.data.data;
+}
+
+export async function updateOfficeAvailability(
+  status: "available" | "offline",
+): Promise<any> {
+  const response = await api.patch<ApiResponse<any>>(
+    "/api/office/availability",
+    { status }
+  );
+  return response.data.data;
+}
+
 export async function assignShipmentToCaptain(
   shipmentId: string,
   captainId: string,
@@ -96,4 +116,11 @@ export async function reassignShipmentToCaptain(
   await api.patch<ApiResponse<void>>(
     `/api/office/offers/${shipmentId}/reassign/${captainId}`
   );
+}
+
+export async function getCaptainTracking(captainId: string): Promise<any> {
+  const response = await api.get<ApiResponse<any>>(
+    `/api/office/captains/${captainId}/tracking`
+  );
+  return response.data.data;
 }

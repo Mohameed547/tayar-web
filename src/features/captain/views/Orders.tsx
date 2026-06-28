@@ -1,7 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setActiveScreen } from '@/features/captain/store/dashboard-slice'
+import { setActiveScreen, setOnlineState } from '@/features/captain/store/dashboard-slice'
 import {
   selectAccountType,
   selectOrders,
@@ -10,10 +10,21 @@ import {
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import Card from '@/shared/ui/Card'
 import Badge from '@/shared/ui/Badge'
-import { assignShipmentToCaptain, reassignShipmentToCaptain } from '@/features/office'
+import { assignShipmentToCaptain, reassignShipmentToCaptain, updateDriverAvailability } from '@/features/office'
 import { updateOrderStatus } from '@/features/shipments'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { useLocale } from 'next-intl'
+
+import dynamic from 'next/dynamic'
+
+const MapView = dynamic(() => import("@/shared/ui/MapView"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[250px] w-full bg-zinc-950 flex items-center justify-center text-xs text-zinc-550 font-semibold border border-zinc-800 rounded-xl mt-3">
+      Loading Route Map...
+    </div>
+  ),
+})
 
 function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captains: any[]; isRTL: boolean }) {
   const dispatch = useAppDispatch()
@@ -105,6 +116,14 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       }
       
       await updateOrderStatus(order.id, { status: nextStatus as any })
+      if (nextStatus === 'delivered') {
+        dispatch(setOnlineState(true))
+        try {
+          await updateDriverAvailability('available')
+        } catch (dbErr) {
+          console.error("Failed to update captain status in DB:", dbErr)
+        }
+      }
       dispatch(fetchCaptainDashboard('captain'))
     } catch (err) {
       console.error(err)
@@ -147,6 +166,7 @@ export default function Orders() {
   const locale      = useLocale()
   const isRTL        = locale === 'ar'
   const isOffice    = accountType === 'office'
+  const [expandedMapId, setExpandedMapId] = useState<string | null>(null)
 
   const getStatusBadge = (status: string, captainName?: string, rawStatus?: string) => {
     const finalStatus = rawStatus || status;
@@ -219,6 +239,61 @@ export default function Orders() {
                   )}
                 </div>
               </div>
+
+              {/* Collapsible Route Map for Captain */}
+              {order.pickupCoords && order.deliveryCoords && (
+                (order.status as string) === 'assigned' || 
+                (order.status as string) === 'picked_up' || 
+                (order.status as string) === 'in_progress' || 
+                (order.status as string) === 'in_transit' ||
+                (order.status as string) === 'delivered' ||
+                order.rawStatus === 'assigned' || 
+                order.rawStatus === 'picked_up' || 
+                order.rawStatus === 'in_progress' || 
+                order.rawStatus === 'in_transit' ||
+                order.rawStatus === 'delivered'
+              ) && (
+                <div className="mt-3 pt-3 border-t border-zinc-800/60 flex flex-col gap-3">
+                  <div className="flex justify-between items-center flex-wrap gap-2">
+                    <button
+                      onClick={() => setExpandedMapId(expandedMapId === order.id ? null : order.id)}
+                      className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                    >
+                      🗺️ {expandedMapId === order.id ? (isRTL ? 'إخفاء الخريطة' : 'Hide Map') : (isRTL ? 'عرض مسار التوصيل' : 'Show Route Map')}
+                    </button>
+
+                    <div className="flex gap-2">
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${order.pickupCoords[0] > order.pickupCoords[1] ? order.pickupCoords[1] : order.pickupCoords[0]},${order.pickupCoords[0] > order.pickupCoords[1] ? order.pickupCoords[0] : order.pickupCoords[1]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-extrabold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
+                      >
+                        🚀 {isRTL ? 'ملاحة للاستلام' : 'Navigate to Pickup'}
+                      </a>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[1] : order.deliveryCoords[0]},${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[0] : order.deliveryCoords[1]}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-extrabold text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
+                      >
+                        🚀 {isRTL ? 'ملاحة للتسليم' : 'Navigate to Delivery'}
+                      </a>
+                    </div>
+                  </div>
+
+                  {expandedMapId === order.id && (
+                    <div className="rounded-lg overflow-hidden border border-zinc-800">
+                      <MapView
+                        pickupCoords={order.pickupCoords[0] > order.pickupCoords[1] ? [order.pickupCoords[1], order.pickupCoords[0]] : [order.pickupCoords[0], order.pickupCoords[1]]}
+                        deliveryCoords={order.deliveryCoords[0] > order.deliveryCoords[1] ? [order.deliveryCoords[1], order.deliveryCoords[0]] : [order.deliveryCoords[0], order.deliveryCoords[1]]}
+                        zoom={12}
+                        height="250px"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
           ))
         )}

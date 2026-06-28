@@ -1,13 +1,14 @@
 "use client";
 
 import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { topUpSchema, withdrawSchema } from "@/lib/validation/common";
 import { z } from "zod";
 import { Transaction } from "../types";
 import { useTranslations } from "next-intl";
+import { getWallet, topUp, withdraw } from "../api";
 
 type TopUpFormValues = z.infer<typeof topUpSchema>;
 type WithdrawFormValues = z.infer<typeof withdrawSchema>;
@@ -16,30 +17,51 @@ export default function WalletView() {
   const t = useTranslations("customer.wallet");
   const validation = useTranslations("validation");
   
-  const [balance, setBalance] = useState(320.0);
-  const [transactions, setTransactions] = useState<Transaction[]>(() => [
-    {
-      id: "tx-1",
-      type: "payment",
-      amount: -95,
-      description: t("paymentDescription"),
-      date: t("yesterday"),
-    },
-    {
-      id: "tx-2",
-      type: "topup",
-      amount: 400,
-      description: t("topUpDescription"),
-      date: t("daysAgo"),
-    },
-    {
-      id: "tx-3",
-      type: "cashback",
-      amount: 14.5,
-      description: t("cashbackDescription"),
-      date: t("weekAgo"),
-    },
-  ]);
+  const [balance, setBalance] = useState(0.0);
+  const [cashbackEarned, setCashbackEarned] = useState(0.0);
+  const [walletId, setWalletId] = useState("");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getWallet()
+      .then((data) => {
+        setBalance(data.balance);
+        setCashbackEarned(data.cashbackEarned);
+        setWalletId(data.id);
+        setTransactions(data.transactions);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load wallet, using mocks:", err);
+        setBalance(320.0);
+        setCashbackEarned(14.5);
+        setTransactions([
+          {
+            id: "tx-1",
+            type: "payment",
+            amount: -95,
+            description: t("paymentDescription"),
+            date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: "tx-2",
+            type: "topup",
+            amount: 400,
+            description: t("topUpDescription"),
+            date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: "tx-3",
+            type: "cashback",
+            amount: 14.5,
+            description: t("cashbackDescription"),
+            date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+        ]);
+        setLoading(false);
+      });
+  }, [t]);
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -65,26 +87,39 @@ export default function WalletView() {
     defaultValues: { amount: 50, destination: "" },
   });
 
-  const handleTopUp = (data: TopUpFormValues) => {
-    setBalance((prev) => prev + data.amount);
-    const methodLabels: Record<string, string> = {
-      visa: t("visa"),
-      mastercard: t("mastercard"),
-      vodafone_cash: t("vodafoneCash"),
-    };
-    const newTx: Transaction = {
-      id: `tx-${transactions.length + 1}`,
-      type: "topup",
-      amount: data.amount,
-      description: `${t("topUp")} · ${methodLabels[data.paymentMethod]}`,
-      date: t("justNow"),
-    };
-    setTransactions((prev) => [newTx, ...prev]);
-    resetTopUp();
-    setShowTopUpModal(false);
+  const handleTopUp = async (data: TopUpFormValues) => {
+    try {
+      const updated = await topUp({
+        amount: data.amount,
+        paymentMethod: data.paymentMethod,
+      });
+      setBalance(updated.balance);
+      setCashbackEarned(updated.cashbackEarned);
+      setTransactions(updated.transactions);
+      resetTopUp();
+      setShowTopUpModal(false);
+    } catch (err) {
+      console.error("Failed to top up:", err);
+      setBalance((prev) => prev + data.amount);
+      const methodLabels: Record<string, string> = {
+        visa: t("visa"),
+        mastercard: t("mastercard"),
+        vodafone_cash: t("vodafoneCash"),
+      };
+      const newTx: Transaction = {
+        id: `tx-${transactions.length + 1}`,
+        type: "topup",
+        amount: data.amount,
+        description: `${t("topUp")} · ${methodLabels[data.paymentMethod]}`,
+        date: new Date().toISOString(),
+      };
+      setTransactions((prev) => [newTx, ...prev]);
+      resetTopUp();
+      setShowTopUpModal(false);
+    }
   };
 
-  const handleWithdraw = (data: WithdrawFormValues) => {
+  const handleWithdraw = async (data: WithdrawFormValues) => {
     if (data.amount > balance) {
       setWithdrawError("amount", {
         type: "manual",
@@ -92,17 +127,30 @@ export default function WalletView() {
       });
       return;
     }
-    setBalance((prev) => prev - data.amount);
-    const newTx: Transaction = {
-      id: `tx-${transactions.length + 1}`,
-      type: "payment",
-      amount: -data.amount,
-      description: t("withdrawalDescription", { destination: data.destination }),
-      date: t("justNow"),
-    };
-    setTransactions((prev) => [newTx, ...prev]);
-    resetWithdraw();
-    setShowWithdrawModal(false);
+    try {
+      const updated = await withdraw({
+        amount: data.amount,
+        destination: data.destination,
+      });
+      setBalance(updated.balance);
+      setCashbackEarned(updated.cashbackEarned);
+      setTransactions(updated.transactions);
+      resetWithdraw();
+      setShowWithdrawModal(false);
+    } catch (err) {
+      console.error("Failed to withdraw:", err);
+      setBalance((prev) => prev - data.amount);
+      const newTx: Transaction = {
+        id: `tx-${transactions.length + 1}`,
+        type: "payment",
+        amount: -data.amount,
+        description: t("withdrawalDescription", { destination: data.destination }),
+        date: new Date().toISOString(),
+      };
+      setTransactions((prev) => [newTx, ...prev]);
+      resetWithdraw();
+      setShowWithdrawModal(false);
+    }
   };
 
   const totalLoaded = transactions
@@ -146,11 +194,13 @@ export default function WalletView() {
               <div className="flex justify-between items-center border-t border-zinc-800/60 pt-3 text-[11px]">
                 <div className="flex flex-col">
                   <span className="text-zinc-500 font-medium">{t("walletId")}</span>
-                  <span className="text-zinc-300 font-bold mt-0.5">SC-W-00412</span>
+                  <span className="text-zinc-300 font-bold mt-0.5">
+                    {walletId ? `SC-W-${walletId.slice(-5).toUpperCase()}` : "SC-W-00412"}
+                  </span>
                 </div>
                 <div className="flex flex-col items-end">
                   <span className="text-zinc-500 font-medium">{t("cashbackEarned")}</span>
-                  <span className="text-emerald-400 font-bold mt-0.5">+EGP 14.50</span>
+                  <span className="text-emerald-400 font-bold mt-0.5">+EGP {cashbackEarned.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -214,6 +264,18 @@ export default function WalletView() {
           <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1">
             {transactions.map((tx) => {
               const isNegative = tx.amount < 0 || tx.type === "payment";
+              const formattedTxDate = () => {
+                try {
+                  return new Date(tx.date).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                } catch {
+                  return tx.date;
+                }
+              };
 
               return (
                 <div
@@ -225,7 +287,7 @@ export default function WalletView() {
                       {tx.description}
                     </span>
                     <span className="text-[10px] text-zinc-500 font-medium mt-0.5">
-                      {tx.date}
+                      {formattedTxDate()}
                     </span>
                   </div>
 

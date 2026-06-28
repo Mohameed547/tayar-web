@@ -60,7 +60,7 @@ export default function CustomerDashboardView() {
   }, [router]);
 
   useEffect(() => {
-    const today = new Date("2026-06-05");
+    const today = new Date();
     setFormattedDate(
       today.toLocaleDateString(
         locale === "ar" ? "ar-EG" : "en-US",

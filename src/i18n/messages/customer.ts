@@ -79,6 +79,8 @@ export const customerMessages = {
       customPrice: "Custom price (EGP)",
       customPricePlaceholder: "Adjust shipment price...",
       resetToAuto: "Reset to auto",
+      selectCurrentLocation: "Use my current location",
+      detectingLocation: "Locating...",
     },
     offers: {
       loading: "Loading offers...",
@@ -358,6 +360,8 @@ export const customerMessages = {
       customPrice: "السعر المخصص (ج.م)",
       customPricePlaceholder: "تعديل سعر الشحنة...",
       resetToAuto: "إعادة التعيين للوضع التلقائي",
+      selectCurrentLocation: "استخدم موقعي الحالي",
+      detectingLocation: "جاري التحديد...",
     },
     offers: {
       loading: "جارٍ تحميل العروض...",

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
-import { selectRequests, selectAccountType } from '@/features/captain/store/selectors'
+import { selectRequests, selectAccountType, selectIsOnline } from '@/features/captain/store/selectors'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { submitOffer } from '@/features/offers'
 import Card from '@/shared/ui/Card'
@@ -14,6 +14,7 @@ export default function Requests() {
   const t = useCaptainTranslations()
   const requests = useAppSelector(selectRequests)
   const accountType = useAppSelector(selectAccountType)
+  const isOnline = useAppSelector(selectIsOnline)
   const dispatch = useAppDispatch()
   const locale = useLocale()
   const isRTL = locale === 'ar'
@@ -77,6 +78,27 @@ export default function Requests() {
       return
     }
 
+    const minBudget = activeRequest.price ?? activeRequest.estimatedPriceMin ?? 0;
+    const maxBudget = activeRequest.price ?? activeRequest.estimatedPriceMax ?? Infinity;
+
+    if (priceNum < minBudget) {
+      setError(
+        locale === 'ar'
+          ? `يجب ألا يقل السعر المعروض عن الحد الأدنى لميزانية العميل (${minBudget} ج.م)`
+          : `Offered price cannot be less than customer's budget minimum (${minBudget} EGP)`
+      );
+      return;
+    }
+
+    if (priceNum > maxBudget) {
+      setError(
+        locale === 'ar'
+          ? `يجب ألا يزيد السعر المعروض عن الحد الأقصى لميزانية العميل (${maxBudget} ج.م)`
+          : `Offered price cannot exceed customer's budget maximum (${maxBudget} EGP)`
+      );
+      return;
+    }
+
     setIsLoading(true)
     setError(null)
 
@@ -101,6 +123,33 @@ export default function Requests() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!isOnline) {
+    return (
+      <div>
+        <div className="mb-[22px]">
+          <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">
+            {t('requests_title')}
+          </h1>
+          <p className="text-[13px] text-[var(--color-text-sub)]">{t('requests_sub')}</p>
+        </div>
+        
+        <div className="flex flex-col items-center justify-center p-8 bg-zinc-900 border border-zinc-850 rounded-xl text-center shadow-lg max-w-lg mx-auto mt-6">
+          <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4 text-zinc-400 text-lg animate-pulse">
+            📴
+          </div>
+          <h3 className="text-sm font-bold text-zinc-200 mb-2">
+            {locale === 'ar' ? 'أنت غير متصل بالإنترنت حالياً' : 'You are currently Offline'}
+          </h3>
+          <p className="text-[11px] text-zinc-400 leading-relaxed mb-4 max-w-xs">
+            {locale === 'ar' 
+              ? 'يرجى تفعيل حالة النشاط (🟢 نشط) من الشريط العلوي لتتمكن من تلقي طلبات الشحن الجديدة وتقديم عروض الأسعار.' 
+              : 'Please change your status to Active (🟢 Online) from the top bar to start receiving new cargo requests and submitting quotes.'}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

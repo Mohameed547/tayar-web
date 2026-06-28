@@ -14,6 +14,8 @@ export interface User {
   avatar?: string;
   isVerified: boolean;
   createdAt: string;
+  driverStatus?: "available" | "busy" | "offline";
+  officeStatus?: "available" | "offline";
 }
 
 export interface AuthTokens {

@@ -55,6 +55,8 @@ export interface ShipmentRequest {
   notes?: string;
   deliverySpeed?: string;
   scheduledDate?: string;
+  pickupCoords?: [number, number];
+  deliveryCoords?: [number, number];
 }
 
 export interface ProviderOrder {
@@ -69,4 +71,8 @@ export interface ProviderOrder {
     name: string;
     phone: string;
   };
+  pickupAddress?: string;
+  deliveryAddress?: string;
+  pickupCoords?: [number, number];
+  deliveryCoords?: [number, number];
 }

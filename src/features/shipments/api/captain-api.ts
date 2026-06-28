@@ -29,6 +29,8 @@ export async function getCaptainRequests(): Promise<ShipmentRequest[]> {
       notes: s.notes || s.description || "",
       deliverySpeed: s.deliverySpeed,
       scheduledDate: s.scheduledDate,
+      pickupCoords: s.pickupCoords,
+      deliveryCoords: s.deliveryCoords,
     }));
   } catch (error) {
     throw error;
@@ -80,6 +82,10 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
             name: s.captain.fullName || s.captain.name || "",
             phone: s.captain.phone || "",
           } : undefined,
+          pickupAddress: s.pickupAddress,
+          deliveryAddress: s.deliveryAddress,
+          pickupCoords: s.pickupCoords,
+          deliveryCoords: s.deliveryCoords,
         };
       });
     } catch (error) {
@@ -103,8 +109,8 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
       }
 
       const calculatedOriginalPrice = s.estimatedPriceMin && s.estimatedPriceMax 
-        ? Math.round((s.estimatedPriceMin + s.estimatedPriceMax) / 2) 
-        : undefined;
+          ? Math.round((s.estimatedPriceMin + s.estimatedPriceMax) / 2) 
+          : undefined;
 
       return {
         id: s._id,
@@ -114,6 +120,10 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
         status: frontendStatus,
         rawStatus: s.status,
         captain: s.captain,
+        pickupAddress: s.pickupAddress,
+        deliveryAddress: s.deliveryAddress,
+        pickupCoords: s.pickupCoords,
+        deliveryCoords: s.deliveryCoords,
       };
     });
   } catch (error) {

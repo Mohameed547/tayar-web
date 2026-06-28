@@ -49,6 +49,9 @@ const captainDashboardSlice = createSlice({
     toggleOnline(state) {
       state.isOnline = !state.isOnline;
     },
+    setOnlineState(state, action: PayloadAction<boolean>) {
+      state.isOnline = action.payload;
+    },
   },
 });
 
@@ -58,6 +61,7 @@ export const {
   toggleSidebar,
   setSidebarOpen,
   toggleOnline,
+  setOnlineState,
 } = captainDashboardSlice.actions;
 
 export default captainDashboardSlice.reducer;

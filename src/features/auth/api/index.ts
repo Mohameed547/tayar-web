@@ -23,6 +23,8 @@ function mapUser(rawUser: any): User {
     avatar: rawUser.profileImage || rawUser.avatar || undefined,
     isVerified: rawUser.isPhoneVerified || rawUser.isVerified || false,
     createdAt: rawUser.createdAt || new Date().toISOString(),
+    driverStatus: rawUser.driverStatus,
+    officeStatus: rawUser.officeStatus,
   };
 }
 

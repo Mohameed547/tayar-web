@@ -8,6 +8,7 @@ import { LocaleToggle } from "@/shared/ui/locale-toggle";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, logout } from "@/features/auth/api";
+import { useNotifications } from "@/shared/providers/socket-notification-provider";
 import type { User } from "@/features/auth/types";
 
 interface TopbarProps {
@@ -17,6 +18,7 @@ interface TopbarProps {
 export default function Topbar({ onMenuClick }: TopbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const { unreadCount } = useNotifications();
   const t = useTranslations("navigation");
   const router = useRouter();
 
@@ -80,7 +82,11 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-zinc-950" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white ring-2 ring-zinc-950">
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Vertical divider */}

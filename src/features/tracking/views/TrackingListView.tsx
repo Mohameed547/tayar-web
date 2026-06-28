@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { getShipments, getShipmentById } from "@/features/shipments/api";
 import { mockShipments } from "@/constants/mock-data";
 import type { Shipment } from "@/features/shipments/types";
 
 export default function TrackingListView() {
   const t = useTranslations("customer.trackingSearch");
+  const locale = useLocale();
   const router = useRouter();
   const [trackingId, setTrackingId] = useState("");
   const [error, setError] = useState("");
@@ -136,7 +137,7 @@ export default function TrackingListView() {
               >
                 <span>{shipment.trackingNumber}</span>
                 <span className="text-[10px] text-zinc-500 font-normal">
-                  ({shipment.pickupAddress.split(",")[0]} → {shipment.deliveryAddress.split(",")[0]})
+                  ({shipment.pickupAddress.split(",")[0]} {locale === 'ar' ? '←' : '→'} {shipment.deliveryAddress.split(",")[0]})
                 </span>
               </button>
             ))}

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchCaptainDashboard, switchAccountTypeData } from '@/features/captain/store/data-slice'
-import { setAccountType } from '@/features/captain/store/dashboard-slice'
+import { setAccountType, setOnlineState } from '@/features/captain/store/dashboard-slice'
 import { getCurrentUser } from '@/features/auth/api'
 import {
   selectActiveScreen,
@@ -71,6 +71,11 @@ export default function ProviderDashboard() {
         if ((user.role as string) === 'driver' || (user.role as string) === 'office') {
           const type = user.role === 'office' ? 'office' : 'captain';
           dispatch(setAccountType(type))
+          if (type === 'captain' && user.driverStatus) {
+            dispatch(setOnlineState(user.driverStatus !== 'offline'))
+          } else if (type === 'office' && user.officeStatus) {
+            dispatch(setOnlineState(user.officeStatus !== 'offline'))
+          }
           dispatch(switchAccountTypeData(type))
           setAuthorized(true)
         } else {
@@ -83,7 +88,7 @@ export default function ProviderDashboard() {
         router.replace('/login')
         setCheckingAuth(false)
       })
-  }, [router])
+  }, [router, dispatch])
 
   const accountType = useAppSelector(selectAccountType)
 
