@@ -10,6 +10,56 @@ import Card from '@/shared/ui/Card'
 import Badge from '@/shared/ui/Badge'
 import { useLocale } from 'next-intl'
 
+const formatEstDelivery = (days: number, hours: number, minutes: number, isAr: boolean) => {
+  const parts: string[] = [];
+
+  // Helper for Days
+  if (days > 0) {
+    if (isAr) {
+      if (days === 1) parts.push('يوم');
+      else if (days === 2) parts.push('يومين');
+      else if (days >= 3 && days <= 10) parts.push(`${days} أيام`);
+      else parts.push(`${days} يوم`);
+    } else {
+      parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    }
+  }
+
+  // Helper for Hours
+  if (hours > 0) {
+    if (isAr) {
+      if (hours === 1) parts.push('ساعة');
+      else if (hours === 2) parts.push('ساعتين');
+      else if (hours >= 3 && hours <= 10) parts.push(`${hours} ساعات`);
+      else parts.push(`${hours} ساعة`);
+    } else {
+      parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    }
+  }
+
+  // Helper for Minutes
+  if (minutes > 0) {
+    if (isAr) {
+      if (minutes === 1) parts.push('دقيقة');
+      else if (minutes === 2) parts.push('دقيقتين');
+      else if (minutes >= 3 && minutes <= 10) parts.push(`${minutes} دقائق`);
+      else parts.push(`${minutes} دقيقة`);
+    } else {
+      parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+    }
+  }
+
+  if (parts.length === 0) {
+    return isAr ? 'فوري' : 'Immediate';
+  }
+
+  if (isAr) {
+    return parts.join(' و ');
+  } else {
+    return parts.join(' and ');
+  }
+};
+
 export default function Requests() {
   const t = useCaptainTranslations()
   const requests = useAppSelector(selectRequests)
@@ -49,7 +99,9 @@ export default function Requests() {
 
   const [activeRequest, setActiveRequest] = React.useState<any | null>(null)
   const [price, setPrice] = React.useState('')
-  const [estimatedDelivery, setEstimatedDelivery] = React.useState('2 hours')
+  const [estDays, setEstDays] = React.useState<number | ''>('')
+  const [estHours, setEstHours] = React.useState<number | ''>(2)
+  const [estMinutes, setEstMinutes] = React.useState<number | ''>('')
   const [description, setDescription] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -58,7 +110,9 @@ export default function Requests() {
   const handleOpenModal = (req: any) => {
     setActiveRequest(req)
     setPrice('')
-    setEstimatedDelivery('2 hours')
+    setEstDays('')
+    setEstHours(2)
+    setEstMinutes('')
     setDescription('')
     setError(null)
     setSuccessMessage(null)
@@ -103,6 +157,10 @@ export default function Requests() {
     setError(null)
 
     try {
+      const daysNum = estDays === '' ? 0 : estDays;
+      const hoursNum = estHours === '' ? 0 : estHours;
+      const minutesNum = estMinutes === '' ? 0 : estMinutes;
+      const estimatedDelivery = formatEstDelivery(daysNum, hoursNum, minutesNum, locale === 'ar');
       await submitOffer({
         requestId: activeRequest.id,
         quoteEGP: priceNum,
@@ -295,18 +353,62 @@ export default function Requests() {
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-zinc-400">
+                <label className="block text-xs font-semibold text-zinc-400 mb-1">
                   {t('estDeliveryTime')}
                 </label>
-                <input
-                  type="text"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
-                  placeholder={t('estDeliveryPlaceholder')}
-                  value={estimatedDelivery}
-                  onChange={e => setEstimatedDelivery(e.target.value)}
-                  disabled={isLoading || !!successMessage}
-                  required
-                />
+                <div className="grid grid-cols-3 gap-2 bg-zinc-950/30 p-2.5 rounded-lg border border-zinc-800/60">
+                  <div className="flex flex-col gap-1 text-center">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                      {locale === 'ar' ? 'أيام' : 'Days'}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="30"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-white text-xs text-center focus:outline-none focus:border-blue-500"
+                      value={estDays}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setEstDays(val === '' ? '' : Math.max(0, Number(val)));
+                      }}
+                      disabled={isLoading || !!successMessage}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 text-center border-x border-zinc-800/40">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                      {locale === 'ar' ? 'ساعات' : 'Hours'}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-white text-xs text-center focus:outline-none focus:border-blue-500"
+                      value={estHours}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setEstHours(val === '' ? '' : Math.max(0, Math.min(23, Number(val))));
+                      }}
+                      disabled={isLoading || !!successMessage}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 text-center">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                      {locale === 'ar' ? 'دقائق' : 'Minutes'}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-white text-xs text-center focus:outline-none focus:border-blue-500"
+                      value={estMinutes}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setEstMinutes(val === '' ? '' : Math.max(0, Math.min(59, Number(val))));
+                      }}
+                      disabled={isLoading || !!successMessage}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1">

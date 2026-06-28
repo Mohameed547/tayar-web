@@ -4,8 +4,9 @@ import clsx from 'clsx'
 import {
   LayoutDashboard, Inbox, Gavel, CheckCircle, Truck, Map,
   Coins, Wallet, Users, MapPin, BarChart2, Star,
-  UserCircle, ShieldCheck, Ship, LogOut, X, Settings,
+  UserCircle, ShieldCheck, Ship, LogOut, X, Settings, Bell,
 } from 'lucide-react'
+import { useNotifications } from '@/shared/providers/socket-notification-provider'
 import { useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -16,12 +17,14 @@ import {
   selectActiveScreen,
   selectProfile,
   selectSidebarOpen,
+  selectRequests,
+  selectOrders,
 } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import type { ScreenId } from '@/features/captain/types'
 
 interface NavEntry {
-  id: ScreenId
+  id: ScreenId | 'notifications'
   labelKey: string
   icon: React.ComponentType<any>
   badge?: number
@@ -30,11 +33,12 @@ interface NavEntry {
 
 const NAV_ITEMS: NavEntry[] = [
   { id: 'overview', labelKey: 'nav_overview', icon: LayoutDashboard },
-  { id: 'requests', labelKey: 'nav_requests', icon: Inbox, badge: 5 },
+  { id: 'requests', labelKey: 'nav_requests', icon: Inbox },
   { id: 'offers', labelKey: 'nav_offers', icon: Gavel },
-  { id: 'orders', labelKey: 'nav_orders', icon: CheckCircle, badge: 2 },
+  { id: 'orders', labelKey: 'nav_orders', icon: CheckCircle },
   { id: 'deliveries', labelKey: 'nav_deliveries', icon: Truck, officeOnly: true },
   { id: 'tracking', labelKey: 'nav_tracking', icon: Map, officeOnly: true },
+  { id: 'notifications', labelKey: 'nav_notifications', icon: Bell },
 ]
 
 const FINANCE_ITEMS: NavEntry[] = [
@@ -60,10 +64,34 @@ export default function Sidebar() {
   const activeScreen = useAppSelector(selectActiveScreen)
   const sidebarOpen = useAppSelector(selectSidebarOpen)
   const profile = useAppSelector(selectProfile)
+  const requests = useAppSelector(selectRequests) || []
+  const orders = useAppSelector(selectOrders) || []
   const locale = useLocale()
   const t = useCaptainTranslations()
+  const { unreadCount } = useNotifications()
   const isOffice = accountType === 'office'
   const isRTL = locale === 'ar'
+
+  const dynamicBadges: Record<ScreenId | 'notifications', number> = {
+    overview: 0,
+    requests: requests.length,
+    offers: 0,
+    orders: orders.filter((o: any) => {
+      const status = o.rawStatus || o.status;
+      return status !== 'delivered' && status !== 'cancelled';
+    }).length,
+    deliveries: 0,
+    tracking: 0,
+    earnings: 0,
+    wallet: 0,
+    team: 0,
+    'captain-tracking': 0,
+    performance: 0,
+    ratings: 0,
+    verification: 0,
+    profile: 0,
+    notifications: unreadCount,
+  }
 
   const navigate = (id: ScreenId) => {
     dispatch(setActiveScreen(id))
@@ -83,6 +111,7 @@ export default function Sidebar() {
     if (item.officeOnly && !isOffice) return null
     const active = activeScreen === item.id
     const Icon = item.icon
+    const badgeVal = dynamicBadges[item.id]
     return (
       <button
         key={item.id}
@@ -103,9 +132,12 @@ export default function Sidebar() {
           />
           <span>{t(item.labelKey)}</span>
         </div>
-        {item.badge !== undefined && (
-          <span className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold shrink-0">
-            {item.badge}
+        {badgeVal > 0 && (
+          <span className={clsx(
+            "flex items-center justify-center h-5 w-5 rounded-full text-white text-[10px] font-bold shrink-0",
+            item.id === 'notifications' ? 'bg-red-500' : 'bg-blue-600'
+          )}>
+            {badgeVal}
           </span>
         )}
       </button>

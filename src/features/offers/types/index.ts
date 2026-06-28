@@ -24,4 +24,5 @@ export interface ProviderOffer {
   requestId: string;
   quoteEGP: number;
   status: "pending" | "accepted" | "rejected" | "expired";
+  createdAt?: string;
 }
