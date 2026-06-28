@@ -7,7 +7,7 @@ import { supportTicketSchema } from "@/lib/validation/common";
 import { z } from "zod";
 import { Headphones, Mail, Phone, MessageSquare, Plus, X, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { createTicket } from "@/features/support";
+import { createTicket, getTickets } from "@/features/support";
 
 type TicketFormValues = z.infer<typeof supportTicketSchema>;
 
@@ -22,22 +22,36 @@ export default function SupportView() {
   const t = useTranslations("customer.support");
   const validation = useTranslations("validation");
 
-  const [tickets, setTickets] = useState(() => [
-    {
-      id: "tkt-9021",
-      subject: t("ticketDelayed"),
-      status: "open",
-      date: t("ticketDate1"),
-      shipmentId: "SC-00412",
-    },
-    {
-      id: "tkt-8810",
-      subject: t("ticketCashback"),
-      status: "resolved",
-      date: t("ticketDate2"),
-      shipmentId: "SC-00408",
-    },
-  ]);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(true);
+
+  useEffect(() => {
+    getTickets()
+      .then((data) => {
+        setTickets(data);
+        setLoadingTickets(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load tickets, falling back to mock:", err);
+        setTickets([
+          {
+            id: "tkt-9021",
+            subject: t("ticketDelayed"),
+            status: "open",
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            shipmentId: "SC-00412",
+          },
+          {
+            id: "tkt-8810",
+            subject: t("ticketCashback"),
+            status: "resolved",
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            shipmentId: "SC-00408",
+          },
+        ]);
+        setLoadingTickets(false);
+      });
+  }, [t]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showLiveChat, setShowLiveChat] = useState(false);
@@ -75,20 +89,13 @@ export default function SupportView() {
   const handleCreateTicket = async (data: TicketFormValues) => {
     setSubmittingTicket(true);
     try {
-      await createTicket({
+      const ticket = await createTicket({
         subject: data.subject,
         category: data.category,
         message: data.message,
         shipmentId: data.shipmentId,
       });
-      const newTicket = {
-        id: `tkt-${9022 + tickets.length}`,
-        subject: data.subject,
-        status: "open",
-        date: t("ticketDateNew"),
-        shipmentId: data.shipmentId,
-      };
-      setTickets((prev) => [newTicket, ...prev]);
+      setTickets((prev) => [ticket, ...prev]);
       reset();
       setShowCreateModal(false);
     } catch (err) {
@@ -97,7 +104,7 @@ export default function SupportView() {
         id: `tkt-${9022 + tickets.length}`,
         subject: data.subject,
         status: "open",
-        date: t("ticketDateNew"),
+        createdAt: new Date().toISOString(),
         shipmentId: data.shipmentId,
       };
       setTickets((prev) => [newTicket, ...prev]);
@@ -211,7 +218,7 @@ export default function SupportView() {
                         {tkt.subject}
                       </span>
                       <span className="text-[10px] text-zinc-500 font-medium">
-                        ID: {tkt.id} • {t("shipmentId")}: {tkt.shipmentId} • {tkt.date}
+                        ID: {tkt.id} • {t("shipmentId")}: {tkt.shipmentId} • {tkt.createdAt ? new Date(tkt.createdAt).toLocaleDateString() : tkt.date}
                       </span>
                     </div>
 

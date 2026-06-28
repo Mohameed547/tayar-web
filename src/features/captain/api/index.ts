@@ -29,4 +29,4 @@ export {
 
 export { getProviderRating } from "@/features/reviews";
 
-export { getTeamCaptains, addTeamCaptain, updateCaptainStatus, assignShipmentToCaptain, reassignShipmentToCaptain } from "@/features/office";
+export { getTeamCaptains, addTeamCaptain, updateCaptainStatus, updateDriverAvailability, updateOfficeAvailability, assignShipmentToCaptain, reassignShipmentToCaptain, getCaptainTracking } from "@/features/office";

@@ -3,6 +3,7 @@
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
 import { StoreProvider } from "@/shared/providers/store-provider";
+import { SocketNotificationProvider } from "@/shared/providers/socket-notification-provider";
 import type { Theme } from "@/shared/config/theme";
 
 interface AppProvidersProps {
@@ -21,7 +22,9 @@ export function AppProviders({
   return (
     <NextIntlClientProvider locale={locale} messages={messages} timeZone="Africa/Cairo">
       <StoreProvider>
-        <ThemeProvider initialTheme={theme}>{children}</ThemeProvider>
+        <ThemeProvider initialTheme={theme}>
+          <SocketNotificationProvider>{children}</SocketNotificationProvider>
+        </ThemeProvider>
       </StoreProvider>
     </NextIntlClientProvider>
   );

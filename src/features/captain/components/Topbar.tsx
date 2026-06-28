@@ -12,6 +12,8 @@ import {
 import {
   selectActiveScreen,
   selectIsOnline,
+  selectOrders,
+  selectAccountType,
 } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import { LocaleToggle } from '@/shared/ui/locale-toggle'
@@ -19,6 +21,8 @@ import { ThemeToggle } from '@/shared/ui/theme-toggle'
 import type { ScreenId } from '@/features/captain/types'
 import { getCurrentUser, logout } from '@/features/auth/api'
 import type { User } from '@/features/auth/types'
+import { useNotifications } from '@/shared/providers/socket-notification-provider'
+import { updateDriverAvailability, updateOfficeAvailability } from '@/features/office'
 
 const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
   'overview':         'screen_overview',
@@ -42,8 +46,11 @@ export default function Topbar() {
   const router       = useRouter()
   const activeScreen = useAppSelector(selectActiveScreen)
   const isOnline     = useAppSelector(selectIsOnline)
+  const orders       = useAppSelector(selectOrders) || []
+  const accountType  = useAppSelector(selectAccountType)
   const locale       = useLocale()
   const t            = useCaptainTranslations()
+  const { unreadCount } = useNotifications()
   const isRTL        = locale === 'ar'
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -54,6 +61,28 @@ export default function Topbar() {
       .then((data) => setUser(data))
       .catch((err) => console.error("Error fetching user in Captain Topbar:", err))
   }, [])
+
+  const hasActiveOrder = orders.some((order: any) => {
+    const status = order.rawStatus || order.status
+    return status !== 'delivered' && status !== 'cancelled' && status !== 'pending_offers'
+  })
+  const isCaptain = user?.role === 'driver' || accountType === 'captain'
+  const isBusy = isOnline && isCaptain && hasActiveOrder
+
+  const handleToggleOnline = async () => {
+    if (!user || isBusy) return
+    const nextOnline = !isOnline
+    dispatch(toggleOnline())
+    try {
+      if (user.role === 'office') {
+        await updateOfficeAvailability(nextOnline ? 'available' : 'offline')
+      } else {
+        await updateDriverAvailability(nextOnline ? 'available' : 'offline')
+      }
+    } catch (err) {
+      console.error("Failed to update status in DB:", err)
+    }
+  }
 
   const getInitials = (name: string) => {
     if (!name) return "U"
@@ -74,6 +103,18 @@ export default function Topbar() {
   }
 
   const titleKey = SCREEN_TITLE_KEY[activeScreen] ?? 'screen_overview'
+
+  let statusText = isOnline ? t('online') : t('offline')
+  let statusClass = isOnline
+    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+    : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200'
+  let indicatorClass = isOnline ? 'bg-green-500 animate-pulse' : 'bg-zinc-500'
+
+  if (isBusy) {
+    statusText = t('busy')
+    statusClass = 'bg-amber-500/10 border border-amber-500/20 text-amber-400 cursor-not-allowed'
+    indicatorClass = 'bg-amber-500'
+  }
 
   return (
     <header className="h-16 flex items-center justify-between px-6 gap-4 border-b bg-zinc-950 border-zinc-800 text-zinc-100">
@@ -101,25 +142,28 @@ export default function Topbar() {
 
         {/* Online/Offline status pill */}
         <button
-          onClick={() => dispatch(toggleOnline())}
+          onClick={handleToggleOnline}
+          disabled={isBusy}
           className={clsx(
             'flex items-center gap-2 px-3 py-[5px] rounded-full text-[12px] font-semibold transition-colors',
-            isOnline
-              ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-              : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200'
+            statusClass
           )}
         >
-          <span className={clsx('w-2 h-2 rounded-full', isOnline ? 'bg-green-500 animate-pulse' : 'bg-zinc-500')} />
-          <span>{isOnline ? t('online') : t('offline')}</span>
+          <span className={clsx('w-2 h-2 rounded-full', indicatorClass)} />
+          <span>{statusText}</span>
         </button>
 
         {/* Notification bell */}
         <button
-          onClick={() => dispatch(setActiveScreen('requests'))} // Route to cargo/shipment requests
+          onClick={() => router.push("/notifications")}
           className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-zinc-950" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white ring-2 ring-zinc-950">
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Vertical divider */}

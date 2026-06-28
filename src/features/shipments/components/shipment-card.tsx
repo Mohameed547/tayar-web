@@ -44,6 +44,17 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
     cancelled: t("cancelled"),
   };
 
+  const formatTime = (timeStr?: string) => {
+    if (!timeStr) return "9:00 AM";
+    try {
+      const date = new Date(timeStr);
+      if (isNaN(date.getTime())) return timeStr;
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return timeStr;
+    }
+  };
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all duration-300 rounded-xl p-5 flex flex-col gap-4 shadow-lg">
       <div className="flex items-start justify-between gap-4">
@@ -55,7 +66,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             <span className="text-zinc-700">·</span>
             <div className="flex items-center gap-1.5 text-zinc-200 font-semibold text-base">
               <span>{pickupAddress.split(",")[0]}</span>
-              <span className="text-zinc-500 font-normal">→</span>
+              <span className="text-zinc-500 font-normal">{locale === 'ar' ? '←' : '→'}</span>
               <span>{deliveryAddress.split(",")[0]}</span>
             </div>
           </div>
@@ -122,7 +133,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             />
           </div>
           <div className="flex justify-between text-[11px] text-zinc-500 mt-1 font-medium">
-            <span>{t("pickedUp", { time: pickedUpTime || "9:00 AM" })}</span>
+            <span>{t("pickedUp", { time: formatTime(pickedUpTime) })}</span>
             <span className="text-blue-400 font-semibold">
               {t("delivering", { progress: deliveryProgressPercent })}
             </span>

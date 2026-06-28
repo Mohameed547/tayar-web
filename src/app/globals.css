@@ -166,3 +166,10 @@ html:not(.dark) .customer-surface .text-zinc-500,
 html:not(.dark) .customer-surface .text-zinc-600 {
   color: var(--dh-text-sub);
 }
+
+/* Leaflet custom overrides */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+

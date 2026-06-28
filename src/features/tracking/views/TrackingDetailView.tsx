@@ -8,9 +8,20 @@ import TrackingTimeline from "../components/tracking-timeline";
 import { useTranslations, useLocale } from "next-intl";
 import { getShipmentById } from "@/features/shipments/api";
 import { getOffersForShipment } from "@/features/offers/api";
+import { getTrackingDetails } from "@/features/tracking/api";
 import type { Shipment } from "@/features/shipments/types";
 import type { Offer } from "@/features/offers/types";
 import type { TrackingMilestone } from "../types";
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(() => import("@/shared/ui/MapView"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[380px] w-full bg-zinc-950 flex items-center justify-center text-xs text-zinc-500 font-semibold border border-zinc-800 rounded-xl">
+      Loading Live Tracking Map...
+    </div>
+  ),
+});
 
 interface TrackingDetailViewProps {
   id: string;
@@ -25,6 +36,8 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [captainCoords, setCaptainCoords] = useState<[number, number] | undefined>(undefined);
+  const [trackingDetails, setTrackingDetails] = useState<any>(null);
 
   useEffect(() => {
     Promise.all([
@@ -51,6 +64,47 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
       setLoading(false);
     });
   }, [id]);
+
+  useEffect(() => {
+    if (!shipment?.id) return;
+
+    const fetchLiveLocation = async () => {
+      try {
+        const details = await getTrackingDetails(shipment.id);
+        if (details) {
+          setTrackingDetails(details);
+          if (details.currentLocation?.coords) {
+            const [lng, lat] = details.currentLocation.coords;
+            if (!isNaN(lat) && !isNaN(lng)) {
+              setCaptainCoords([lat, lng]);
+            }
+          }
+
+          setShipment((prev) => {
+            if (!prev) return null;
+            if (prev.status === details.status && prev.deliveryProgressPercent === details.progressPercent) {
+              return prev;
+            }
+            return {
+              ...prev,
+              status: details.status || prev.status,
+              deliveryProgressPercent: typeof details.progressPercent === 'number' ? details.progressPercent : prev.deliveryProgressPercent,
+            };
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch live location:", err);
+      }
+    };
+
+    fetchLiveLocation();
+
+    const inProgressStatuses = ["picked_up", "in_transit", "out_for_delivery"];
+    if (inProgressStatuses.includes(shipment.status)) {
+      const interval = setInterval(fetchLiveLocation, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [shipment?.id, shipment?.status]);
 
   if (loading) {
     return (
@@ -112,23 +166,38 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     return "pending";
   };
 
+  const formatMilestoneTime = (timestamp?: string) => {
+    if (!timestamp) return undefined;
+    const date = new Date(timestamp);
+    return date.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+      month: "short",
+      day: "numeric",
+    }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getMilestoneTime = (status: string, fallbackText?: string) => {
+    if (!trackingDetails?.milestones) return fallbackText;
+    const milestone = trackingDetails.milestones.find((m: any) => m.status === status);
+    return milestone ? formatMilestoneTime(milestone.timestamp) : fallbackText;
+  };
+
   const milestones: TrackingMilestone[] = [
     {
       step: 1,
       title: t("shipmentCreated") || "Shipment created",
-      timestamp: shipment.createdAt ? new Date(shipment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now",
+      timestamp: shipment.createdAt ? formatMilestoneTime(shipment.createdAt) : "Just now",
       status: getStatus(true, shipment.status === "pending_offers"),
     },
     {
       step: 2,
       title: t("offerAccepted") || "Offer accepted",
-      timestamp: shipment.status !== "pending_offers" ? "Completed" : undefined,
+      timestamp: getMilestoneTime("assigned", shipment.status !== "pending_offers" ? "Completed" : undefined),
       status: getStatus(shipment.status !== "pending_offers", shipment.status === "captain_assignment"),
     },
     {
       step: 3,
       title: t("packagePickedUp") || "Package picked up",
-      timestamp: ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? shipment.pickedUpTime || "Completed" : undefined,
+      timestamp: getMilestoneTime("picked_up", ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
       status: getStatus(
         ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status),
         shipment.status === "picked_up"
@@ -137,7 +206,7 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     {
       step: 4,
       title: t("inTransit") || "In transit",
-      timestamp: ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined,
+      timestamp: getMilestoneTime("in_transit", ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
       status: getStatus(
         ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status),
         ["in_transit", "out_for_delivery"].includes(shipment.status)
@@ -146,13 +215,40 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     {
       step: 5,
       title: t("delivered") || "Delivered",
-      timestamp: shipment.status === "delivered" ? "Completed" : undefined,
+      timestamp: getMilestoneTime("delivered", shipment.status === "delivered" ? "Completed" : undefined),
       status: getStatus(
         shipment.status === "delivered",
         shipment.status === "delivered"
       ),
     },
   ];
+
+  const parseCoords = (coords?: [number, number]): [number, number] | undefined => {
+    if (!coords || coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return undefined;
+    return [coords[1], coords[0]];
+  };
+
+  const parsedPickup = parseCoords(shipment.pickupCoords);
+  const parsedDelivery = parseCoords(shipment.deliveryCoords);
+
+  const computedEtaText = shipment.etaDescription || (() => {
+    const distance = shipment.distanceKm || 0;
+    const speed = shipment.deliverySpeed || "standard";
+    if (speed === "scheduled") {
+      return locale === "ar" ? "حسب الموعد المحدّد" : "As scheduled";
+    }
+    if (speed === "express") {
+      if (distance < 50) return locale === "ar" ? "ساعة إلى ساعتين" : "1–2 hours";
+      if (distance < 150) return locale === "ar" ? "ساعتان إلى 3 ساعات" : "2–3 hours";
+      if (distance < 300) return locale === "ar" ? "4 إلى 5 ساعات" : "4–5 hours";
+      return locale === "ar" ? "6 إلى 8 ساعات" : "6–8 hours";
+    } else {
+      if (distance < 50) return locale === "ar" ? "3 إلى 4 ساعات" : "3–4 hours";
+      if (distance < 150) return locale === "ar" ? "5 إلى 6 ساعات" : "5–6 hours";
+      if (distance < 300) return locale === "ar" ? "يوم واحد" : "1 day";
+      return locale === "ar" ? "يومين" : "2 days";
+    }
+  })();
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-5xl mx-auto">
@@ -174,52 +270,26 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-        <div className="lg:col-span-7 bg-[#dbeafe]/10 border border-zinc-800 rounded-xl overflow-hidden shadow-lg relative min-h-[350px] flex flex-col justify-end">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="w-full h-full opacity-60" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <line x1="0" y1="50" x2="100" y2="50" stroke="#71717a" strokeWidth="0.8" />
-              <line x1="40" y1="0" x2="40" y2="100" stroke="#71717a" strokeWidth="0.8" />
-              <line x1="75" y1="0" x2="75" y2="100" stroke="#71717a" strokeWidth="0.8" />
-              <line x1="0" y1="35" x2="100" y2="42" stroke="#71717a" strokeWidth="0.4" />
-              <path
-                d="M20,80 L80,20"
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="1.5"
-                strokeDasharray="4,4"
-              />
-            </svg>
-
-            <div className="absolute left-[20%] bottom-[20%] flex flex-col items-center">
-              <div className="h-3 w-3 rounded-full bg-emerald-500 border-2 border-zinc-950 shadow-lg shadow-emerald-500/50" />
-              <span className="text-[10px] text-zinc-400 font-bold bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-800/80 mt-1">
-                {t("pickup")}
+        <div className="lg:col-span-7 flex flex-col gap-2 relative">
+          <div className="flex justify-between items-center text-xs font-semibold text-zinc-500 mb-1">
+            <span>{locale === 'ar' ? 'خريطة التتبع المباشر' : 'Live Tracking Map'}</span>
+            <div className="flex gap-2">
+              <span className="flex items-center gap-1 bg-zinc-950/80 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
+                {t("live")}
+              </span>
+              <span className="bg-zinc-950/80 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                {locale === "ar" ? "الوصول المتوقع: " : "Estimated arrival: "} {computedEtaText}
               </span>
             </div>
-
-            <div className="absolute right-[20%] top-[20%] flex flex-col items-center">
-              <div className="h-3 w-3 rounded-full bg-red-500 border-2 border-zinc-950 shadow-lg shadow-red-500/50" />
-              <span className="text-[10px] text-zinc-400 font-bold bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-800/80 mt-1">
-                {t("destination")}
-              </span>
-            </div>
-
-            <div className="absolute left-[44%] bottom-[44%] flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 border-2 border-white shadow-xl shadow-blue-500/30 animate-pulse">
-              <Navigation className="h-4 w-4 text-white rotate-45" />
-            </div>
           </div>
-
-          <div className="absolute top-4 left-4 flex gap-2">
-            <span className="flex items-center gap-1 bg-zinc-950/95 border border-zinc-800 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-200 uppercase tracking-wider">
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
-              {t("live")}
-            </span>
-            <span className="bg-zinc-950/95 border border-zinc-800 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-200 uppercase tracking-wider">
-              {shipment.etaDescription 
-                ? `${locale === "ar" ? "الوصول المتوقع خلال" : "Estimated arrival in"} ${shipment.etaDescription}`
-                : t("defaultEta")}
-            </span>
-          </div>
+          <MapView
+            pickupCoords={parsedPickup}
+            deliveryCoords={parsedDelivery}
+            captainCoords={captainCoords}
+            zoom={13}
+            height="380px"
+          />
         </div>
 
         <div className="lg:col-span-5 flex flex-col gap-6">
@@ -231,7 +301,7 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                     {shipment.trackingNumber}
                   </span>
                   <span className="text-[10px] text-zinc-500 font-medium">
-                    {shipment.pickupAddress.split(",")[0]} ➔ {shipment.deliveryAddress.split(",")[0]}
+                    {shipment.pickupAddress.split(",")[0]} {locale === 'ar' ? '⬅' : '➔'} {shipment.deliveryAddress.split(",")[0]}
                   </span>
                 </div>
                 <Ship className="h-5 w-5 text-blue-500" />

@@ -49,6 +49,15 @@ export async function getTrackingMilestones(
   return mapMilestones(response.data.data);
 }
 
+export async function getTrackingDetails(
+  shipmentId: string,
+): Promise<any> {
+  const response = await api.get<ApiResponse<any>>(
+    `/api/tracking/${shipmentId}`,
+  );
+  return response.data.data;
+}
+
 export async function getTrackingByTrackingNumber(
   trackingNumber: string,
 ): Promise<TrackingMilestone[]> {
