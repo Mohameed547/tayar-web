@@ -39,6 +39,7 @@ const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
   'ratings':          'screen_ratings',
   'verification':     'screen_verification',
   'profile':          'screen_profile',
+  'notifications':    'nav_notifications',
 }
 
 export default function Topbar() {
@@ -155,7 +156,7 @@ export default function Topbar() {
 
         {/* Notification bell */}
         <button
-          onClick={() => router.push("/notifications")}
+          onClick={() => dispatch(setActiveScreen('notifications'))}
           className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
         >
           <Bell className="h-5 w-5" />

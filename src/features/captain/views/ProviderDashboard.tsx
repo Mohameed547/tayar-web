@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchCaptainDashboard, switchAccountTypeData } from '@/features/captain/store/data-slice'
+import { useNotifications } from '@/shared/providers/socket-notification-provider'
 import { setAccountType, setOnlineState } from '@/features/captain/store/dashboard-slice'
 import { getCurrentUser } from '@/features/auth/api'
 import {
@@ -30,6 +31,7 @@ import Performance from './Performance'
 import Ratings from './Ratings'
 import Verification from './Verification'
 import Profile from './Profile'
+import { NotificationsView } from '@/features/notifications'
 
 import type { ScreenId } from '@/features/captain/types'
 
@@ -48,6 +50,7 @@ const SCREENS: Record<ScreenId, React.ReactNode> = {
   'ratings':          <Ratings />,
   'verification':     <Verification />,
   'profile':          <Profile />,
+  'notifications':    <NotificationsView />,
 }
 
 export default function ProviderDashboard() {
@@ -97,6 +100,22 @@ export default function ProviderDashboard() {
       dispatch(fetchCaptainDashboard(accountType))
     }
   }, [authorized, dataStatus, dispatch, accountType])
+
+  const { socket } = useNotifications()
+
+  useEffect(() => {
+    if (!socket || !authorized) return
+
+    const handleNewNotification = (notif: any) => {
+      console.log('Real-time notification in dashboard, reloading data:', notif)
+      dispatch(fetchCaptainDashboard(accountType))
+    }
+
+    socket.on('newNotification', handleNewNotification)
+    return () => {
+      socket.off('newNotification', handleNewNotification)
+    }
+  }, [socket, authorized, dispatch, accountType])
 
   if (checkingAuth) {
     return (

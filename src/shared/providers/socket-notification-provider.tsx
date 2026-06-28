@@ -48,13 +48,12 @@ export function SocketNotificationProvider({ children }: { children: React.React
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const res = await fetch(`${apiUrl}/api/notifications`, {
+      const res = await fetch(`${apiUrl}/api/notifications/unread-count`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const result = await res.json();
-        const list = result?.data || [];
-        const unread = list.filter((n: any) => !n.isRead).length;
+        const unread = result?.data?.count || 0;
         setUnreadCount(unread);
       }
     } catch (err) {

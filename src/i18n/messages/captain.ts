@@ -8,6 +8,7 @@ export const captainMessages = {
     nav_orders: 'Accepted Orders',
     nav_deliveries: 'Current Deliveries',
     nav_tracking: 'Shipment Tracking',
+    nav_notifications: 'Notifications',
     nav_finance: 'Finance',
     nav_earnings: 'Earnings',
     nav_wallet: 'Wallet',
@@ -81,6 +82,10 @@ export const captainMessages = {
     accepted: 'Accepted',
     rejected: 'Rejected',
     expired: 'Expired',
+    date_col: 'Submission Date',
+    filter_status: 'Filter by Status',
+    filter_all: 'All Statuses',
+    search_shipment: 'Search Request ID...',
 
     // Orders
     orders_title: 'Accepted Orders',
@@ -174,6 +179,7 @@ export const captainMessages = {
     nav_orders: 'الطلبات المقبولة',
     nav_deliveries: 'الشحنات الجارية',
     nav_tracking: 'تتبع الشحنات',
+    nav_notifications: 'الإشعارات',
     nav_finance: 'المالية',
     nav_earnings: 'الأرباح',
     nav_wallet: 'المحفظة',
@@ -247,6 +253,10 @@ export const captainMessages = {
     accepted: 'مقبول',
     rejected: 'مرفوض',
     expired: 'منتهي',
+    date_col: 'تاريخ تقديم العرض',
+    filter_status: 'تصفية حسب الحالة',
+    filter_all: 'جميع الحالات',
+    search_shipment: 'بحث برقم الطلب...',
 
     // Orders
     orders_title: 'الطلبات المقبولة',

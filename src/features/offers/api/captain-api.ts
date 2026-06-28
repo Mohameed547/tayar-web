@@ -20,6 +20,7 @@ export async function getCaptainOffers(): Promise<ProviderOffer[]> {
         : (o.shipment || 'Shipment'),
       quoteEGP: o.price,
       status: o.status || "pending",
+      createdAt: o.createdAt,
     }));
   } catch (error) {
     throw error;

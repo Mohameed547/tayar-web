@@ -88,7 +88,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                 )}
               </div>
             )}
-          </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

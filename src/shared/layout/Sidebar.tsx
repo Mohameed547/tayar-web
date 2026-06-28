@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useNotifications } from "@/shared/providers/socket-notification-provider";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -24,6 +25,7 @@ interface SidebarProps {
 export default function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations("navigation");
+  const { unreadCount } = useNotifications();
 
   const menuItems = [
     {
@@ -55,7 +57,7 @@ export default function Sidebar({ className }: SidebarProps) {
       label: t("notifications"),
       href: "/notifications",
       icon: Bell,
-      badge: 3, // Mock active notification badge count from Screen 2
+      badge: unreadCount,
     },
     {
       label: t("reviews"),
