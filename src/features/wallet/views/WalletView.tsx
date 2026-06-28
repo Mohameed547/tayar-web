@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp, X } from "lucide-react";
+import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp, X, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,15 +18,17 @@ export default function WalletView() {
   const validation = useTranslations("validation");
   
   const [balance, setBalance] = useState(0.0);
+  const [lockedBalance, setLockedBalance] = useState(0.0);
   const [cashbackEarned, setCashbackEarned] = useState(0.0);
   const [walletId, setWalletId] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchWalletData = () => {
     getWallet()
       .then((data) => {
         setBalance(data.balance);
+        setLockedBalance(data.lockedBalance || 0.0);
         setCashbackEarned(data.cashbackEarned);
         setWalletId(data.id);
         setTransactions(data.transactions);
@@ -35,6 +37,7 @@ export default function WalletView() {
       .catch((err) => {
         console.error("Failed to load wallet, using mocks:", err);
         setBalance(320.0);
+        setLockedBalance(50.0);
         setCashbackEarned(14.5);
         setTransactions([
           {
@@ -61,6 +64,10 @@ export default function WalletView() {
         ]);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchWalletData();
   }, [t]);
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
@@ -89,17 +96,22 @@ export default function WalletView() {
 
   const handleTopUp = async (data: TopUpFormValues) => {
     try {
-      const updated = await topUp({
+      const response = await topUp({
         amount: data.amount,
         paymentMethod: data.paymentMethod,
       });
-      setBalance(updated.balance);
-      setCashbackEarned(updated.cashbackEarned);
-      setTransactions(updated.transactions);
+
+      if (response?.redirectUrl) {
+        window.location.href = response.redirectUrl;
+        return;
+      }
+
+      fetchWalletData();
       resetTopUp();
       setShowTopUpModal(false);
     } catch (err) {
       console.error("Failed to top up:", err);
+      // Fallback local UI simulation
       setBalance((prev) => prev + data.amount);
       const methodLabels: Record<string, string> = {
         visa: t("visa"),
@@ -128,13 +140,11 @@ export default function WalletView() {
       return;
     }
     try {
-      const updated = await withdraw({
+      await withdraw({
         amount: data.amount,
         destination: data.destination,
       });
-      setBalance(updated.balance);
-      setCashbackEarned(updated.cashbackEarned);
-      setTransactions(updated.transactions);
+      fetchWalletData();
       resetWithdraw();
       setShowWithdrawModal(false);
     } catch (err) {
@@ -155,7 +165,7 @@ export default function WalletView() {
 
   const totalLoaded = transactions
     .filter((t) => t.type === "topup")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + Math.max(0, t.amount), 0);
 
   const totalPaid = Math.abs(
     transactions
@@ -191,6 +201,15 @@ export default function WalletView() {
                 </div>
               </div>
 
+              {lockedBalance > 0 && (
+                <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-lg mt-1">
+                  <Lock className="h-3.5 w-3.5" />
+                  <span>
+                    الرصيد المعلق (إسكرو): <strong>EGP {lockedBalance.toFixed(2)}</strong>
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center border-t border-zinc-800/60 pt-3 text-[11px]">
                 <div className="flex flex-col">
                   <span className="text-zinc-500 font-medium">{t("walletId")}</span>
@@ -199,8 +218,8 @@ export default function WalletView() {
                   </span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-zinc-500 font-medium">{t("cashbackEarned")}</span>
-                  <span className="text-emerald-400 font-bold mt-0.5">+EGP {cashbackEarned.toFixed(2)}</span>
+                  <span className="text-zinc-500 font-medium">الرصيد الكلي</span>
+                  <span className="text-blue-400 font-bold mt-0.5">EGP {(balance + lockedBalance).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -208,14 +227,14 @@ export default function WalletView() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setShowTopUpModal(true)}
-                className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none"
+                className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold bg-zinc-955 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>{t("topUp")}</span>
               </button>
               <button
                 onClick={() => setShowWithdrawModal(true)}
-                className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none"
+                className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold bg-zinc-955 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none"
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
                 <span>{t("withdraw")}</span>
@@ -262,45 +281,49 @@ export default function WalletView() {
           </h2>
 
           <div className="flex flex-col gap-4 max-h-[350px] overflow-y-auto pr-1">
-            {transactions.map((tx) => {
-              const isNegative = tx.amount < 0 || tx.type === "payment";
-              const formattedTxDate = () => {
-                try {
-                  return new Date(tx.date).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
-                } catch {
-                  return tx.date;
-                }
-              };
+            {transactions.length === 0 ? (
+              <div className="text-center py-8 text-xs text-zinc-500">لا توجد معاملات بعد</div>
+            ) : (
+              transactions.map((tx) => {
+                const isNegative = tx.amount < 0;
+                const formattedTxDate = () => {
+                  try {
+                    return new Date(tx.date).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                  } catch {
+                    return tx.date;
+                  }
+                };
 
-              return (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between border-b border-zinc-855 pb-3.5 last:border-none last:pb-0"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-zinc-200">
-                      {tx.description}
-                    </span>
-                    <span className="text-[10px] text-zinc-500 font-medium mt-0.5">
-                      {formattedTxDate()}
+                return (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between border-b border-zinc-800/60 pb-3.5 last:border-none last:pb-0"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-zinc-200">
+                        {tx.description}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-medium mt-0.5">
+                        {formattedTxDate()}
+                      </span>
+                    </div>
+
+                    <span
+                      className={`text-xs font-bold tracking-tight ${
+                        isNegative ? "text-red-400" : "text-emerald-400"
+                      }`}
+                    >
+                      {isNegative ? "" : "+"}EGP {Math.abs(tx.amount).toFixed(2)}
                     </span>
                   </div>
-
-                  <span
-                    className={`text-xs font-bold tracking-tight ${
-                      isNegative ? "text-red-400" : "text-emerald-400"
-                    }`}
-                  >
-                    {isNegative ? "" : "+"}EGP {Math.abs(tx.amount).toFixed(2)}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
