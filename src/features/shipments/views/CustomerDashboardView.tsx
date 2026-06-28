@@ -87,10 +87,8 @@ export default function CustomerDashboardView() {
         console.error("Failed to load wallet, using mock:", err);
         return "EGP 320";
       }),
-      getReviews().then(revs => {
-        if (!revs || revs.length === 0) return "5.0";
-        const sum = revs.reduce((acc, r) => acc + (r.rating || 5), 0);
-        return (sum / revs.length).toFixed(1);
+      getReviews().then(res => {
+        return res && typeof res.averageRating === "number" ? res.averageRating.toFixed(1) : "5.0";
       }).catch(err => {
         console.error("Failed to load reviews, using mock:", err);
         return "4.6";
