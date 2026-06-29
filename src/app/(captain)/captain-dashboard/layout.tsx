@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'DeliveryHub – Captain Dashboard',
+  title: 'Delix – Captain Dashboard',
 }
 
 export default function DashboardLayout({

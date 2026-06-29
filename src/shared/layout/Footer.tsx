@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { DelixLogo } from "@/shared/ui/DelixLogo";
 
 export default function Footer() {
     const t = useTranslations("footer");
@@ -16,46 +16,20 @@ export default function Footer() {
     ];
 
     return (
-        <footer
-            className="border-t"
-            style={{
-                borderColor: "var(--border)",
-                background: "var(--navy-mid)",
-            }}
-        >
+        <footer className="border-t border-[var(--dh-border)] bg-[var(--dh-bg-topbar)]">
             <div className="max-w-6xl mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center"
-                            style={{
-                                background: "var(--blue)",
-                                boxShadow: "0 0 20px var(--blue-glow)",
-                            }}
-                        >
-                            <Truck className="h-4 w-4 text-white" aria-hidden="true" />
-                        </div>
-                        <span
-                            className="font-bold text-lg text-[var(--landing-text)]"
-                            style={{ fontFamily: "var(--font-display)" }}
-                        >
-                            DeliveryHub
-                        </span>
-                    </div>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                    <DelixLogo className="h-7 w-7" textClassName="font-display font-extrabold text-lg text-[var(--dh-text-main)] tracking-tight" />
+                    <p className="text-sm text-[var(--dh-text-sub)] mt-2">
                         {t("description")}
                     </p>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 mt-2">
                         {["Facebook", "Instagram", "LinkedIn"].map((social) => (
                             <Link
                                 key={social}
                                 href="#"
                                 aria-label={social}
-                                className="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all"
-                                style={{
-                                    border: "1px solid var(--border)",
-                                    color: "var(--text-muted)",
-                                }}
+                                className="w-9 h-9 rounded-xl flex items-center justify-center text-xs transition-all border border-[var(--dh-border)] text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:border-[var(--dh-brand)] hover:bg-[var(--dh-brand-subtle)]"
                             >
                                 {social[0]}
                             </Link>
@@ -64,19 +38,15 @@ export default function Footer() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    <div
-                        className="text-sm font-semibold text-[var(--landing-text)]"
-                        style={{ fontFamily: "var(--font-display)" }}
-                    >
+                    <div className="text-sm font-semibold text-[var(--dh-text-main)] font-display">
                         {t("company")}
                     </div>
-                    <ul className="flex flex-col gap-3 list-none">
+                    <ul className="flex flex-col gap-3 list-none p-0">
                         {companyLinks.map((item) => (
                             <li key={item.label}>
                                 <Link
                                     href={item.href}
-                                    className="text-sm hover:text-[var(--landing-text)] transition-colors"
-                                    style={{ color: "var(--text-muted)" }}
+                                    className="text-sm text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] transition-colors"
                                 >
                                     {item.label}
                                 </Link>
@@ -86,19 +56,15 @@ export default function Footer() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    <div
-                        className="text-sm font-semibold text-[var(--landing-text)]"
-                        style={{ fontFamily: "var(--font-display)" }}
-                    >
+                    <div className="text-sm font-semibold text-[var(--dh-text-main)] font-display">
                         {t("legal")}
                     </div>
-                    <ul className="flex flex-col gap-3 list-none">
+                    <ul className="flex flex-col gap-3 list-none p-0">
                         {legalLinks.map((item) => (
                             <li key={item.label}>
                                 <Link
                                     href={item.href}
-                                    className="text-sm hover:text-[var(--landing-text)] transition-colors"
-                                    style={{ color: "var(--text-muted)" }}
+                                    className="text-sm text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] transition-colors"
                                 >
                                     {item.label}
                                 </Link>
@@ -108,12 +74,9 @@ export default function Footer() {
                 </div>
             </div>
 
-            <div
-                className="border-t px-10 py-5 flex items-center justify-between"
-                style={{ borderColor: "var(--border)" }}
-            >
-                <span className="text-sm" style={{ color: "var(--text-dim)" }}>
-                    © 2026 DeliveryHub. {common("copyright")}
+            <div className="border-t border-[var(--dh-border)] px-10 py-5 flex items-center justify-between">
+                <span className="text-sm text-[var(--dh-text-dim)]">
+                    © {new Date().getFullYear()} Delix. {common("copyright")}
                 </span>
                 <div className="flex gap-4">
                     {[
@@ -123,8 +86,7 @@ export default function Footer() {
                         <Link
                             key={item.label}
                             href={item.href}
-                            className="text-sm hover:text-[var(--landing-text)] transition-colors"
-                            style={{ color: "var(--text-dim)" }}
+                            className="text-sm text-[var(--dh-text-dim)] hover:text-[var(--dh-text-main)] transition-colors"
                         >
                             {item.label}
                         </Link>

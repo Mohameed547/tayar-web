@@ -119,9 +119,9 @@ export default function ProviderDashboard() {
 
   if (checkingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-zinc-400 text-sm font-semibold">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--dh-bg-app)] text-[var(--dh-text-sub)] text-sm font-semibold">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-t-blue-500 border-zinc-800 animate-spin" />
+          <div className="h-8 w-8 rounded-full border-2 border-t-[var(--dh-brand)] border-[var(--dh-border)] animate-spin" />
           <span>{locale === 'ar' ? 'جاري التحقق من الصلاحيات...' : 'Verifying permissions...'}</span>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function ProviderDashboard() {
 
   return (
     <div
-      className="customer-surface flex h-screen w-screen overflow-hidden bg-zinc-950"
+      className="customer-surface flex h-screen w-screen overflow-hidden bg-[var(--dh-bg-app)]"
       data-surface="customer"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
@@ -143,7 +143,7 @@ export default function ProviderDashboard() {
       <div className="flex flex-col flex-1 h-full overflow-hidden">
         <Topbar />
 
-        <main className="flex-1 overflow-y-auto p-6 bg-zinc-950">
+        <main className="flex-1 overflow-y-auto p-6 bg-[var(--dh-bg-app)]">
           {SCREENS[activeScreen] ?? <Overview />}
         </main>
       </div>

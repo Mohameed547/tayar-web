@@ -28,20 +28,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          "disabled:opacity-60 disabled:cursor-not-allowed",
+          "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--dh-bg-page)]",
+          "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
           variant === "primary" &&
-            "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] focus-visible:ring-blue-500",
+            "bg-[var(--dh-brand)] text-white hover:bg-[var(--dh-brand-hover)] hover:shadow-[0_0_15px_var(--dh-brand-glow)] active:scale-[0.98] focus-visible:ring-[var(--dh-brand)]",
           variant === "secondary" &&
-            "bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700",
+            "bg-[var(--dh-bg-muted)] text-[var(--dh-text-main)] border border-[var(--dh-border)] hover:bg-[var(--dh-border)] active:scale-[0.98] focus-visible:ring-[var(--dh-text-muted)]",
           variant === "ghost" &&
-            "bg-transparent text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800",
+            "bg-transparent text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] active:scale-[0.98]",
           variant === "danger" &&
-            "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
-          size === "sm" && "h-9 px-4 text-xs",
+            "bg-[var(--dh-danger)] text-white hover:bg-red-700 focus-visible:ring-[var(--dh-danger)]",
+          size === "sm" && "h-9 px-4 text-xs rounded-lg",
           size === "md" && "h-11 px-6 text-sm",
-          size === "lg" && "h-12 px-8 text-base",
+          size === "lg" && "h-12 px-8 text-base rounded-2xl",
           fullWidth && "w-full",
           className,
         )}
