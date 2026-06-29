@@ -86,6 +86,9 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
           deliveryAddress: s.deliveryAddress,
           pickupCoords: s.pickupCoords,
           deliveryCoords: s.deliveryCoords,
+          captainStatus: s.captainStatus,
+          officeDiscountPercentage: s.officeDiscountPercentage,
+          captainPrice: s.captainPrice,
         };
       });
     } catch (error) {
@@ -124,6 +127,9 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
         deliveryAddress: s.deliveryAddress,
         pickupCoords: s.pickupCoords,
         deliveryCoords: s.deliveryCoords,
+        captainStatus: s.captainStatus,
+        officeDiscountPercentage: s.officeDiscountPercentage,
+        captainPrice: s.captainPrice,
       };
     });
   } catch (error) {
@@ -163,4 +169,14 @@ export async function updateOrderStatus(
     priceEGP: 0,
     status: data.status === "picked_up" || data.status === "in_transit" ? "in_progress" : data.status as any,
   };
+}
+
+export async function acceptAssignment(id: string): Promise<any> {
+  const response = await api.patch<ApiResponse<any>>(`/api/shipments/${id}/accept-assignment`);
+  return response.data;
+}
+
+export async function rejectAssignment(id: string): Promise<any> {
+  const response = await api.patch<ApiResponse<any>>(`/api/shipments/${id}/reject-assignment`);
+  return response.data;
 }

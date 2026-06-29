@@ -273,7 +273,7 @@ export const customerMessages = {
       alwaysOnline: "Always online",
       typeMessage: "Type a message...",
       welcome:
-        "Hello! Welcome to DeliveryHub support. How can I help you today?",
+        "Hello! Welcome to Delix support. How can I help you today?",
       defaultReply:
         "Thank you for contacting us. An agent will review your request shortly.",
       delayedReply:
@@ -551,7 +551,7 @@ export const customerMessages = {
       liveAgent: "موظف دعم مباشر",
       alwaysOnline: "متاح دائمًا",
       typeMessage: "اكتب رسالة...",
-      welcome: "مرحبًا بك في دعم DeliveryHub. كيف يمكنني مساعدتك اليوم؟",
+      welcome: "مرحبًا بك في دعم Delix. كيف يمكنني مساعدتك اليوم؟",
       defaultReply: "شكرًا لتواصلك معنا. سيراجع أحد الموظفين طلبك قريبًا.",
       delayedReply:
         "شحنتك SC-00412 في الطريق حاليًا مع كريم مصطفى، ومن المتوقع وصولها إلى الإسكندرية خلال ساعتين تقريبًا.",

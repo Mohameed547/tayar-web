@@ -4,7 +4,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { shipmentRequestSchema } from "@/lib/validation/common";
 import { cn } from "@/lib/utils";
-import { MapPin, Search, ArrowRight, Navigation } from "lucide-react";
+import { MapPin, Search, ArrowRight, Navigation, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -85,6 +85,7 @@ export default function NewShipmentView() {
   const locale = useLocale();
   const [submitting, setSubmitting] = useState(false);
   const [isPriceEdited, setIsPriceEdited] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Map state
   const [pickupCoords, setPickupCoords] = useState<[number, number] | undefined>([30.0444, 31.2357]);
@@ -347,6 +348,7 @@ export default function NewShipmentView() {
 
   const onSubmit = async (data: ShipmentFormValues) => {
     setSubmitting(true);
+    setSubmitError(null);
     console.log("Submitting shipment request payload:", data);
     try {
       const newShipment = await createShipment({
@@ -364,9 +366,21 @@ export default function NewShipmentView() {
           : {}),
       });
       router.push(`/offers/${newShipment.id}`);
-    } catch (err) {
-      console.error("Failed to create shipment, proceeding with mock fallback:", err);
-      router.push("/offers/sc-00412");
+    } catch (err: any) {
+      console.error("Failed to create shipment:", err);
+      
+      const backendMessage = err.response?.data?.message;
+      let displayMessage = "";
+      
+      if (backendMessage && (backendMessage.toLowerCase().includes("insufficient wallet balance") || backendMessage.toLowerCase().includes("insufficient balance"))) {
+        displayMessage = locale === 'ar'
+          ? "رصيد المحفظة غير كافٍ لتغطية تكلفة الشحنة. يرجى شحن محفظتك للمتابعة."
+          : "Insufficient wallet balance to cover the shipment cost. Please top up your wallet to continue.";
+      } else {
+        displayMessage = backendMessage || err.message || (locale === 'ar' ? 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.' : 'An unexpected error occurred. Please try again.');
+      }
+      
+      setSubmitError(displayMessage);
     } finally {
       setSubmitting(false);
     }
@@ -645,6 +659,18 @@ export default function NewShipmentView() {
               </span>
             )}
           </div>
+
+          {submitError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-xs font-medium flex items-start gap-2.5 shadow-sm">
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-red-300">
+                  {locale === 'ar' ? 'فشل في إنشاء الشحنة' : 'Failed to create shipment'}
+                </p>
+                <p className="mt-1 text-zinc-400 leading-relaxed">{submitError}</p>
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"

@@ -22,6 +22,7 @@ import {
 } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import type { ScreenId } from '@/features/captain/types'
+import { DelixLogo } from '@/shared/ui/DelixLogo'
 
 interface NavEntry {
   id: ScreenId | 'notifications'
@@ -117,17 +118,17 @@ export default function Sidebar() {
         key={item.id}
         onClick={() => navigate(item.id)}
         className={clsx(
-          'flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:text-zinc-200 hover:bg-zinc-900 group',
+          'flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:text-zinc-200 hover:bg-[var(--dh-bg-muted)] group',
           active
-            ? 'bg-blue-600/10 text-blue-500 hover:bg-blue-600/15 hover:text-blue-400'
+            ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand-light)] hover:bg-[var(--dh-brand-glow)]'
             : 'text-zinc-400'
         )}
       >
         <div className="flex items-center gap-3">
           <Icon
             className={clsx(
-              'h-4 w-4 transition-transform duration-200 group-hover:scale-105 shrink-0',
-              active ? 'text-blue-500' : 'text-zinc-400'
+              'h-4 w-4 transition-transform duration-300 group-hover:scale-105 shrink-0',
+              active ? 'text-[var(--dh-brand-light)]' : 'text-zinc-400'
             )}
           />
           <span>{t(item.labelKey)}</span>
@@ -135,7 +136,7 @@ export default function Sidebar() {
         {badgeVal > 0 && (
           <span className={clsx(
             "flex items-center justify-center h-5 w-5 rounded-full text-white text-[10px] font-bold shrink-0",
-            item.id === 'notifications' ? 'bg-red-500' : 'bg-blue-600'
+            item.id === 'notifications' ? 'bg-[var(--dh-danger)]' : 'bg-[var(--dh-brand)]'
           )}>
             {badgeVal}
           </span>
@@ -177,11 +178,8 @@ export default function Sidebar() {
       >
         <div className="flex flex-col gap-5 overflow-y-auto flex-1">
           {/* Brand Logo */}
-          <div className="flex items-center justify-between gap-2 px-3 py-2 text-blue-500 font-bold text-xl">
-            <div className="flex items-center gap-2">
-              <Ship className="h-6 w-6 stroke-[2.5]" />
-              <span>DeliveryHub</span>
-            </div>
+          <div className="flex items-center justify-between gap-2 px-3 py-2">
+            <DelixLogo className="h-7 w-7" textClassName="text-[19px] font-black tracking-tight text-white" />
             <button
               onClick={() => dispatch(setSidebarOpen(false))}
               className="md:hidden text-zinc-400 hover:text-zinc-200"
@@ -194,7 +192,7 @@ export default function Sidebar() {
           <div className="px-3 text-start">
             <span className={clsx(
               'text-[10px] font-bold px-2 py-[2px] rounded-full',
-              isOffice ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+              isOffice ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand-light)] border border-[var(--dh-brand)]/20' : 'bg-[var(--dh-warning-glow)] text-[var(--dh-warning)] border border-[var(--dh-warning)]/20',
             )}>
               {t(isOffice ? 'accountType_office' : 'accountType_captain')}
             </span>
@@ -210,22 +208,22 @@ export default function Sidebar() {
         </div>
 
         {/* Clickable user profile at the bottom */}
-        <div className="pt-3 border-t border-zinc-800 mt-4">
+        <div className="pt-3 border-t border-[var(--dh-border)] mt-4">
           <div 
             onClick={() => navigate('profile')}
             className={clsx(
-              'flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-all duration-200',
+              'flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-all duration-300',
               activeScreen === 'profile'
-                ? 'bg-blue-600/10 text-blue-500 hover:bg-blue-600/15'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand-light)] hover:bg-[var(--dh-brand-glow)]'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-[var(--dh-bg-muted)]'
             )}
           >
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 font-bold text-xs shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[var(--dh-brand-subtle)] border border-[var(--dh-brand)]/20 flex items-center justify-center text-[var(--dh-brand-light)] font-bold text-xs shrink-0">
               {profile.name ? profile.name.slice(0, 2).toUpperCase() : 'U'}
             </div>
             <div className="flex-1 min-w-0 text-start">
               <p className="text-xs font-semibold truncate leading-tight">{profile.name}</p>
-              <p className="text-[10px] text-zinc-500 mt-0.5">
+              <p className="text-[10px] text-[var(--dh-text-muted)] mt-0.5">
                 {t(isOffice ? 'accountType_office' : 'accountType_captain')}
               </p>
             </div>

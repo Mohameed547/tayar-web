@@ -103,18 +103,22 @@ export async function updateOfficeAvailability(
 export async function assignShipmentToCaptain(
   shipmentId: string,
   captainId: string,
+  percentage: number = 0,
 ): Promise<void> {
   await api.patch<ApiResponse<void>>(
-    `/api/office/offers/${shipmentId}/assign/${captainId}`
+    `/api/office/offers/${shipmentId}/assign/${captainId}`,
+    { percentage }
   );
 }
 
 export async function reassignShipmentToCaptain(
   shipmentId: string,
   captainId: string,
+  percentage: number = 0,
 ): Promise<void> {
   await api.patch<ApiResponse<void>>(
-    `/api/office/offers/${shipmentId}/reassign/${captainId}`
+    `/api/office/offers/${shipmentId}/reassign/${captainId}`,
+    { percentage }
   );
 }
 

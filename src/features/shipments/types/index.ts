@@ -75,4 +75,7 @@ export interface ProviderOrder {
   deliveryAddress?: string;
   pickupCoords?: [number, number];
   deliveryCoords?: [number, number];
+  captainStatus?: string;
+  officeDiscountPercentage?: number;
+  captainPrice?: number;
 }

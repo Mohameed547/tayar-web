@@ -29,17 +29,11 @@ export async function submitVerification(
 ): Promise<VerificationStatus> {
   const mappedType = data.documentType === "commercial_license" ? "commercial_register" : data.documentType;
   
-  // Ensure documentUrl is a valid URI to pass Joi validation on the backend
-  let docUrl = data.documentImageUrl || "";
-  if (!docUrl.startsWith("http://") && !docUrl.startsWith("https://")) {
-    docUrl = `https://deliveryhub-docs.s3.amazonaws.com/doc_${Date.now()}.jpg`;
-  }
-
   const res = await api.post<ApiResponse<any>>(
     "/api/verification/captain/verification/upload",
     {
       documentType: mappedType,
-      documentUrl: docUrl,
+      documentUrl: data.documentImageUrl || "",
     },
   );
   return mapVerificationStatus(res.data.data);

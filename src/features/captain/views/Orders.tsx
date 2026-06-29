@@ -11,7 +11,7 @@ import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-tra
 import Card from '@/shared/ui/Card'
 import Badge from '@/shared/ui/Badge'
 import { assignShipmentToCaptain, reassignShipmentToCaptain, updateDriverAvailability } from '@/features/office'
-import { updateOrderStatus } from '@/features/shipments'
+import { updateOrderStatus, acceptAssignment, rejectAssignment } from '@/features/shipments'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { useLocale } from 'next-intl'
 
@@ -30,6 +30,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
   const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [discount, setDiscount] = useState<number>(0)
 
   const handleAssign = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const captainId = e.target.value
@@ -39,9 +40,9 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
     setErrorMsg('')
     try {
       if (order.status === 'pending_assignment') {
-        await assignShipmentToCaptain(order.id, captainId)
+        await assignShipmentToCaptain(order.id, captainId, discount)
       } else {
-        await reassignShipmentToCaptain(order.id, captainId)
+        await reassignShipmentToCaptain(order.id, captainId, discount)
       }
       dispatch(fetchCaptainDashboard('office'))
     } catch (err: any) {
@@ -61,7 +62,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
   })
 
   return (
-    <div className="flex flex-col gap-1 items-end">
+    <div className="flex flex-col gap-1.5 items-end">
       {errorMsg && (
         <span className="text-[10px] text-red-400 font-medium mb-1 max-w-[200px] text-right">
           {errorMsg}
@@ -71,6 +72,21 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
         {loading && (
           <div className="h-3.5 w-3.5 rounded-full border-2 border-t-transparent border-blue-500 animate-spin" />
         )}
+        
+        {/* Discount input field */}
+        <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1">
+          <span className="text-[10px] text-zinc-400 font-medium">{isRTL ? 'خصم %' : 'Discount %'}</span>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={discount}
+            onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
+            disabled={loading || order.status === 'in_progress' || order.status === 'delivered'}
+            className="w-12 bg-transparent text-xs font-semibold text-zinc-100 outline-none text-center"
+          />
+        </div>
+
         <select
           value={order.captain?.id || ""}
           disabled={loading || order.status === 'in_progress' || order.status === 'delivered'}
@@ -98,6 +114,57 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
   const [loading, setLoading] = useState(false)
 
   const currentStatus = order.rawStatus || order.status;
+
+  const handleAcceptAssignment = async () => {
+    setLoading(true)
+    try {
+      await acceptAssignment(order.id)
+      dispatch(fetchCaptainDashboard('captain'))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRejectAssignment = async () => {
+    setLoading(true)
+    try {
+      await rejectAssignment(order.id)
+      dispatch(fetchCaptainDashboard('captain'))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (order.captainStatus === 'pending') {
+    return (
+      <div className="flex gap-2">
+        <button
+          onClick={handleAcceptAssignment}
+          disabled={loading}
+          className="px-3 py-[6px] bg-green-600 hover:bg-green-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
+        >
+          {loading && (
+            <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+          )}
+          {isRTL ? 'قبول العرض' : 'Accept Offer'}
+        </button>
+        <button
+          onClick={handleRejectAssignment}
+          disabled={loading}
+          className="px-3 py-[6px] bg-red-600 hover:bg-red-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
+        >
+          {loading && (
+            <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+          )}
+          {isRTL ? 'رفض العرض' : 'Reject Offer'}
+        </button>
+      </div>
+    )
+  }
 
   if (currentStatus === 'delivered') {
     return null
@@ -168,8 +235,14 @@ export default function Orders() {
   const isOffice    = accountType === 'office'
   const [expandedMapId, setExpandedMapId] = useState<string | null>(null)
 
-  const getStatusBadge = (status: string, captainName?: string, rawStatus?: string) => {
+  const getStatusBadge = (status: string, captainName?: string, rawStatus?: string, captainStatus?: string) => {
     const finalStatus = rawStatus || status;
+    if (captainStatus === 'pending') {
+      return <Badge variant="amber">{isRTL ? 'عرض معلق' : 'Offer Pending'}</Badge>
+    }
+    if (captainStatus === 'rejected') {
+      return <Badge variant="red">{isRTL ? 'مرفوض من الكابتن' : 'Rejected by Captain'}</Badge>
+    }
     switch (finalStatus) {
       case 'pending_assignment':
         return <Badge variant="amber">{isRTL ? 'في انتظار التعيين' : 'Pending Assignment'}</Badge>
@@ -212,11 +285,18 @@ export default function Orders() {
                     <h3 className="text-[14px] font-semibold text-[var(--color-text-main)]">
                       {isRTL ? 'شحنة رقم' : 'Order'} #{order.id.slice(-6).toUpperCase()}
                     </h3>
-                    {getStatusBadge(order.status, order.captain?.name, order.rawStatus)}
+                    {getStatusBadge(order.status, order.captain?.name, order.rawStatus, order.captainStatus)}
                   </div>
-                  <p className="text-[12px] text-[var(--color-text-sub)]">
-                    {t('clientConfirmed')} EGP {order.priceEGP}
-                  </p>
+                  {order.captainPrice !== undefined && order.captainPrice !== null ? (
+                    <p className="text-[12px] text-[var(--color-text-sub)]">
+                      {isRTL ? 'قيمة التوصيل بعد الخصم: ' : 'Payout after discount: '} <span className="text-green-400 font-bold">EGP {order.captainPrice}</span>
+                      {order.officeDiscountPercentage !== undefined && order.officeDiscountPercentage > 0 && ` (-${order.officeDiscountPercentage}%)`}
+                    </p>
+                  ) : (
+                    <p className="text-[12px] text-[var(--color-text-sub)]">
+                      {t('clientConfirmed')} EGP {order.priceEGP}
+                    </p>
+                  )}
                   {isOffice ? (
                     order.captain && (
                       <p className="text-[11px] text-[var(--color-text-sub)] mt-1">

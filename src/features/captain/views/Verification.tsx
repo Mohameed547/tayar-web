@@ -87,22 +87,31 @@ export default function Verification() {
     setErrorMsg('')
     setSuccessMsg('')
 
-    try {
-      const result = await submitVerification({
-        documentNumber: docNumber,
-        documentType: docType as any,
-        documentImageUrl: 'https://deliveryhub-docs.s3.amazonaws.com/doc_' + Date.now() + '.jpg',
-      })
+    const reader = new FileReader()
+    reader.readAsDataURL(fileSelected)
+    reader.onload = async () => {
+      try {
+        const base64Str = reader.result as string
+        const result = await submitVerification({
+          documentNumber: docNumber,
+          documentType: docType as any,
+          documentImageUrl: base64Str,
+        })
 
-      setStatusData(result)
-      setSuccessMsg(locale === 'ar' ? 'تم تقديم مستند التوثيق بنجاح!' : 'Verification document submitted successfully!')
-      setDocNumber('')
-      setFileSelected(null)
-      setFilePreview(null)
-    } catch (err: any) {
-      console.error('Failed to submit verification:', err)
-      setErrorMsg(locale === 'ar' ? 'فشل إرسال طلب التوثيق. يرجى المحاولة لاحقاً.' : 'Failed to submit verification request. Please try again.')
-    } finally {
+        setStatusData(result)
+        setSuccessMsg(locale === 'ar' ? 'تم تقديم مستند التوثيق بنجاح!' : 'Verification document submitted successfully!')
+        setDocNumber('')
+        setFileSelected(null)
+        setFilePreview(null)
+      } catch (err: any) {
+        console.error('Failed to submit verification:', err)
+        setErrorMsg(locale === 'ar' ? 'فشل إرسال طلب التوثيق. يرجى المحاولة لاحقاً.' : 'Failed to submit verification request. Please try again.')
+      } finally {
+        setSubmitting(false)
+      }
+    }
+    reader.onerror = () => {
+      setErrorMsg(locale === 'ar' ? 'فشل قراءة الملف.' : 'Failed to read the file.')
       setSubmitting(false)
     }
   }

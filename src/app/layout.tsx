@@ -11,8 +11,8 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DeliveryHub",
-  description: "Smart shipping platform in Egypt",
+  title: "Delix",
+  description: "Smart shipping platform. Your deal. Our delivery. Done.",
 };
 
 export default async function RootLayout({

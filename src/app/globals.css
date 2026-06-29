@@ -3,37 +3,37 @@
 @import "tailwindcss";
 
 :root {
-  /* ── Brand Colors ── */
-  --dh-brand: #2563eb;
-  --dh-brand-light: #3b82f6;
-  --dh-brand-hover: #1d4ed8;
-  --dh-brand-glow: rgba(37, 99, 235, 0.2);
-  --dh-brand-subtle: rgba(37, 99, 235, 0.12);
+  /* ── Brand Colors (Delix Indigo/Purple) ── */
+  --dh-brand: #3d30a2;
+  --dh-brand-light: #6366f1;
+  --dh-brand-hover: #2e2380;
+  --dh-brand-glow: rgba(61, 48, 162, 0.2);
+  --dh-brand-subtle: rgba(61, 48, 162, 0.12);
 
   /* ── Backgrounds & Surfaces ── */
-  --dh-bg-app: #f1f5f9;
-  --dh-bg-page: #f8fafc;
+  --dh-bg-app: #f5f5fa;
+  --dh-bg-page: #fbfbfd;
   --dh-bg-topbar: #ffffff;
   --dh-bg-card: #ffffff;
-  --dh-bg-muted: #f1f5f9;
-  --dh-bg-nav: rgba(248, 250, 252, 0.88);
-  --dh-bg-nav-strong: rgba(248, 250, 252, 0.98);
+  --dh-bg-muted: #f1f0fa;
+  --dh-bg-nav: rgba(251, 251, 253, 0.88);
+  --dh-bg-nav-strong: rgba(251, 251, 253, 0.98);
 
   /* ── Typography / Text ── */
-  --dh-text-main: #0f172a;
-  --dh-text-sub: #64748b;
-  --dh-text-muted: rgba(15, 23, 42, 0.68);
-  --dh-text-dim: rgba(15, 23, 42, 0.48);
+  --dh-text-main: #0f0e17;
+  --dh-text-sub: #54526c;
+  --dh-text-muted: rgba(15, 14, 23, 0.68);
+  --dh-text-dim: rgba(15, 14, 23, 0.48);
   --dh-text-inverse: #ffffff;
 
   /* ── Borders ── */
-  --dh-border: #e2e8f0;
-  --dh-border-subtle: rgba(15, 23, 42, 0.12);
-  --dh-border-brand: rgba(37, 99, 235, 0.4);
+  --dh-border: #e4e3f0;
+  --dh-border-subtle: rgba(61, 48, 162, 0.08);
+  --dh-border-brand: rgba(61, 48, 162, 0.4);
 
   /* ── Semantics ── */
-  --dh-success: #22c55e;
-  --dh-warning: #f59e0b;
+  --dh-success: #10b981;
+  --dh-warning: #f3b63a;
   --dh-danger: #ef4444;
 
   /* ── Backward Compatibility Mappings ── */
@@ -65,26 +65,26 @@
 
 html.dark {
   /* ── Brand Colors ── */
-  --dh-brand-glow: rgba(37, 99, 235, 0.35);
+  --dh-brand-glow: rgba(99, 102, 241, 0.35);
 
-  /* ── Backgrounds & Surfaces ── */
-  --dh-bg-app: #0f172a;
-  --dh-bg-page: #0b1120;
-  --dh-bg-topbar: #1e293b;
-  --dh-bg-card: #1e293b;
-  --dh-bg-muted: #0f172a;
-  --dh-bg-nav: rgba(11, 17, 32, 0.85);
-  --dh-bg-nav-strong: rgba(11, 17, 32, 0.98);
+  /* ── Backgrounds & Surfaces (Delix Dark Deep Purple/Navy) ── */
+  --dh-bg-app: #0b0a16;
+  --dh-bg-page: #06050d;
+  --dh-bg-topbar: #110e24;
+  --dh-bg-card: #110e24;
+  --dh-bg-muted: #171330;
+  --dh-bg-nav: rgba(6, 5, 13, 0.85);
+  --dh-bg-nav-strong: rgba(6, 5, 13, 0.98);
 
   /* ── Typography / Text ── */
-  --dh-text-main: #f1f5f9;
-  --dh-text-sub: #94a3b8;
-  --dh-text-muted: rgba(255, 255, 255, 0.55);
-  --dh-text-dim: rgba(255, 255, 255, 0.35);
+  --dh-text-main: #f5f5fa;
+  --dh-text-sub: #b2b0cf;
+  --dh-text-muted: rgba(245, 245, 250, 0.6);
+  --dh-text-dim: rgba(245, 245, 250, 0.4);
 
   /* ── Borders ── */
-  --dh-border: rgba(255, 255, 255, 0.08);
-  --dh-border-subtle: rgba(255, 255, 255, 0.08);
+  --dh-border: rgba(255, 255, 255, 0.06);
+  --dh-border-subtle: rgba(255, 255, 255, 0.04);
 }
 
 @theme inline {

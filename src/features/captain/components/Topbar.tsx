@@ -107,28 +107,28 @@ export default function Topbar() {
 
   let statusText = isOnline ? t('online') : t('offline')
   let statusClass = isOnline
-    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-    : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200'
-  let indicatorClass = isOnline ? 'bg-green-500 animate-pulse' : 'bg-zinc-500'
+    ? 'bg-[var(--dh-success-glow)] border border-[var(--dh-success)]/20 text-[var(--dh-success)]'
+    : 'bg-[var(--dh-bg-card)] border border-[var(--dh-border)] text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)]'
+  let indicatorClass = isOnline ? 'bg-[var(--dh-success)] animate-pulse' : 'bg-[var(--dh-text-muted)]'
 
   if (isBusy) {
     statusText = t('busy')
-    statusClass = 'bg-amber-500/10 border border-amber-500/20 text-amber-400 cursor-not-allowed'
-    indicatorClass = 'bg-amber-500'
+    statusClass = 'bg-[var(--dh-warning-glow)] border border-[var(--dh-warning)]/20 text-[var(--dh-warning)] cursor-not-allowed'
+    indicatorClass = 'bg-[var(--dh-warning)]'
   }
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 gap-4 border-b bg-zinc-950 border-zinc-800 text-zinc-100">
+    <header className="h-16 flex items-center justify-between px-6 gap-4 border-b bg-[var(--dh-bg-topbar)] border-[var(--dh-border)] text-[var(--dh-text-main)]">
       {/* Left section: Hamburger menu & Title */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => dispatch(toggleSidebar())}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 md:hidden transition-colors focus:outline-none shrink-0"
+          className="p-1.5 rounded-lg text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] md:hidden transition-colors focus:outline-none shrink-0"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        <h1 className="text-sm md:text-base font-bold text-zinc-200">
+        <h1 className="text-sm md:text-base font-bold text-[var(--dh-text-main)]">
           {t(titleKey)}
         </h1>
       </div>
@@ -137,8 +137,8 @@ export default function Topbar() {
       <div className="flex items-center gap-4">
         {/* Localization & Theme controls */}
         <div className="hidden lg:flex items-center gap-2">
-          <ThemeToggle className="border-zinc-800 bg-zinc-900 dark:bg-zinc-900" />
-          <LocaleToggle className="border-zinc-800 bg-zinc-900 dark:bg-zinc-900" />
+          <ThemeToggle className="border-[var(--dh-border)] bg-[var(--dh-bg-card)] dark:bg-[var(--dh-bg-card)]" />
+          <LocaleToggle className="border-[var(--dh-border)] bg-[var(--dh-bg-card)] dark:bg-[var(--dh-bg-card)]" />
         </div>
 
         {/* Online/Offline status pill */}
@@ -157,38 +157,38 @@ export default function Topbar() {
         {/* Notification bell */}
         <button
           onClick={() => dispatch(setActiveScreen('notifications'))}
-          className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+          className="relative p-2 rounded-lg text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] transition-colors"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white ring-2 ring-zinc-950">
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--dh-danger)] text-[9px] font-black text-white ring-2 ring-[var(--dh-bg-topbar)]">
               {unreadCount}
             </span>
           )}
         </button>
 
         {/* Vertical divider */}
-        <div className="h-6 w-px bg-zinc-800" />
+        <div className="h-6 w-px bg-[var(--dh-border)]" />
 
         {/* Profile Dropdown */}
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-zinc-900 transition-colors focus:outline-none"
+            className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-[var(--dh-bg-muted)] transition-colors focus:outline-none"
           >
             {/* Avatar badge */}
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 text-white font-bold text-xs shrink-0">
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-[var(--dh-brand)] text-white font-bold text-xs shrink-0 shadow-[0_2px_8px_var(--dh-brand-glow)]">
               {user ? getInitials(user.name) : "..."}
             </div>
             <div className="hidden sm:flex flex-col items-start text-start">
-              <span className="text-sm font-semibold leading-tight text-zinc-200">
+              <span className="text-sm font-semibold leading-tight text-[var(--dh-text-main)]">
                 {user ? user.name : "Loading..."}
               </span>
-              <span className="text-[10px] text-zinc-500">
+              <span className="text-[10px] text-[var(--dh-text-muted)]">
                 {user ? getLocalizedRole(user.role) : "..."}
               </span>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 text-zinc-500 transition-transform duration-200" style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }} />
+            <ChevronDown className="h-3.5 w-3.5 text-[var(--dh-text-muted)] transition-transform duration-200" style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }} />
           </button>
 
           {/* Dropdown Menu */}
@@ -200,7 +200,7 @@ export default function Topbar() {
                 onClick={() => setDropdownOpen(false)}
               />
               <div className={clsx(
-                "absolute mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl py-1 z-20",
+                "absolute mt-2 w-48 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl shadow-xl py-1 z-20",
                 isRTL ? "left-0" : "right-0"
               )}>
                 <button
@@ -208,9 +208,9 @@ export default function Topbar() {
                     setDropdownOpen(false)
                     dispatch(setActiveScreen('profile'))
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-start"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors text-start"
                 >
-                  <UserIcon className="h-4 w-4 text-zinc-500" />
+                  <UserIcon className="h-4 w-4 text-[var(--dh-text-muted)]" />
                   <span>{locale === 'ar' ? 'ملفي الشخصي' : 'My Profile'}</span>
                 </button>
                 <button
@@ -218,12 +218,12 @@ export default function Topbar() {
                     setDropdownOpen(false)
                     dispatch(setActiveScreen('profile'))
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors text-start"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors text-start"
                 >
-                  <Settings className="h-4 w-4 text-zinc-500" />
+                  <Settings className="h-4 w-4 text-[var(--dh-text-muted)]" />
                   <span>{locale === 'ar' ? 'إعدادات الحساب' : 'Account Settings'}</span>
                 </button>
-                <hr className="border-zinc-800 my-1" />
+                <hr className="border-[var(--dh-border)] my-1" />
                 <button
                   onClick={async () => {
                     setDropdownOpen(false)
@@ -234,7 +234,7 @@ export default function Topbar() {
                     }
                     router.push("/login")
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors text-start"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-danger)] hover:bg-[var(--dh-danger-subtle)] hover:text-[var(--dh-danger)] transition-colors text-start"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>{locale === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}</span>
