@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { DelixLogo } from "@/shared/ui/DelixLogo";
 
 export default function Footer() {
     const t = useTranslations("footer");
     const common = useTranslations("common");
+    const locale = useLocale();
     const companyLinks = [
         { label: t("about"), href: "#about" },
         { label: t("howItWorks"), href: "#how-it-works" },
@@ -76,7 +77,7 @@ export default function Footer() {
 
             <div className="border-t border-[var(--dh-border)] px-10 py-5 flex items-center justify-between">
                 <span className="text-sm text-[var(--dh-text-dim)]">
-                    © {new Date().getFullYear()} Delix. {common("copyright")}
+                    © {new Date().getFullYear()} {locale === 'ar' ? 'طيار' : 'TAYAR'}. {common("copyright")}
                 </span>
                 <div className="flex gap-4">
                     {[

@@ -309,43 +309,43 @@ export default function NotificationsView() {
       case "pickup":
         return {
           icon: Truck,
-          borderColor: "border-l-4 border-l-blue-500",
-          iconColor: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+          borderColor: "border-l-4 border-l-blue-600",
+          iconColor: "text-blue-600 bg-blue-50 border-blue-100",
         };
       case "offer":
         return {
           icon: Check,
-          borderColor: "border-l-4 border-l-emerald-500",
-          iconColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+          borderColor: "border-l-4 border-l-emerald-600",
+          iconColor: "text-emerald-600 bg-emerald-50 border-emerald-100",
         };
       case "received":
         return {
           icon: Wallet,
-          borderColor: "border-l-4 border-l-amber-500",
-          iconColor: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+          borderColor: "border-l-4 border-l-[var(--dh-accent)]",
+          iconColor: "text-[var(--dh-accent)] bg-orange-50 border-orange-100",
         };
       case "delivered":
         return {
           icon: CheckCircle,
-          borderColor: "border-l-4 border-l-zinc-700",
-          iconColor: "text-zinc-500 bg-zinc-500/10 border-zinc-500/20",
+          borderColor: "border-l-4 border-l-slate-400",
+          iconColor: "text-slate-600 bg-slate-50 border-slate-200",
         };
       default:
         return {
           icon: Info,
-          borderColor: "border-l-4 border-l-zinc-700",
-          iconColor: "text-zinc-400 bg-zinc-800 border-zinc-700",
+          borderColor: "border-l-4 border-l-slate-400",
+          iconColor: "text-slate-500 bg-slate-50 border-slate-200",
         };
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 text-zinc-100 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+    <div className="flex flex-col gap-6 text-[var(--dh-text-main)] max-w-2xl mx-auto">
+      <div className="flex items-center justify-between border-b border-[var(--dh-border)] pb-4">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
           {unreadCount > 0 && (
-            <span className="bg-red-500/10 border border-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+            <span className="bg-[var(--dh-danger)]/10 border border-[var(--dh-danger)]/20 text-[var(--dh-danger)] px-2.5 py-0.5 rounded-full text-[10px] font-bold">
               {t("newCount", { count: unreadCount })}
             </span>
           )}
@@ -353,7 +353,7 @@ export default function NotificationsView() {
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllRead}
-            className="text-xs font-semibold text-blue-500 hover:text-blue-400 focus:outline-none transition-colors"
+            className="text-xs font-semibold text-[var(--dh-brand)] hover:text-[var(--dh-brand-light)] focus:outline-none transition-colors"
           >
             {t("markAll")}
           </button>
@@ -365,18 +365,18 @@ export default function NotificationsView() {
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 h-[72px] animate-pulse"
+              className="bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl p-4 h-[72px] animate-pulse"
             />
           ))}
         </div>
       )}
 
       {!isLoading && error && (
-        <p className="text-sm text-red-400 text-center py-8">{error}</p>
+        <p className="text-sm text-[var(--dh-danger)] text-center py-8">{error}</p>
       )}
 
       {!isLoading && !error && notifications.length === 0 && (
-        <p className="text-sm text-zinc-500 text-center py-8">
+        <p className="text-sm text-[var(--dh-text-muted)] text-center py-8">
           لا توجد إشعارات حاليًا
         </p>
       )}
@@ -393,11 +393,11 @@ export default function NotificationsView() {
                 key={item.id}
                 onClick={() => handleMarkRead(item.id)}
                 className={cn(
-                  "bg-zinc-900 border border-zinc-800 border-l-0 rounded-r-xl p-4 flex gap-4 items-start shadow-sm transition-all cursor-pointer",
+                  "bg-[var(--dh-bg-card)] border border-[var(--dh-border)] border-l-0 rounded-r-xl p-4 flex gap-4 items-start shadow-sm transition-all cursor-pointer",
                   config.borderColor,
                   item.isRead
-                    ? "opacity-65 hover:bg-zinc-900/60"
-                    : "hover:bg-zinc-900/80 hover:border-zinc-750",
+                    ? "opacity-65 hover:bg-[var(--dh-bg-muted)]/50"
+                    : "hover:bg-[var(--dh-bg-muted)]/20 hover:border-[var(--dh-border)]",
                 )}
               >
                 <div
@@ -411,33 +411,33 @@ export default function NotificationsView() {
                 <div className="flex flex-col gap-0.5 flex-1">
                   <div className="flex justify-between items-baseline gap-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-zinc-200">
+                      <span className="text-sm font-bold text-[var(--dh-text-main)]">
                         {title}
                       </span>
                       {!item.isRead && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--dh-brand)] animate-pulse" />
                       )}
                     </div>
-                    <span className="text-[10px] text-zinc-500 shrink-0 font-medium">
+                    <span className="text-[10px] text-[var(--dh-text-dim)] shrink-0 font-medium">
                       {item.time}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  <p className="text-xs text-[var(--dh-text-sub)] mt-1 leading-relaxed">
                     {message}
                   </p>
 
                   {item.type !== "received" && (item.captainName || item.shipmentDate) && (
-                    <div className="mt-2.5 pt-2 border-t border-zinc-800/40 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-400 font-medium">
+                    <div className="mt-2.5 pt-2 border-t border-[var(--dh-border)]/60 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[var(--dh-text-sub)] font-medium">
                       {item.captainName && (
                         <div>
-                          <span className="text-zinc-500">{locale === 'ar' ? 'الكابتن:' : 'Captain:'}</span>{' '}
-                          <span className="text-blue-400 font-bold">{item.captainName}</span>
+                          <span className="text-[var(--dh-text-muted)]">{locale === 'ar' ? 'الكابتن:' : 'Captain:'}</span>{' '}
+                          <span className="text-[var(--dh-brand)] font-bold">{item.captainName}</span>
                         </div>
                       )}
                       {item.shipmentDate && (
                         <div>
-                          <span className="text-zinc-500">{locale === 'ar' ? 'تاريخ الشحن:' : 'Date:'}</span>{' '}
-                          <span className="text-zinc-300 font-bold">{item.shipmentDate}</span>
+                          <span className="text-[var(--dh-text-muted)]">{locale === 'ar' ? 'تاريخ الشحن:' : 'Date:'}</span>{' '}
+                          <span className="text-[var(--dh-text-main)] font-bold">{item.shipmentDate}</span>
                         </div>
                       )}
                     </div>
@@ -448,7 +448,7 @@ export default function NotificationsView() {
                       <Link
                         href={item.type === "received" ? `/offers/${item.shipmentId}` : `/tracking/${item.shipmentId}`}
                         onClick={(e) => handleViewDetails(item, e)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-blue-400 hover:bg-zinc-750 hover:text-blue-300 transition-all border border-zinc-700/80"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--dh-bg-muted)] text-[var(--dh-brand)] hover:bg-[var(--dh-border)] hover:text-[var(--dh-brand-light)] transition-all border border-[var(--dh-border)]"
                       >
                         <span>
                           {item.type === "received"

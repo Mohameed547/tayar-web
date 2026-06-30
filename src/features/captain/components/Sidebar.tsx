@@ -121,17 +121,17 @@ export default function Sidebar() {
         key={item.id}
         onClick={() => navigate(item.id)}
         className={clsx(
-          'flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:text-zinc-200 hover:bg-[var(--dh-bg-muted)] group',
+          'flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] group',
           active
-            ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand-light)] hover:bg-[var(--dh-brand-glow)]'
-            : 'text-zinc-400'
+            ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand)] hover:bg-[var(--dh-brand-subtle)]'
+            : 'text-[var(--dh-text-sub)]'
         )}
       >
         <div className="flex items-center gap-3">
           <Icon
             className={clsx(
               'h-4 w-4 transition-transform duration-300 group-hover:scale-105 shrink-0',
-              active ? 'text-[var(--dh-brand-light)]' : 'text-zinc-400'
+              active ? 'text-[var(--dh-brand)]' : 'text-[var(--dh-text-sub)]'
             )}
           />
           <span>{t(item.labelKey)}</span>
@@ -154,7 +154,7 @@ export default function Sidebar() {
     if (visibleItems.length === 0) return null
     return (
       <div className="flex flex-col gap-1">
-        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-3 mb-1 mt-3 text-start">
+        <p className="text-[10px] font-bold text-[var(--dh-text-dim)] uppercase tracking-wider px-3 mb-1 mt-3 text-start">
           {t(labelKey)}
         </p>
         {items.map(renderItem)}
@@ -174,7 +174,7 @@ export default function Sidebar() {
 
       <aside
         className={clsx(
-          'fixed md:static top-0 h-screen w-[252px] shrink-0 bg-zinc-950 border-r border-zinc-800 text-zinc-400 p-4 flex flex-col justify-between z-50 transition-transform duration-300',
+          'fixed md:static top-0 h-screen w-[252px] shrink-0 bg-[var(--dh-bg-card)] border-r border-[var(--dh-border)] text-[var(--dh-text-sub)] p-4 flex flex-col justify-between z-50 transition-transform duration-300',
           isRTL ? 'right-0 border-l border-r-0' : 'left-0',
           sidebarOpen ? 'translate-x-0' : isRTL ? 'translate-x-full md:translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
@@ -182,10 +182,10 @@ export default function Sidebar() {
         <div className="flex flex-col gap-5 overflow-y-auto flex-1">
           {/* Brand Logo */}
           <div className="flex items-center justify-between gap-2 px-3 py-2">
-            <DelixLogo className="h-7 w-7" textClassName="text-[19px] font-black tracking-tight text-white" />
+            <DelixLogo className="h-7 w-7" textClassName="text-[19px] font-black tracking-tight text-[var(--dh-text-main)]" />
             <button
               onClick={() => dispatch(setSidebarOpen(false))}
-              className="md:hidden text-zinc-400 hover:text-zinc-200"
+              className="md:hidden text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)]"
             >
               <X size={16} />
             </button>
@@ -195,7 +195,7 @@ export default function Sidebar() {
           <div className="px-3 text-start">
             <span className={clsx(
               'text-[10px] font-bold px-2 py-[2px] rounded-full',
-              isOffice ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand-light)] border border-[var(--dh-brand)]/20' : 'bg-[var(--dh-warning-glow)] text-[var(--dh-warning)] border border-[var(--dh-warning)]/20',
+              isOffice ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand)] border border-[var(--dh-brand)]/20' : 'bg-orange-50 text-[var(--dh-accent)] border border-[var(--dh-accent)]/20',
             )}>
               {t(isOffice ? 'accountType_office' : 'accountType_captain')}
             </span>
@@ -211,8 +211,8 @@ export default function Sidebar() {
         </div>
 
         {/* Footer / Copyright or secondary info */}
-        <div className="px-3 text-[11px] text-zinc-600 mt-4 border-t border-[var(--dh-border)] pt-3 text-center">
-          <p>© 2026 Delix</p>
+        <div className="px-3 text-[11px] text-[var(--dh-text-dim)] mt-4 border-t border-[var(--dh-border)] pt-3 text-center">
+          <p>© 2026 طيار</p>
         </div>
       </aside>
     </>

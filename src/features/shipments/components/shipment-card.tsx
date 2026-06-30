@@ -25,13 +25,13 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
   } = shipment;
 
   const statusStyles: Record<ShipmentStatus, string> = {
-    in_transit: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    captain_assignment: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    delivered: "bg-green-500/10 text-green-400 border-green-500/20",
-    pending_offers: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    picked_up: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    out_for_delivery: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
+    in_transit: "bg-blue-50 text-blue-700 border-blue-100",
+    captain_assignment: "bg-amber-50 text-amber-700 border-amber-100",
+    delivered: "bg-green-50 text-green-700 border-green-100",
+    pending_offers: "bg-slate-50 text-slate-700 border-slate-100",
+    picked_up: "bg-blue-50 text-blue-700 border-blue-100",
+    out_for_delivery: "bg-blue-50 text-blue-700 border-blue-100",
+    cancelled: "bg-red-50 text-red-700 border-red-100",
   };
 
   const statusLabels: Record<ShipmentStatus, string> = {
@@ -56,23 +56,23 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all duration-300 rounded-xl p-5 flex flex-col gap-4 shadow-lg">
+    <div className="bg-[var(--dh-bg-card)] border border-[var(--dh-border)] hover:border-[var(--dh-brand)] transition-all duration-300 rounded-xl p-5 flex flex-col gap-4 shadow-sm hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-500">
+            <span className="text-sm font-semibold text-[var(--dh-text-muted)]">
               {trackingNumber}
             </span>
-            <span className="text-zinc-700">·</span>
-            <div className="flex items-center gap-1.5 text-zinc-200 font-semibold text-base">
+            <span className="text-[var(--dh-border)]">·</span>
+            <div className="flex items-center gap-1.5 text-[var(--dh-text-main)] font-semibold text-base">
               <span>{pickupAddress.split(",")[0]}</span>
-              <span className="text-zinc-500 font-normal">{locale === 'ar' ? '←' : '→'}</span>
+              <span className="text-[var(--dh-text-muted)] font-normal">{locale === 'ar' ? '←' : '→'}</span>
               <span>{deliveryAddress.split(",")[0]}</span>
             </div>
           </div>
-          <div className="text-xs text-zinc-400">
+          <div className="text-xs text-[var(--dh-text-sub)]">
             {status === "captain_assignment" && !captain ? (
-              <span className="text-zinc-500 font-medium">
+              <span className="text-[var(--dh-text-muted)] font-medium">
                 Nour Logistics · {t("awaitingCaptain")}
               </span>
             ) : (
@@ -83,10 +83,10 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                     <img
                       src={captain.avatar}
                       alt={captain.name}
-                      className="h-9 w-9 rounded-full object-cover border-2 border-zinc-700"
+                      className="h-9 w-9 rounded-full object-cover border-2 border-[var(--dh-border)]"
                     />
                   ) : (
-                    <div className="h-9 w-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+                    <div className="h-9 w-9 rounded-full bg-[var(--dh-brand-subtle)] border border-[var(--dh-brand)]/30 flex items-center justify-center text-[var(--dh-brand)] font-bold text-xs">
                       {captain?.name
                         ? captain.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
                         : "?"}
@@ -94,14 +94,14 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                   )}
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-semibold text-zinc-300 text-xs">
+                  <span className="font-semibold text-[var(--dh-text-main)] text-xs">
                     {captain?.name || t("unassigned")}
                   </span>
-                  <span className="text-[10px] text-zinc-500">
+                  <span className="text-[10px] text-[var(--dh-text-muted)]">
                     {t("eta", { time: etaDescription || t("etaDuration") })}
                   </span>
                   {captain?.phone && (
-                    <span className="text-[10px] text-zinc-500 flex items-center gap-1 font-medium">
+                    <span className="text-[10px] text-[var(--dh-text-muted)] flex items-center gap-1 font-medium">
                       📞 {captain.phone}
                     </span>
                   )}
@@ -116,7 +116,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusStyles[status]}`}
           >
             {status === "in_transit" && (
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--dh-brand)] animate-pulse" />
             )}
             {status === "captain_assignment" && captain
               ? t("captainAssigned") ||
@@ -126,7 +126,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
           {(status === "in_transit" || status === "picked_up" || status === "out_for_delivery" || (status === "captain_assignment" && captain)) && (
             <Link
               href={`/tracking/${id}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-200 border border-zinc-700 hover:bg-zinc-700 transition-all duration-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--dh-bg-muted)] text-[var(--dh-text-sub)] border border-[var(--dh-border)] hover:bg-[var(--dh-bg-muted)]/80 transition-all duration-200"
             >
               <Navigation className="h-3.5 w-3.5 rotate-45" />
               {t("track")}
@@ -135,7 +135,7 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
           {status === "pending_offers" && (
             <Link
               href={`/offers/${id}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition-all duration-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--dh-brand)] text-white hover:bg-[var(--dh-brand-hover)] transition-all duration-200"
             >
               <Eye className="h-3.5 w-3.5" />
               {t("viewOffers")}
@@ -146,15 +146,15 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
 
       {status === "in_transit" && (
         <div className="flex flex-col gap-2 mt-1">
-          <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-[var(--dh-bg-muted)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-500"
+              className="h-full bg-[var(--dh-brand)] rounded-full transition-all duration-500"
               style={{ width: `${deliveryProgressPercent}%` }}
             />
           </div>
-          <div className="flex justify-between text-[11px] text-zinc-500 mt-1 font-medium">
+          <div className="flex justify-between text-[11px] text-[var(--dh-text-muted)] mt-1 font-medium">
             <span>{t("pickedUp", { time: formatTime(pickedUpTime) })}</span>
-            <span className="text-blue-400 font-semibold">
+            <span className="text-[var(--dh-brand)] font-semibold">
               {t("delivering", { progress: deliveryProgressPercent })}
             </span>
             <span>
