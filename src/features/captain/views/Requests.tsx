@@ -280,70 +280,70 @@ export default function Requests() {
       {/* Offer Submission Modal */}
       {activeRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
-            <div className="px-5 py-4 border-b border-zinc-800 flex justify-between items-center">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
+            <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
+              <h2 className="text-sm font-bold text-zinc-800 dark:text-white uppercase tracking-wider">
                 {t('sendOffer')}
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-zinc-500 hover:text-white transition-colors"
+                className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-white transition-colors"
                 disabled={isLoading}
               >
                 ✕
               </button>
             </div>
 
-            <div className="px-5 py-3.5 bg-zinc-950/60 border-b border-zinc-800/80 text-xs text-zinc-300 space-y-1.5">
+            <div className="px-5 py-3.5 bg-zinc-50 dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800/80 text-xs text-zinc-600 dark:text-zinc-300 space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'نوع الشحنة:' : 'Package Type:'}</span>
-                <span className="text-white">{getPackageTypeLabel(activeRequest.packageType)} ({activeRequest.weight})</span>
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">{locale === 'ar' ? 'نوع الشحنة:' : 'Package Type:'}</span>
+                <span className="text-zinc-900 dark:text-white font-medium">{getPackageTypeLabel(activeRequest.packageType)} ({activeRequest.weight})</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'سرعة التوصيل:' : 'Delivery Speed:'}</span>
-                <span className="text-blue-400">{getSpeedLabel(activeRequest.deliverySpeed)}</span>
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">{locale === 'ar' ? 'سرعة التوصيل:' : 'Delivery Speed:'}</span>
+                <span className="text-blue-600 dark:text-blue-400 font-medium">{getSpeedLabel(activeRequest.deliverySpeed)}</span>
               </div>
               {activeRequest.deliverySpeed === 'scheduled' && activeRequest.scheduledDate && (
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'التاريخ المجدول:' : 'Scheduled Date:'}</span>
-                  <span className="text-zinc-300">{activeRequest.scheduledDate}</span>
+                  <span className="font-semibold text-zinc-500 dark:text-zinc-400">{locale === 'ar' ? 'التاريخ المجدول:' : 'Scheduled Date:'}</span>
+                  <span className="text-zinc-800 dark:text-zinc-300 font-medium">{activeRequest.scheduledDate}</span>
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'ميزانية الشحنة:' : 'Shipment Budget:'}</span>
-                <span className="text-emerald-400 font-semibold">
+                <span className="font-semibold text-zinc-500 dark:text-zinc-400">{locale === 'ar' ? 'ميزانية الشحنة:' : 'Shipment Budget:'}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                   {activeRequest.estimatedPriceMin && activeRequest.estimatedPriceMax
                     ? `${activeRequest.estimatedPriceMin} - ${activeRequest.estimatedPriceMax} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
                     : `${activeRequest.price || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
                 </span>
               </div>
               {activeRequest.notes && (
-                <div className="pt-2 border-t border-zinc-800/50 mt-1">
-                  <span className="block font-semibold text-amber-400 mb-0.5">{locale === 'ar' ? '💬 ملاحظات العميل:' : '💬 Customer Notes:'}</span>
-                  <p className="text-zinc-400 italic bg-zinc-900/40 p-2 rounded border border-zinc-800/40 font-normal">"{activeRequest.notes}"</p>
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800/50 mt-1">
+                  <span className="block font-semibold text-amber-600 dark:text-amber-400 mb-0.5">{locale === 'ar' ? '💬 ملاحظات العميل:' : '💬 Customer Notes:'}</span>
+                  <p className="text-zinc-600 dark:text-zinc-400 italic bg-white dark:bg-zinc-900/40 p-2 rounded border border-zinc-200 dark:border-zinc-800/40 font-normal">"{activeRequest.notes}"</p>
                 </div>
               )}
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               {error && (
-                <div className="p-3 text-xs font-semibold text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg text-center">
+                <div className="p-3 text-xs font-semibold text-red-600 dark:text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg text-center">
                   {error}
                 </div>
               )}
               {successMessage && (
-                <div className="p-3 text-xs font-semibold text-green-500 bg-green-500/10 border border-green-500/20 rounded-lg text-center">
+                <div className="p-3 text-xs font-semibold text-green-600 dark:text-green-500 bg-green-500/10 border border-green-500/20 rounded-lg text-center">
                   {successMessage}
                 </div>
               )}
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-zinc-400">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                   {t('offerPrice')}
                 </label>
                 <input
                   type="number"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-sm focus:outline-none focus:border-blue-500"
                   placeholder={t('offerPricePlaceholder')}
                   value={price}
                   onChange={e => setPrice(e.target.value)}
@@ -353,19 +353,19 @@ export default function Requests() {
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-zinc-400 mb-1">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1">
                   {t('estDeliveryTime')}
                 </label>
-                <div className="grid grid-cols-3 gap-2 bg-zinc-950/30 p-2.5 rounded-lg border border-zinc-800/60">
+                <div className="grid grid-cols-3 gap-2 bg-zinc-50 dark:bg-zinc-950/30 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800/60">
                   <div className="flex flex-col gap-1 text-center">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                    <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                       {locale === 'ar' ? 'أيام' : 'Days'}
                     </span>
                     <input
                       type="number"
                       min="0"
                       max="30"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-white text-xs text-center focus:outline-none focus:border-blue-500"
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-1 text-zinc-900 dark:text-white text-xs text-center focus:outline-none focus:border-blue-500"
                       value={estDays}
                       onChange={e => {
                         const val = e.target.value;
@@ -374,15 +374,15 @@ export default function Requests() {
                       disabled={isLoading || !!successMessage}
                     />
                   </div>
-                  <div className="flex flex-col gap-1 text-center border-x border-zinc-800/40">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                  <div className="flex flex-col gap-1 text-center border-x border-zinc-200 dark:border-zinc-800/40">
+                    <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                       {locale === 'ar' ? 'ساعات' : 'Hours'}
                     </span>
                     <input
                       type="number"
                       min="0"
                       max="23"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-white text-xs text-center focus:outline-none focus:border-blue-500"
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-1 text-zinc-900 dark:text-white text-xs text-center focus:outline-none focus:border-blue-500"
                       value={estHours}
                       onChange={e => {
                         const val = e.target.value;
@@ -392,14 +392,14 @@ export default function Requests() {
                     />
                   </div>
                   <div className="flex flex-col gap-1 text-center">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                    <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase">
                       {locale === 'ar' ? 'دقائق' : 'Minutes'}
                     </span>
                     <input
                       type="number"
                       min="0"
                       max="59"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-white text-xs text-center focus:outline-none focus:border-blue-500"
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2 py-1 text-zinc-900 dark:text-white text-xs text-center focus:outline-none focus:border-blue-500"
                       value={estMinutes}
                       onChange={e => {
                         const val = e.target.value;
@@ -412,12 +412,12 @@ export default function Requests() {
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-zinc-400">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                   {locale === 'ar' ? 'ملاحظات إضافية (اختياري)' : 'Additional Notes (Optional)'}
                 </label>
                 <input
                   type="text"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-sm focus:outline-none focus:border-blue-500"
                   placeholder={locale === 'ar' ? 'أدخل تفاصيل إضافية للعميل' : 'Enter details for customer'}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
@@ -429,7 +429,7 @@ export default function Requests() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 py-2 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white text-xs font-bold transition-all"
+                  className="flex-1 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-bold transition-all"
                   disabled={isLoading}
                 >
                   {t('cancel')}
