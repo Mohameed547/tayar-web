@@ -361,6 +361,8 @@ export default function NewShipmentView() {
         deliverySpeed: data.deliverySpeed,
         notes: data.notes || undefined,
         price: data.price,
+        estimatedPriceMin: minBudget,
+        estimatedPriceMax: maxBudget,
         ...(data.deliverySpeed === "scheduled" && data.scheduledDate
           ? { scheduledDate: String(data.scheduledDate) }
           : {}),

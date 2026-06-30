@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/shared/providers/socket-notification-provider";
+import { DelixLogo } from "@/shared/ui/DelixLogo";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -15,7 +16,6 @@ import {
   Star,
   Headphones,
   Settings,
-  Ship,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -85,9 +85,8 @@ export default function Sidebar({ className }: SidebarProps) {
     >
       <div className="flex flex-col gap-6">
         {/* Brand Logo */}
-        <div className="flex items-center gap-2 px-3 py-2 text-blue-500 font-bold text-xl">
-          <Ship className="h-6 w-6 stroke-[2.5]" />
-          <span>ShipConnect</span>
+        <div className="flex items-center justify-between gap-2 px-3 py-2">
+          <DelixLogo className="h-7 w-7" textClassName="text-[19px] font-black tracking-tight text-white" />
         </div>
 
         {/* Menu Items */}
@@ -132,7 +131,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
       {/* Footer / Copyright or secondary info */}
       <div className="px-3 text-xs text-zinc-600">
-        <p>© 2026 ShipConnect</p>
+        <p>© 2026 Delix</p>
       </div>
     </aside>
   );

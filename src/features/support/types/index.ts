@@ -1,14 +1,14 @@
 // Placeholder — will be expanded when support API is integrated
 
-export type SupportTicketStatus = "open" | "resolved" | "pending";
-export type SupportCategory = "delay" | "billing" | "damage" | "other";
+export type SupportCategory = string;
 
 export interface SupportTicket {
   id: string;
   subject: string;
-  category: SupportCategory;
-  status: SupportTicketStatus;
+  category: string;
+  status: string;
   message: string;
   shipmentId: string;
   createdAt: string;
+  messages?: any[];
 }

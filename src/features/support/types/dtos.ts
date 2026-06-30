@@ -5,7 +5,7 @@ export interface CreateTicketRequest {
   subject: string;
   category: SupportCategory;
   message: string;
-  shipmentId: string;
+  shipmentId?: string;
 }
 
 export interface UpdateTicketRequest {

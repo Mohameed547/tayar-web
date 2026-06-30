@@ -16,10 +16,11 @@ export const captainMessages = {
     nav_team: 'Team Captains',
     nav_captainTracking: 'Captain Tracking',
     nav_performance: 'Performance',
-    nav_account: 'Account',
+    nav_account: 'Settings',
     nav_ratings: 'Ratings',
     nav_profile: 'Profile',
     nav_verification: 'Verification',
+    nav_support: 'Customer Support',
 
     // Topbar
     online: 'Online',
@@ -44,6 +45,7 @@ export const captainMessages = {
     screen_ratings: 'Ratings',
     screen_verification: 'Verification',
     screen_profile: 'Profile',
+    screen_support: 'Customer Support',
 
     // Overview
     overview_title: 'Provider Dashboard',
@@ -70,7 +72,7 @@ export const captainMessages = {
     offerSubmitSuccess: 'Offer submitted successfully!',
     submitting: 'Submitting...',
     cancel: 'Cancel',
-    customerBudget: 'Customer Budget',
+    customerBudget: 'Shipment Budget',
 
     // Offers
     offers_title: 'Submitted Offers',
@@ -116,7 +118,7 @@ export const captainMessages = {
 
     // Earnings
     earnings_title: 'Financial Earnings',
-    earnings_sub: 'Analytical ledger of gross payments cleared on ShipConnect.',
+    earnings_sub: 'Analytical ledger of gross payments cleared on Delix.',
     thisMonth: 'This Month',
     clearedPayouts: 'Cleared Payouts',
     platformFees: 'Platform Fees Deducted',
@@ -187,10 +189,11 @@ export const captainMessages = {
     nav_team: 'كباتن المكتب',
     nav_captainTracking: 'تتبع الكباتن',
     nav_performance: 'تقييم الأداء',
-    nav_account: 'الحساب',
+    nav_account: 'الإعدادات',
     nav_ratings: 'التقييمات',
     nav_profile: 'الملف الشخصي',
     nav_verification: 'التوثيق',
+    nav_support: 'الدعم الفني',
 
     // Topbar
     online: 'نشط',
@@ -215,6 +218,7 @@ export const captainMessages = {
     screen_ratings: 'التقييمات والآراء',
     screen_verification: 'حالة التوثيق',
     screen_profile: 'الحساب الشخصي',
+    screen_support: 'الدعم الفني',
 
     // Overview
     overview_title: 'لوحة التحكم للمزود',
@@ -241,7 +245,7 @@ export const captainMessages = {
     offerSubmitSuccess: 'تم تقديم عرض السعر بنجاح!',
     submitting: 'جاري التقديم...',
     cancel: 'إلغاء',
-    customerBudget: 'ميزانية العميل',
+    customerBudget: 'ميزانية الشحنة',
 
     // Offers
     offers_title: 'العروض المقدمة والأسعار',

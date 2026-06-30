@@ -5,21 +5,45 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { profileSchema } from "@/lib/validation/common";
-import { User, Phone, Mail, Calendar, CheckCircle } from "lucide-react";
+import { User, Phone, Mail, Calendar, CheckCircle, Eye, Camera } from "lucide-react";
 import { mockCustomer } from "@/constants/mock-data";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
-import { getCustomerProfile, updateCustomerProfile } from "../api";
+import { useTranslations, useLocale } from "next-intl";
+import { getCustomerProfile, updateCustomerProfile, uploadAvatar } from "../api";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function ProfileView() {
   const t = useTranslations("customer.profile");
   const validation = useTranslations("validation");
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<"info" | "edit">("info");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const res = await uploadAvatar(file);
+      setUserProfile((prev: any) => ({
+        ...prev,
+        avatar: res.url,
+      }));
+      window.dispatchEvent(new Event("profile-updated"));
+      setSuccessMessage(locale === 'ar' ? 'تم تحديث صورة الملف الشخصي!' : 'Profile photo updated successfully!');
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (err) {
+      console.error("Failed to upload avatar:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const {
     register,
@@ -60,6 +84,7 @@ export default function ProfileView() {
         phone: data.phone,
       });
       setUserProfile(updated);
+      window.dispatchEvent(new Event("profile-updated"));
       reset({
         name: updated.name,
         email: updated.email,
@@ -74,6 +99,7 @@ export default function ProfileView() {
       mockCustomer.name = data.name;
       mockCustomer.phone = data.phone;
       setUserProfile({ ...mockCustomer });
+      window.dispatchEvent(new Event("profile-updated"));
       setSuccessMessage(t("updated"));
       setActiveTab("info");
       setTimeout(() => setSuccessMessage(""), 4000);
@@ -118,8 +144,51 @@ export default function ProfileView() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         <div className="md:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex flex-col items-center text-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center h-20 w-20 rounded-full bg-blue-600 text-white font-extrabold text-2xl border-4 border-zinc-800">
-            {avatarLetters}
+          <div className="relative group">
+            <input
+              type="file"
+              id="avatarInput"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+              disabled={isUploading}
+            />
+            <div
+              className={cn(
+                "flex items-center justify-center h-20 w-20 rounded-full overflow-hidden border-4 border-zinc-800 bg-zinc-800 text-white font-extrabold text-2xl relative transition-all duration-200 group-hover:border-zinc-700",
+                isUploading && "animate-pulse opacity-60"
+              )}
+            >
+              {userProfile.avatar ? (
+                <img
+                  src={userProfile.avatar}
+                  alt={userProfile.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                avatarLetters
+              )}
+              
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full">
+                {userProfile.avatar && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(true)}
+                    className="p-1.5 rounded-full bg-zinc-850 hover:bg-zinc-700 text-white transition-colors focus:outline-none"
+                    title={locale === 'ar' ? 'عرض الصورة' : 'View Photo'}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                )}
+                <label
+                  htmlFor="avatarInput"
+                  className="p-1.5 rounded-full bg-zinc-850 hover:bg-zinc-700 text-white transition-colors cursor-pointer"
+                  title={locale === 'ar' ? 'تغيير الصورة' : 'Change Photo'}
+                >
+                  <Camera className="h-4 w-4" />
+                </label>
+              </div>
+            </div>
           </div>
           <div className="flex flex-col">
             <span className="text-base font-bold text-zinc-200">{userProfile.name}</span>
@@ -270,6 +339,35 @@ export default function ProfileView() {
           </div>
         </div>
       </div>
+      
+      {showPreview && userProfile.avatar && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+          onClick={() => setShowPreview(false)}
+        >
+          <div 
+            className="relative max-w-lg w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-2 overflow-hidden shadow-2xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex justify-between items-center px-4 py-2.5 border-b border-zinc-800 bg-zinc-950/40">
+              <span className="text-xs font-bold text-zinc-300">{locale === 'ar' ? 'عرض الصورة الشخصية' : 'View Profile Photo'}</span>
+              <button 
+                onClick={() => setShowPreview(false)}
+                className="text-zinc-400 hover:text-zinc-200 text-xs font-bold px-2.5 py-1 rounded-lg hover:bg-zinc-800 transition-colors focus:outline-none"
+              >
+                {locale === 'ar' ? 'إغلاق' : 'Close'}
+              </button>
+            </div>
+            <div className="flex items-center justify-center p-6 w-full aspect-square bg-zinc-950/20">
+              <img 
+                src={userProfile.avatar} 
+                alt={userProfile.name} 
+                className="max-h-[60vh] max-w-full rounded-xl object-contain shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

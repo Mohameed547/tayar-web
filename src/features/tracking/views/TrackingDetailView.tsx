@@ -134,14 +134,10 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     ? {
         name: captain.name,
         rating: 4.9,
-        avatar: captain.avatar || (captain.name
-          ? captain.name
-              .split(" ")
-              .map((w: string) => w[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)
-          : "KM"),
+        avatarUrl: captain.avatar && captain.avatar.startsWith("http") ? captain.avatar : null,
+        initials: captain.name
+          ? captain.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
+          : "?",
         role: t("captain"),
         phone: captain.phone,
       }
@@ -149,7 +145,8 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     ? {
         name: selectedOffer.providerName,
         rating: selectedOffer.providerRating,
-        avatar: selectedOffer.providerName
+        avatarUrl: null,
+        initials: selectedOffer.providerName
           .split(" ")
           .map((w) => w[0])
           .join("")
@@ -316,8 +313,18 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
             {displayProvider && (
               <div className="bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-amber-600/10 text-amber-400 font-bold border border-amber-500/20">
-                    {displayProvider.avatar}
+                  <div className="shrink-0">
+                    {displayProvider.avatarUrl ? (
+                      <img
+                        src={displayProvider.avatarUrl}
+                        alt={displayProvider.name}
+                        className="h-10 w-10 rounded-full object-cover border-2 border-amber-500/30"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-amber-600/10 text-amber-400 font-bold border border-amber-500/20 text-xs">
+                        {displayProvider.initials}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-zinc-200">

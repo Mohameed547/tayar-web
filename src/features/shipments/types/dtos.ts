@@ -13,6 +13,8 @@ export interface CreateShipmentRequest {
   deliverySpeed: DeliverySpeed;
   notes?: string;
   price?: number;
+  estimatedPriceMin?: number;
+  estimatedPriceMax?: number;
   scheduledDate?: string;
 }
 

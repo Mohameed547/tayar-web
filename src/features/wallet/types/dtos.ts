@@ -3,6 +3,10 @@
 export interface TopUpRequest {
   amount: number;
   paymentMethod: string;
+  phone?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface WithdrawRequest {

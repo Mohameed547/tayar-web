@@ -76,16 +76,36 @@ export default function ShipmentCard({ shipment }: ShipmentCardProps) {
                 Nour Logistics · {t("awaitingCaptain")}
               </span>
             ) : (
-              <div className="flex flex-col gap-1.5">
-                <span className="font-semibold text-zinc-300">
-                  {t("captain", { name: captain?.name || t("unassigned") })}
-                  {` · ${t("eta", { time: etaDescription || t("etaDuration") })}`}
-                </span>
-                {captain?.phone && (
-                  <span className="text-[11px] text-zinc-500 flex items-center gap-1 font-medium">
-                    📞 {captain.phone}
+              <div className="flex items-center gap-2.5">
+                {/* Captain/Office avatar */}
+                <div className="shrink-0">
+                  {captain?.avatar ? (
+                    <img
+                      src={captain.avatar}
+                      alt={captain.name}
+                      className="h-9 w-9 rounded-full object-cover border-2 border-zinc-700"
+                    />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+                      {captain?.name
+                        ? captain.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
+                        : "?"}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-semibold text-zinc-300 text-xs">
+                    {captain?.name || t("unassigned")}
                   </span>
-                )}
+                  <span className="text-[10px] text-zinc-500">
+                    {t("eta", { time: etaDescription || t("etaDuration") })}
+                  </span>
+                  {captain?.phone && (
+                    <span className="text-[10px] text-zinc-500 flex items-center gap-1 font-medium">
+                      📞 {captain.phone}
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>

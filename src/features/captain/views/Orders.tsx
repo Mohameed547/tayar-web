@@ -72,7 +72,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
         {loading && (
           <div className="h-3.5 w-3.5 rounded-full border-2 border-t-transparent border-blue-500 animate-spin" />
         )}
-        
+
         {/* Discount input field */}
         <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1">
           <span className="text-[10px] text-zinc-400 font-medium">{isRTL ? 'خصم %' : 'Discount %'}</span>
@@ -94,7 +94,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
           className="bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-100 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50"
         >
           <option value="">
-            {order.status === 'pending_assignment' 
+            {order.status === 'pending_assignment'
               ? (isRTL ? 'اختر كابتن للتعيين...' : 'Select Captain to Assign...')
               : (isRTL ? 'إعادة تعيين كابتن...' : 'Reassign Captain...')}
           </option>
@@ -181,7 +181,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       } else if (currentStatus === 'in_transit' || currentStatus === 'out_for_delivery') {
         nextStatus = 'delivered';
       }
-      
+
       await updateOrderStatus(order.id, { status: nextStatus as any })
       if (nextStatus === 'delivered') {
         dispatch(setOnlineState(true))
@@ -211,7 +211,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
   }
 
   return (
-    <button 
+    <button
       onClick={handleAction}
       disabled={loading}
       className={`px-3 py-[6px] ${buttonBg} text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50`}
@@ -225,14 +225,14 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
 }
 
 export default function Orders() {
-  const dispatch    = useAppDispatch()
-  const t           = useCaptainTranslations()
+  const dispatch = useAppDispatch()
+  const t = useCaptainTranslations()
   const accountType = useAppSelector(selectAccountType)
-  const orders      = useAppSelector(selectOrders)
-  const captains    = useAppSelector(selectCaptains)
-  const locale      = useLocale()
-  const isRTL        = locale === 'ar'
-  const isOffice    = accountType === 'office'
+  const orders = useAppSelector(selectOrders)
+  const captains = useAppSelector(selectCaptains)
+  const locale = useLocale()
+  const isRTL = locale === 'ar'
+  const isOffice = accountType === 'office'
   const [expandedMapId, setExpandedMapId] = useState<string | null>(null)
 
   const getStatusBadge = (status: string, captainName?: string, rawStatus?: string, captainStatus?: string) => {
@@ -289,8 +289,7 @@ export default function Orders() {
                   </div>
                   {order.captainPrice !== undefined && order.captainPrice !== null ? (
                     <p className="text-[12px] text-[var(--color-text-sub)]">
-                      {isRTL ? 'قيمة التوصيل بعد الخصم: ' : 'Payout after discount: '} <span className="text-green-400 font-bold">EGP {order.captainPrice}</span>
-                      {order.officeDiscountPercentage !== undefined && order.officeDiscountPercentage > 0 && ` (-${order.officeDiscountPercentage}%)`}
+                      {isRTL ? 'قيمة التوصيل: ' : 'Payout: '} <span className="text-green-400 font-bold">EGP {order.captainPrice}</span>
                     </p>
                   ) : (
                     <p className="text-[12px] text-[var(--color-text-sub)]">
@@ -322,58 +321,58 @@ export default function Orders() {
 
               {/* Collapsible Route Map for Captain */}
               {order.pickupCoords && order.deliveryCoords && (
-                (order.status as string) === 'assigned' || 
-                (order.status as string) === 'picked_up' || 
-                (order.status as string) === 'in_progress' || 
+                (order.status as string) === 'assigned' ||
+                (order.status as string) === 'picked_up' ||
+                (order.status as string) === 'in_progress' ||
                 (order.status as string) === 'in_transit' ||
                 (order.status as string) === 'delivered' ||
-                order.rawStatus === 'assigned' || 
-                order.rawStatus === 'picked_up' || 
-                order.rawStatus === 'in_progress' || 
+                order.rawStatus === 'assigned' ||
+                order.rawStatus === 'picked_up' ||
+                order.rawStatus === 'in_progress' ||
                 order.rawStatus === 'in_transit' ||
                 order.rawStatus === 'delivered'
               ) && (
-                <div className="mt-3 pt-3 border-t border-zinc-800/60 flex flex-col gap-3">
-                  <div className="flex justify-between items-center flex-wrap gap-2">
-                    <button
-                      onClick={() => setExpandedMapId(expandedMapId === order.id ? null : order.id)}
-                      className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-                    >
-                      🗺️ {expandedMapId === order.id ? (isRTL ? 'إخفاء الخريطة' : 'Hide Map') : (isRTL ? 'عرض مسار التوصيل' : 'Show Route Map')}
-                    </button>
+                  <div className="mt-3 pt-3 border-t border-zinc-800/60 flex flex-col gap-3">
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <button
+                        onClick={() => setExpandedMapId(expandedMapId === order.id ? null : order.id)}
+                        className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                      >
+                        🗺️ {expandedMapId === order.id ? (isRTL ? 'إخفاء الخريطة' : 'Hide Map') : (isRTL ? 'عرض مسار التوصيل' : 'Show Route Map')}
+                      </button>
 
-                    <div className="flex gap-2">
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${order.pickupCoords[0] > order.pickupCoords[1] ? order.pickupCoords[1] : order.pickupCoords[0]},${order.pickupCoords[0] > order.pickupCoords[1] ? order.pickupCoords[0] : order.pickupCoords[1]}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-extrabold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
-                      >
-                        🚀 {isRTL ? 'ملاحة للاستلام' : 'Navigate to Pickup'}
-                      </a>
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[1] : order.deliveryCoords[0]},${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[0] : order.deliveryCoords[1]}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-extrabold text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
-                      >
-                        🚀 {isRTL ? 'ملاحة للتسليم' : 'Navigate to Delivery'}
-                      </a>
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${order.pickupCoords[0] > order.pickupCoords[1] ? order.pickupCoords[1] : order.pickupCoords[0]},${order.pickupCoords[0] > order.pickupCoords[1] ? order.pickupCoords[0] : order.pickupCoords[1]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-extrabold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
+                        >
+                          🚀 {isRTL ? 'ملاحة للاستلام' : 'Navigate to Pickup'}
+                        </a>
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[1] : order.deliveryCoords[0]},${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[0] : order.deliveryCoords[1]}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-extrabold text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
+                        >
+                          🚀 {isRTL ? 'ملاحة للتسليم' : 'Navigate to Delivery'}
+                        </a>
+                      </div>
                     </div>
+
+                    {expandedMapId === order.id && (
+                      <div className="rounded-lg overflow-hidden border border-zinc-800">
+                        <MapView
+                          pickupCoords={order.pickupCoords[0] > order.pickupCoords[1] ? [order.pickupCoords[1], order.pickupCoords[0]] : [order.pickupCoords[0], order.pickupCoords[1]]}
+                          deliveryCoords={order.deliveryCoords[0] > order.deliveryCoords[1] ? [order.deliveryCoords[1], order.deliveryCoords[0]] : [order.deliveryCoords[0], order.deliveryCoords[1]]}
+                          zoom={12}
+                          height="250px"
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  {expandedMapId === order.id && (
-                    <div className="rounded-lg overflow-hidden border border-zinc-800">
-                      <MapView
-                        pickupCoords={order.pickupCoords[0] > order.pickupCoords[1] ? [order.pickupCoords[1], order.pickupCoords[0]] : [order.pickupCoords[0], order.pickupCoords[1]]}
-                        deliveryCoords={order.deliveryCoords[0] > order.deliveryCoords[1] ? [order.deliveryCoords[1], order.deliveryCoords[0]] : [order.deliveryCoords[0], order.deliveryCoords[1]]}
-                        zoom={12}
-                        height="250px"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
             </Card>
           ))
         )}

@@ -119,11 +119,22 @@ export const profileSchema = z.object({
 
 export const supportTicketSchema = z.object({
   subject: z.string().min(5, "subjectMin"),
-  category: z.enum(["delay", "billing", "damage", "other"]),
+  category: z.enum([
+    "delay",
+    "billing",
+    "damage",
+    "app_issue",
+    "payment",
+    "accident",
+    "customer_issue",
+    "driver_issue",
+    "system_issue",
+    "other"
+  ]),
   shipmentId: z
     .string()
-    .min(1, "shipmentIdRequired")
-    .regex(/^SC-\d{5}$/i, "shipmentIdInvalid"),
+    .optional()
+    .or(z.literal("")),
   message: z.string().min(10, "messageMin"),
 });
 
@@ -132,6 +143,10 @@ export const topUpSchema = z.object({
     .number({ message: "amountNumber" })
     .min(10, "topUpMin"),
   paymentMethod: z.enum(["visa", "mastercard", "vodafone_cash"]),
+  phone: z.string().regex(/^01[0125][0-9]{8}$/, "Enter a valid Egyptian phone number").optional().or(z.literal("")),
+  email: z.string().email("Enter a valid email address").optional().or(z.literal("")),
+  firstName: z.string().min(2, "Min 2 characters").optional().or(z.literal("")),
+  lastName: z.string().min(2, "Min 2 characters").optional().or(z.literal("")),
 });
 
 export const withdrawSchema = z.object({
