@@ -176,6 +176,20 @@ export async function forgotPassword(
   });
 }
 
+export async function verifyResetOtp(data: {
+  email: string;
+  otp: string;
+}): Promise<{ token: string }> {
+  const res = await api.post<ApiResponse<{ token: string }>>(
+    "/api/auth/verify-reset-otp",
+    {
+      email: data.email,
+      otp: data.otp,
+    },
+  );
+  return res.data.data;
+}
+
 export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
   await api.post<ApiResponse<void>>("/api/auth/reset-password", {
     token: data.token,
