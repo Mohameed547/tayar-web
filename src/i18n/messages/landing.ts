@@ -36,10 +36,10 @@ export const landingMessages = {
     difference: {
       imageAlt: "A captain handing a package to a customer",
       verified: "Verified and trusted providers",
-      eyebrow: "The Delix difference",
+      eyebrow: "The TAYAR difference",
       title: "Delivery that works for everyone",
       description:
-        "Delix brings transparent pricing, live tracking, and fair opportunities to Egypt's delivery market. Customers compare offers, captains find steady work, and offices grow efficiently.",
+        "TAYAR brings transparent pricing, live tracking, and fair opportunities to Egypt's delivery market. Customers compare offers, captains find steady work, and offices grow efficiently.",
       competitionTitle: "Real competition, better prices",
       competitionDescription:
         "Multiple providers can bid for your shipment so you can choose the best value.",
@@ -52,7 +52,7 @@ export const landingMessages = {
     },
     trust: {
       eyebrow: "Why trust us",
-      title: "Your shipment is safe with Delix",
+      title: "Your shipment is safe with TAYAR",
       verifiedTitle: "Verified providers",
       verifiedDescription: "Identity and licenses are checked before joining",
       gpsTitle: "Live GPS",
@@ -83,7 +83,7 @@ export const landingMessages = {
       line1: "Ready to transform",
       line2: "your delivery business?",
       description:
-        "Join Delix and manage deliveries more intelligently, quickly, and efficiently.",
+        "Join TAYAR and manage deliveries more intelligently, quickly, and efficiently.",
       action: "Get started today",
     },
   },
@@ -124,10 +124,10 @@ export const landingMessages = {
     difference: {
       imageAlt: "كابتن يسلم طردًا إلى عميل",
       verified: "مقدمو خدمة موثقون وموثوقون",
-      eyebrow: "ما يميز Delix",
+      eyebrow: "ما يميز طيار",
       title: "توصيل مناسب للجميع",
       description:
-        "تقدم Delix أسعارًا شفافة وتتبعًا مباشرًا وفرصًا عادلة في سوق التوصيل المصري. يقارن العملاء العروض، ويحصل الكباتن على عمل مستمر، وتنمو المكاتب بكفاءة.",
+        "تقدم طيار أسعارًا شفافة وتتبعًا مباشرًا وفرصًا عادلة في سوق التوصيل المصري. يقارن العملاء العروض، ويحصل الكباتن على عمل مستمر، وتنمو المكاتب بكفاءة.",
       competitionTitle: "منافسة حقيقية وأسعار أفضل",
       competitionDescription:
         "يمكن لأكثر من مقدم خدمة تقديم عرض على شحنتك لتختار أفضل قيمة.",
@@ -140,7 +140,7 @@ export const landingMessages = {
     },
     trust: {
       eyebrow: "لماذا تثق بنا",
-      title: "شحنتك آمنة مع Delix",
+      title: "شحنتك آمنة مع طيار",
       verifiedTitle: "مقدمو خدمة موثقون",
       verifiedDescription: "يتم التحقق من الهوية والتراخيص قبل الانضمام",
       gpsTitle: "تتبع مباشر",
@@ -171,7 +171,7 @@ export const landingMessages = {
       line1: "هل أنت مستعد لتطوير",
       line2: "أعمال التوصيل لديك؟",
       description:
-        "انضم إلى Delix وأدر عمليات التوصيل بذكاء وسرعة وكفاءة أكبر.",
+        "انضم إلى طيار وأدر عمليات التوصيل بذكاء وسرعة وكفاءة أكبر.",
       action: "ابدأ اليوم",
     },
   },
