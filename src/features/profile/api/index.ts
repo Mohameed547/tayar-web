@@ -20,15 +20,56 @@ function mapProviderProfile(user: any): ProviderProfile {
   return {
     name: user.fullName || user.name || "",
     phone: user.phone || "",
+    avatar: user.profileImage || user.avatar || undefined,
   };
 }
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        // Resize the image to fit 300x300 while maintaining aspect ratio
+        const maxW = 300;
+        const maxH = 300;
+        let w = img.width;
+        let h = img.height;
+
+        if (w > h) {
+          if (w > maxW) {
+            h = Math.round((h * maxW) / w);
+            w = maxW;
+          }
+        } else {
+          if (h > maxH) {
+            w = Math.round((w * maxH) / h);
+            h = maxH;
+          }
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // Convert to low-size jpeg base64 (70% quality)
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+        resolve(compressedBase64);
+      };
+      img.onerror = () => {
+        reject(new Error("Failed to load image for compression"));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("FileReader error"));
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
   });
 }
 
@@ -74,7 +115,8 @@ export async function uploadAvatar(file: File): Promise<{ url: string }> {
 
   const res = await api.patch<ApiResponse<any>>(
     "/api/profile/avatar",
-    { profileImage: base64 }
+    { profileImage: base64 },
+    { timeout: 60_000 } // Extended timeout for this request
   );
 
   return { url: res.data.data.profileImage || base64 };

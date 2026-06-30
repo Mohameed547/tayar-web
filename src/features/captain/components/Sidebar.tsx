@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import {
   LayoutDashboard, Inbox, Gavel, CheckCircle, Truck, Map,
   Coins, Wallet, Users, MapPin, BarChart2, Star,
-  UserCircle, ShieldCheck, Ship, LogOut, X, Settings, Bell,
+  UserCircle, ShieldCheck, Ship, LogOut, X, Settings, Bell, Headphones
 } from 'lucide-react'
 import { useNotifications } from '@/shared/providers/socket-notification-provider'
 import { useLocale } from 'next-intl'
@@ -54,8 +54,10 @@ const TEAM_ITEMS: NavEntry[] = [
 ]
 
 const ACCOUNT_ITEMS: NavEntry[] = [
+  { id: 'profile', labelKey: 'nav_profile', icon: Settings },
   { id: 'ratings', labelKey: 'nav_ratings', icon: Star },
   { id: 'verification', labelKey: 'nav_verification', icon: ShieldCheck },
+  { id: 'support', labelKey: 'nav_support', icon: Headphones },
 ]
 
 export default function Sidebar() {
@@ -91,6 +93,7 @@ export default function Sidebar() {
     ratings: 0,
     verification: 0,
     profile: 0,
+    support: 0,
     notifications: unreadCount,
   }
 
@@ -207,37 +210,9 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Clickable user profile at the bottom */}
-        <div className="pt-3 border-t border-[var(--dh-border)] mt-4">
-          <div 
-            onClick={() => navigate('profile')}
-            className={clsx(
-              'flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-all duration-300',
-              activeScreen === 'profile'
-                ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand-light)] hover:bg-[var(--dh-brand-glow)]'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-[var(--dh-bg-muted)]'
-            )}
-          >
-            <div className="w-8 h-8 rounded-full bg-[var(--dh-brand-subtle)] border border-[var(--dh-brand)]/20 flex items-center justify-center text-[var(--dh-brand-light)] font-bold text-xs shrink-0">
-              {profile.name ? profile.name.slice(0, 2).toUpperCase() : 'U'}
-            </div>
-            <div className="flex-1 min-w-0 text-start">
-              <p className="text-xs font-semibold truncate leading-tight">{profile.name}</p>
-              <p className="text-[10px] text-[var(--dh-text-muted)] mt-0.5">
-                {t(isOffice ? 'accountType_office' : 'accountType_captain')}
-              </p>
-            </div>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation()
-                handleLogout()
-              }}
-              title={locale === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
-              className="text-zinc-500 hover:text-red-400 transition-colors p-1 shrink-0"
-            >
-              <LogOut size={14} />
-            </button>
-          </div>
+        {/* Footer / Copyright or secondary info */}
+        <div className="px-3 text-[11px] text-zinc-600 mt-4 border-t border-[var(--dh-border)] pt-3 text-center">
+          <p>© 2026 Delix</p>
         </div>
       </aside>
     </>

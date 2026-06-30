@@ -19,6 +19,7 @@ export type ScreenId =
   | "ratings"
   | "verification"
   | "profile"
+  | "support"
   | "notifications";
 
 // ─── Account mode (office vs individual captain) ──────────────────────────────

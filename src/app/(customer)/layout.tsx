@@ -4,6 +4,7 @@ import { useState } from "react";
 import Sidebar from "@/shared/layout/Sidebar";
 import Topbar from "@/shared/layout/Topbar";
 import MobileNav from "@/shared/layout/mobile-nav";
+import GlobalLiveChat from "@/features/support/components/GlobalLiveChat";
 
 export default function CustomerLayout({
   children,
@@ -33,6 +34,9 @@ export default function CustomerLayout({
           {children}
         </main>
       </div>
+
+      {/* Reusable floating support live chat */}
+      <GlobalLiveChat />
     </div>
   );
 }

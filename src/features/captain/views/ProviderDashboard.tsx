@@ -32,6 +32,8 @@ import Ratings from './Ratings'
 import Verification from './Verification'
 import Profile from './Profile'
 import { NotificationsView } from '@/features/notifications'
+import SupportView from '@/features/support/views/SupportView'
+import GlobalLiveChat from '@/features/support/components/GlobalLiveChat'
 
 import type { ScreenId } from '@/features/captain/types'
 
@@ -50,6 +52,7 @@ const SCREENS: Record<ScreenId, React.ReactNode> = {
   'ratings':          <Ratings />,
   'verification':     <Verification />,
   'profile':          <Profile />,
+  'support':          <SupportView />,
   'notifications':    <NotificationsView />,
 }
 
@@ -147,6 +150,7 @@ export default function ProviderDashboard() {
           {SCREENS[activeScreen] ?? <Overview />}
         </main>
       </div>
+      <GlobalLiveChat />
     </div>
   )
 }

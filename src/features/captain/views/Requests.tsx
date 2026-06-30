@@ -132,14 +132,14 @@ export default function Requests() {
       return
     }
 
-    const minBudget = activeRequest.price ?? activeRequest.estimatedPriceMin ?? 0;
-    const maxBudget = activeRequest.price ?? activeRequest.estimatedPriceMax ?? Infinity;
+    const minBudget = activeRequest.estimatedPriceMin ?? activeRequest.price ?? 0;
+    const maxBudget = activeRequest.estimatedPriceMax ?? activeRequest.price ?? Infinity;
 
     if (priceNum < minBudget) {
       setError(
         locale === 'ar'
-          ? `يجب ألا يقل السعر المعروض عن الحد الأدنى لميزانية العميل (${minBudget} ج.م)`
-          : `Offered price cannot be less than customer's budget minimum (${minBudget} EGP)`
+          ? `يجب ألا يقل السعر المعروض عن الحد الأدنى لميزانية الشحنة (${minBudget} ج.م)`
+          : `Offered price cannot be less than shipment's budget minimum (${minBudget} EGP)`
       );
       return;
     }
@@ -147,8 +147,8 @@ export default function Requests() {
     if (priceNum > maxBudget) {
       setError(
         locale === 'ar'
-          ? `يجب ألا يزيد السعر المعروض عن الحد الأقصى لميزانية العميل (${maxBudget} ج.م)`
-          : `Offered price cannot exceed customer's budget maximum (${maxBudget} EGP)`
+          ? `يجب ألا يزيد السعر المعروض عن الحد الأقصى لميزانية الشحنة (${maxBudget} ج.م)`
+          : `Offered price cannot exceed shipment's budget maximum (${maxBudget} EGP)`
       );
       return;
     }
@@ -257,9 +257,9 @@ export default function Requests() {
                   <p className="text-[13px] text-emerald-500 font-semibold flex items-center gap-1">
                     💰 <strong>{t('customerBudget')}:</strong>{' '}
                     <span>
-                      {req.price
-                        ? `${req.price} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
-                        : `${req.estimatedPriceMin || 0} - ${req.estimatedPriceMax || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
+                      {req.estimatedPriceMin && req.estimatedPriceMax
+                        ? `${req.estimatedPriceMin} - ${req.estimatedPriceMax} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
+                        : `${req.price || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
                     </span>
                   </p>
                 )}
@@ -310,11 +310,11 @@ export default function Requests() {
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'ميزانية العميل:' : 'Customer Budget:'}</span>
+                <span className="font-semibold text-zinc-400">{locale === 'ar' ? 'ميزانية الشحنة:' : 'Shipment Budget:'}</span>
                 <span className="text-emerald-400 font-semibold">
-                  {activeRequest.price
-                    ? `${activeRequest.price} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
-                    : `${activeRequest.estimatedPriceMin || 0} - ${activeRequest.estimatedPriceMax || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
+                  {activeRequest.estimatedPriceMin && activeRequest.estimatedPriceMax
+                    ? `${activeRequest.estimatedPriceMin} - ${activeRequest.estimatedPriceMax} ${locale === 'ar' ? 'ج.م' : 'EGP'}`
+                    : `${activeRequest.price || 0} ${locale === 'ar' ? 'ج.م' : 'EGP'}`}
                 </span>
               </div>
               {activeRequest.notes && (

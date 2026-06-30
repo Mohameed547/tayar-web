@@ -64,8 +64,6 @@ export async function topUp(payload: TopUpRequest): Promise<any> {
   };
 
   const gateway = gatewayMap[payload.paymentMethod] || "ApplePay";
-  // We use a mock or default phone number if the Vodafone Cash top up is requested
-  const phone = "01023456789"; 
 
   const response = await api.post<ApiResponse<any>>(
     "/api/wallet/topup",
@@ -73,10 +71,10 @@ export async function topUp(payload: TopUpRequest): Promise<any> {
       amount: payload.amount,
       gateway,
       metadata: {
-        phone,
-        email: "customer@deliverhub.com",
-        firstName: "Customer",
-        lastName: "User",
+        phone: payload.phone || "01023456789",
+        email: payload.email || "customer@deliverhub.com",
+        firstName: payload.firstName || "Customer",
+        lastName: payload.lastName || "User",
       },
     }
   );

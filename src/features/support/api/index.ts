@@ -5,23 +5,28 @@ import type { CreateTicketRequest, UpdateTicketRequest } from "../types/dtos";
 import { getShipments } from "@/features/shipments/api";
 
 function mapTicket(t: any): SupportTicket {
+  // Backend stores status as "sent" for open tickets; normalise to "open" for the UI
+  const rawStatus = t.status || "sent";
+  const status = rawStatus === "sent" ? "open" : rawStatus;
   return {
     id: t._id || t.id,
     subject: t.subject || "",
     category: t.category || "other",
-    status: t.status || "open",
+    status,
     message: t.message || "",
     shipmentId: t.relatedShipment || t.shipmentId || "",
     createdAt: t.createdAt || new Date().toISOString(),
+    messages: t.messages || [],
   };
 }
 
 // ── Support API ───────────────────────────────────────────────────────────────
 
 export async function getTickets(): Promise<SupportTicket[]> {
-  const res = await api.get<ApiResponse<any[]>>("/api/support");
-  const tickets = res.data.data || [];
-  return tickets.map(mapTicket);
+  const res = await api.get<ApiResponse<any>>("/api/support");
+  const data = res.data.data;
+  const ticketsList = Array.isArray(data) ? data : (data?.tickets || []);
+  return ticketsList.map(mapTicket);
 }
 
 export async function getTicketById(id: string): Promise<SupportTicket> {
@@ -32,30 +37,40 @@ export async function getTicketById(id: string): Promise<SupportTicket> {
 export async function createTicket(
   data: CreateTicketRequest,
 ): Promise<SupportTicket> {
-  let finalShipmentId = data.shipmentId;
-  
+  let finalShipmentId = "";
+  let isResolvedObjectId = false;
+
   // Resolve SC-XXXXX tracking number to MongoDB ObjectId
-  if (/^SC-\d{5}$/i.test(data.shipmentId)) {
-    try {
+  if (data.shipmentId && data.shipmentId.trim() !== "") {
+    const trimmedId = data.shipmentId.trim();
+    if (/^SC-\d{5}$/i.test(trimmedId)) {
       const shipments = await getShipments();
-      const matched = shipments.find(s => s.trackingNumber.toLowerCase() === data.shipmentId.toLowerCase());
+      const matched = shipments.find(s => s.trackingNumber.toLowerCase() === trimmedId.toLowerCase());
       if (matched) {
         finalShipmentId = matched.id;
+        isResolvedObjectId = true;
+      } else {
+        throw new Error("رقم الشحنة غير صحيح أو غير موجود بالمنصة");
       }
-    } catch (e) {
-      console.warn("Failed to resolve tracking number to shipment ID, passing original", e);
+    } else if (/^[0-9a-fA-F]{24}$/.test(trimmedId)) {
+      finalShipmentId = trimmedId;
+      isResolvedObjectId = true;
+    } else {
+      throw new Error("صيغة رقم الشحنة غير صالحة");
     }
   }
 
-  const res = await api.post<ApiResponse<any>>(
-    "/api/support",
-    {
-      subject: data.subject,
-      category: data.category,
-      message: data.message,
-      relatedShipment: finalShipmentId,
-    },
-  );
+  const payload: any = {
+    subject: data.subject,
+    category: data.category,
+    message: data.message,
+  };
+
+  if (isResolvedObjectId) {
+    payload.relatedShipment = finalShipmentId;
+  }
+
+  const res = await api.post<ApiResponse<any>>("/api/support", payload);
   return mapTicket(res.data.data);
 }
 
@@ -75,4 +90,9 @@ export async function updateTicket(
 export async function closeTicket(id: string): Promise<void> {
   // Not supported on the backend; mock success
   console.log("Closing ticket (local mock):", id);
+}
+
+export async function sendTicketMessage(ticketId: string, text: string): Promise<any> {
+  const res = await api.post<ApiResponse<any>>(`/api/support/${ticketId}/messages`, { text });
+  return res.data.data;
 }

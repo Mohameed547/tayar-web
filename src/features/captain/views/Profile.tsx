@@ -5,8 +5,8 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updateProfile } from '@/features/captain/store/data-slice'
 import { selectProfile, selectVerification, selectAccountType } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
-import { getProviderProfile, updateProviderProfile } from '@/features/profile'
-import { User, Phone, CheckCircle } from 'lucide-react'
+import { getProviderProfile, updateProviderProfile, uploadAvatar } from '@/features/profile'
+import { User, Phone, CheckCircle, Eye, Camera } from 'lucide-react'
 import { useLocale } from 'next-intl'
 
 export default function Profile() {
@@ -20,9 +20,29 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<'info' | 'edit'>('info')
   const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoading] = useState(true)
+  const [isUploading, setIsUploading] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   const [name, setName] = useState(profile.name)
   const [phone, setPhone] = useState(profile.phone)
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsUploading(true)
+      const res = await uploadAvatar(file)
+      dispatch(updateProfile({ avatar: res.url }))
+      window.dispatchEvent(new Event("profile-updated"))
+      setSuccessMessage(locale === 'ar' ? 'تم تحديث صورة الملف الشخصي!' : 'Profile photo updated successfully!')
+      setTimeout(() => setSuccessMessage(''), 4000)
+    } catch (err) {
+      console.error("Failed to upload avatar:", err)
+    } finally {
+      setIsUploading(false)
+    }
+  }
 
   useEffect(() => {
     getProviderProfile()
@@ -43,6 +63,7 @@ export default function Profile() {
     try {
       const data = await updateProviderProfile({ name, phone })
       dispatch(updateProfile(data))
+      window.dispatchEvent(new Event("profile-updated"))
       setSuccessMessage(locale === 'ar' ? 'تم تحديث الملف الشخصي بنجاح!' : 'Profile updated successfully!')
       setActiveTab('info')
       setTimeout(() => setSuccessMessage(''), 4000)
@@ -91,8 +112,50 @@ export default function Profile() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Left Side Profile Summary */}
         <div className="md:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex flex-col items-center text-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center h-20 w-20 rounded-full bg-blue-600 text-white font-extrabold text-2xl border-4 border-zinc-850">
-            {avatarLetters}
+          <div className="relative group">
+            <input
+              type="file"
+              id="avatarInput"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+              disabled={isUploading}
+            />
+            <div
+              className={`flex items-center justify-center h-20 w-20 rounded-full overflow-hidden border-4 border-zinc-850 bg-zinc-800 text-white font-extrabold text-2xl relative transition-all duration-200 group-hover:border-zinc-700 ${
+                isUploading ? 'animate-pulse opacity-60' : ''
+              }`}
+            >
+              {profile.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                avatarLetters
+              )}
+              
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full">
+                {profile.avatar && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(true)}
+                    className="p-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white transition-colors focus:outline-none"
+                    title={locale === 'ar' ? 'عرض الصورة' : 'View Photo'}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                )}
+                <label
+                  htmlFor="avatarInput"
+                  className="p-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white transition-colors cursor-pointer"
+                  title={locale === 'ar' ? 'تغيير الصورة' : 'Change Photo'}
+                >
+                  <Camera className="h-4 w-4" />
+                </label>
+              </div>
+            </div>
           </div>
           <div className="flex flex-col">
             <span className="text-base font-bold text-zinc-200">{profile.name}</span>
@@ -209,6 +272,35 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {showPreview && profile.avatar && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+          onClick={() => setShowPreview(false)}
+        >
+          <div 
+            className="relative max-w-lg w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-2 overflow-hidden shadow-2xl flex flex-col items-center animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex justify-between items-center px-4 py-2.5 border-b border-zinc-800 bg-zinc-950/40">
+              <span className="text-xs font-bold text-zinc-300">{locale === 'ar' ? 'عرض الصورة الشخصية' : 'View Profile Photo'}</span>
+              <button 
+                onClick={() => setShowPreview(false)}
+                className="text-zinc-400 hover:text-zinc-200 text-xs font-bold px-2.5 py-1 rounded-lg hover:bg-zinc-800 transition-colors focus:outline-none"
+              >
+                {locale === 'ar' ? 'إغلاق' : 'Close'}
+              </button>
+            </div>
+            <div className="flex items-center justify-center p-6 w-full aspect-square bg-zinc-950/20">
+              <img 
+                src={profile.avatar} 
+                alt={profile.name} 
+                className="max-h-[60vh] max-w-full rounded-xl object-contain shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

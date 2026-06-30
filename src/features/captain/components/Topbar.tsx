@@ -7,7 +7,7 @@ import { useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
-  toggleOnline, toggleSidebar, setActiveScreen,
+  toggleOnline, toggleSidebar, setActiveScreen, setOnlineState,
 } from '@/features/captain/store/dashboard-slice'
 import {
   selectActiveScreen,
@@ -39,6 +39,7 @@ const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
   'ratings':          'screen_ratings',
   'verification':     'screen_verification',
   'profile':          'screen_profile',
+  'support':          'screen_support',
   'notifications':    'nav_notifications',
 }
 
@@ -58,10 +59,19 @@ export default function Topbar() {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    getCurrentUser()
-      .then((data) => setUser(data))
-      .catch((err) => console.error("Error fetching user in Captain Topbar:", err))
-  }, [])
+    const fetchUser = () => {
+      getCurrentUser()
+        .then((data) => setUser(data))
+        .catch((err) => console.error("Error fetching user in Captain Topbar:", err));
+    };
+
+    fetchUser();
+
+    window.addEventListener("profile-updated", fetchUser);
+    return () => {
+      window.removeEventListener("profile-updated", fetchUser);
+    };
+  }, []);
 
   const hasActiveOrder = orders.some((order: any) => {
     const status = order.rawStatus || order.status
@@ -82,6 +92,7 @@ export default function Topbar() {
       }
     } catch (err) {
       console.error("Failed to update status in DB:", err)
+      dispatch(setOnlineState(!nextOnline))
     }
   }
 
@@ -177,8 +188,18 @@ export default function Topbar() {
             className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-[var(--dh-bg-muted)] transition-colors focus:outline-none"
           >
             {/* Avatar badge */}
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-[var(--dh-brand)] text-white font-bold text-xs shrink-0 shadow-[0_2px_8px_var(--dh-brand-glow)]">
-              {user ? getInitials(user.name) : "..."}
+            <div className="flex items-center justify-center h-8 w-8 rounded-full overflow-hidden bg-[var(--dh-brand)] text-white font-bold text-xs shrink-0 shadow-[0_2px_8px_var(--dh-brand-glow)]">
+              {user && user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : user ? (
+                getInitials(user.name)
+              ) : (
+                "..."
+              )}
             </div>
             <div className="hidden sm:flex flex-col items-start text-start">
               <span className="text-sm font-semibold leading-tight text-[var(--dh-text-main)]">

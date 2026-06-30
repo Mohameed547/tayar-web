@@ -30,6 +30,7 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
   const {
     providerName,
     providerType,
+    providerAvatar,
     providerRating,
     reviewCount,
     price,
@@ -67,16 +68,30 @@ export default function OfferCard({ offer, isSelected, onSelect }: OfferCardProp
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex items-center justify-center h-10 w-10 rounded-lg font-bold text-sm shrink-0",
-                providerType === "office"
-                  ? "bg-emerald-600/10 text-emerald-400 border border-emerald-500/20"
-                  : "bg-amber-600/10 text-amber-400 border border-amber-500/20"
-              )}
-            >
-              {initials}
-            </div>
+            {/* Provider avatar — real photo or initials */}
+            {providerAvatar && providerAvatar.startsWith("http") ? (
+              <img
+                src={providerAvatar}
+                alt={providerName}
+                className={cn(
+                  "h-10 w-10 rounded-lg object-cover shrink-0 border-2",
+                  providerType === "office"
+                    ? "border-emerald-500/30"
+                    : "border-amber-500/30"
+                )}
+              />
+            ) : (
+              <div
+                className={cn(
+                  "flex items-center justify-center h-10 w-10 rounded-lg font-bold text-sm shrink-0",
+                  providerType === "office"
+                    ? "bg-emerald-600/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-amber-600/10 text-amber-400 border border-amber-500/20"
+                )}
+              >
+                {initials}
+              </div>
+            )}
 
             <div className="flex flex-col">
               <span className="font-semibold text-zinc-100 text-sm leading-tight">

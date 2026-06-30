@@ -13,4 +13,5 @@ export interface CustomerProfile {
 export interface ProviderProfile {
   name: string;
   phone: string;
+  avatar?: string;
 }

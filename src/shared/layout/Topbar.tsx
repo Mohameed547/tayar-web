@@ -23,9 +23,18 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
   const router = useRouter();
 
   useEffect(() => {
-    getCurrentUser()
-      .then((data) => setUser(data))
-      .catch((err) => console.error("Error fetching user in Topbar:", err));
+    const fetchUser = () => {
+      getCurrentUser()
+        .then((data) => setUser(data))
+        .catch((err) => console.error("Error fetching user in Topbar:", err));
+    };
+
+    fetchUser();
+
+    window.addEventListener("profile-updated", fetchUser);
+    return () => {
+      window.removeEventListener("profile-updated", fetchUser);
+    };
   }, []);
 
   const getInitials = (name: string) => {
@@ -99,8 +108,18 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
             className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-zinc-900 transition-colors focus:outline-none"
           >
             {/* Avatar badge */}
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 text-white font-bold text-xs shrink-0">
-              {user ? getInitials(user.name) : "..."}
+            <div className="flex items-center justify-center h-8 w-8 rounded-full overflow-hidden bg-blue-600 text-white font-bold text-xs shrink-0">
+              {user && user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : user ? (
+                getInitials(user.name)
+              ) : (
+                "..."
+              )}
             </div>
             <div className="hidden sm:flex flex-col items-start text-left">
               <span className="text-sm font-semibold leading-tight text-zinc-200">

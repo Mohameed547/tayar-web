@@ -1,80 +1,56 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supportTicketSchema } from "@/lib/validation/common";
 import { z } from "zod";
-import { Headphones, Mail, Phone, MessageSquare, Plus, X, Send } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Headphones, Mail, Phone, MessageSquare, Plus, X } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import { createTicket, getTickets } from "@/features/support";
+import { getCurrentUser } from "@/features/auth/api";
 
 type TicketFormValues = z.infer<typeof supportTicketSchema>;
-
-interface ChatMessage {
-  id: string;
-  sender: "user" | "agent";
-  text: string;
-  time: string;
-}
 
 export default function SupportView() {
   const t = useTranslations("customer.support");
   const validation = useTranslations("validation");
+  const locale = useLocale();
+  const isRTL = locale === "ar";
 
   const [tickets, setTickets] = useState<any[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
+  const [userRole, setUserRole] = useState<string>("customer");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [submittingTicket, setSubmittingTicket] = useState(false);
 
   useEffect(() => {
+    getCurrentUser()
+      .then((user) => {
+        if (user && user.role) {
+          setUserRole(user.role);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const loadTickets = () => {
+    setLoadingTickets(true);
     getTickets()
       .then((data) => {
         setTickets(data);
         setLoadingTickets(false);
       })
       .catch((err) => {
-        console.error("Failed to load tickets, falling back to mock:", err);
-        setTickets([
-          {
-            id: "tkt-9021",
-            subject: t("ticketDelayed"),
-            status: "open",
-            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            shipmentId: "SC-00412",
-          },
-          {
-            id: "tkt-8810",
-            subject: t("ticketCashback"),
-            status: "resolved",
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            shipmentId: "SC-00408",
-          },
-        ]);
+        console.error("Failed to load tickets:", err);
         setLoadingTickets(false);
       });
-  }, [t]);
-
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showLiveChat, setShowLiveChat] = useState(false);
-  const [submittingTicket, setSubmittingTicket] = useState(false);
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: "m1",
-      sender: "agent",
-      text: t("welcome"),
-      time: t("justNow"),
-    },
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  };
 
   useEffect(() => {
-    if (showLiveChat) {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages, showLiveChat, isTyping]);
+    loadTickets();
+  }, []);
 
   const {
     register,
@@ -83,11 +59,39 @@ export default function SupportView() {
     reset,
   } = useForm<TicketFormValues>({
     resolver: zodResolver(supportTicketSchema),
-    defaultValues: { subject: "", category: "delay", shipmentId: "", message: "" },
+    defaultValues: { subject: "", category: "other", shipmentId: "", message: "" },
   });
+
+  const getCategoriesForRole = () => {
+    if (userRole === "driver") {
+      return [
+        { value: "app_issue", label: isRTL ? "مشكلة في التطبيق" : "App Issue" },
+        { value: "payment", label: isRTL ? "مستحقات المحفظة" : "Wallet & Payments" },
+        { value: "accident", label: isRTL ? "حادث أو ظرف طارئ" : "Accident or Emergency" },
+        { value: "customer_issue", label: isRTL ? "مشكلة مع العميل" : "Issue with Customer" },
+        { value: "other", label: isRTL ? "أخرى" : "Other" },
+      ];
+    }
+    if (userRole === "office") {
+      return [
+        { value: "billing", label: isRTL ? "الفواتير والعمولات" : "Billing & Commissions" },
+        { value: "driver_issue", label: isRTL ? "مشكلة مع سائق" : "Issue with Driver" },
+        { value: "system_issue", label: isRTL ? "مشكلة في النظام" : "System Issue" },
+        { value: "other", label: isRTL ? "أخرى" : "Other" },
+      ];
+    }
+    // customer
+    return [
+      { value: "delay", label: isRTL ? "تأخير الشحنة" : "Shipment Delay" },
+      { value: "billing", label: isRTL ? "مشكلة في الدفع" : "Payment Issue" },
+      { value: "damage", label: isRTL ? "شحنة تالفة" : "Damaged Shipment" },
+      { value: "other", label: isRTL ? "أخرى" : "Other" },
+    ];
+  };
 
   const handleCreateTicket = async (data: TicketFormValues) => {
     setSubmittingTicket(true);
+    setSubmitError(null);
     try {
       const ticket = await createTicket({
         subject: data.subject,
@@ -98,59 +102,14 @@ export default function SupportView() {
       setTickets((prev) => [ticket, ...prev]);
       reset();
       setShowCreateModal(false);
-    } catch (err) {
-      console.error("Failed to create support ticket, using mock fallback:", err);
-      const newTicket = {
-        id: `tkt-${9022 + tickets.length}`,
-        subject: data.subject,
-        status: "open",
-        createdAt: new Date().toISOString(),
-        shipmentId: data.shipmentId,
-      };
-      setTickets((prev) => [newTicket, ...prev]);
-      reset();
-      setShowCreateModal(false);
+      // Notify live chat component to refresh open tickets
+      window.dispatchEvent(new Event("support-tickets-updated"));
+    } catch (err: any) {
+      console.error("Failed to create support ticket:", err);
+      setSubmitError(err.message || "Failed to create support ticket");
     } finally {
       setSubmittingTicket(false);
     }
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: "user",
-      text: chatInput,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-
-    setChatMessages((prev) => [...prev, userMsg]);
-    const inputVal = chatInput.toLowerCase();
-    setChatInput("");
-
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      let replyText = t("defaultReply");
-      
-      if (inputVal.includes("sc-00412") || inputVal.includes("412") || inputVal.includes("delayed")) {
-        replyText = t("delayedReply");
-      } else if (inputVal.includes("cashback") || inputVal.includes("refund")) {
-        replyText = t("cashbackReply");
-      } else if (inputVal.includes("hello") || inputVal.includes("hi")) {
-        replyText = t("greetingReply");
-      }
-
-      const agentMsg: ChatMessage = {
-        id: `msg-${Date.now() + 1}`,
-        sender: "agent",
-        text: replyText,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setChatMessages((prev) => [...prev, agentMsg]);
-    }, 1500);
   };
 
   return (
@@ -175,13 +134,13 @@ export default function SupportView() {
               </div>
               <div className="flex items-center gap-2 text-zinc-300">
                 <Mail className="h-3.5 w-3.5 text-zinc-500" />
-                <span>support@deliveryhub.com</span>
+                <span>mohamedzohair547@gmail.com</span>
               </div>
             </div>
           </div>
 
           <button
-            onClick={() => setShowLiveChat(true)}
+            onClick={() => window.dispatchEvent(new Event("open-live-chat"))}
             className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900 transition-all focus:outline-none mt-4"
           >
             <MessageSquare className="h-3.5 w-3.5" />
@@ -205,35 +164,43 @@ export default function SupportView() {
             </div>
 
             <div className="flex flex-col gap-3.5">
-              {tickets.map((tkt) => {
-                const isOpen = tkt.status === "open";
+              {loadingTickets ? (
+                <div className="text-center py-4 text-xs text-zinc-500">{t("loading") || "Loading..."}</div>
+              ) : tickets.length === 0 ? (
+                <div className="text-center py-4 text-xs text-zinc-500">
+                  {isRTL ? "لا توجد تذاكر دعم حالية" : "No support tickets found"}
+                </div>
+              ) : (
+                tickets.map((tkt) => {
+                  const isOpen = tkt.status === "open";
 
-                return (
-                  <div
-                    key={tkt.id}
-                    className="flex items-center justify-between border-b border-zinc-855 pb-3 last:border-none last:pb-0"
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-bold text-zinc-200">
-                        {tkt.subject}
-                      </span>
-                      <span className="text-[10px] text-zinc-500 font-medium">
-                        ID: {tkt.id} • {t("shipmentId")}: {tkt.shipmentId} • {tkt.createdAt ? new Date(tkt.createdAt).toLocaleDateString() : tkt.date}
+                  return (
+                    <div
+                      key={tkt.id}
+                      className="flex items-center justify-between border-b border-zinc-855 pb-3 last:border-none last:pb-0"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-bold text-zinc-200">
+                          {tkt.subject}
+                        </span>
+                        <span className="text-[10px] text-zinc-500 font-medium">
+                          ID: {tkt.id} {tkt.shipmentId ? `• ${t("shipmentId")}: ${tkt.shipmentId}` : ""} • {tkt.createdAt ? new Date(tkt.createdAt).toLocaleDateString() : tkt.date}
+                        </span>
+                      </div>
+
+                      <span
+                        className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                          isOpen
+                            ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                            : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                        }`}
+                      >
+                        {isOpen ? t("open") : t("resolved")}
                       </span>
                     </div>
-
-                    <span
-                      className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                        isOpen
-                          ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                          : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                      }`}
-                    >
-                      {isOpen ? t("open") : t("resolved")}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -245,6 +212,7 @@ export default function SupportView() {
             <button
               onClick={() => {
                 setShowCreateModal(false);
+                setSubmitError(null);
                 reset();
               }}
               className="absolute right-4 top-4 p-1 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
@@ -255,6 +223,13 @@ export default function SupportView() {
             <p className="text-xs text-zinc-400">
               {t("createSubtitle")}
             </p>
+
+            {submitError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold">
+                {submitError}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit(handleCreateTicket)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-zinc-400">{t("subject")}</label>
@@ -270,20 +245,25 @@ export default function SupportView() {
                   </span>
                 )}
               </div>
+              
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-zinc-400">{t("category")}</label>
                 <select
                   {...register("category")}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors cursor-pointer"
                 >
-                  <option value="delay" className="bg-zinc-900 text-zinc-200">{t("delay")}</option>
-                  <option value="billing" className="bg-zinc-900 text-zinc-200">{t("billing")}</option>
-                  <option value="damage" className="bg-zinc-900 text-zinc-200">{t("damage")}</option>
-                  <option value="other" className="bg-zinc-900 text-zinc-200">{t("other")}</option>
+                  {getCategoriesForRole().map((cat) => (
+                    <option key={cat.value} value={cat.value} className="bg-zinc-900 text-zinc-200">
+                      {cat.label}
+                    </option>
+                  ))}
                 </select>
               </div>
+
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-zinc-400">{t("shipmentId")}</label>
+                <label className="text-xs font-semibold text-zinc-400">
+                  {t("shipmentId")} ({isRTL ? "اختياري" : "Optional"})
+                </label>
                 <input
                   type="text"
                   {...register("shipmentId")}
@@ -296,6 +276,7 @@ export default function SupportView() {
                   </span>
                 )}
               </div>
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-zinc-400">{t("messageDetails")}</label>
                 <textarea
@@ -310,92 +291,13 @@ export default function SupportView() {
                   </span>
                 )}
               </div>
+
               <button
                 type="submit"
                 disabled={submittingTicket}
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 shadow-md focus:outline-none"
               >
                 {submittingTicket ? "..." : t("submitTicket")}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showLiveChat && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
-          <div className="bg-zinc-900 border-l border-zinc-800 max-w-md w-full h-full flex flex-col text-zinc-100 shadow-2xl relative">
-            <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
-                    SC
-                  </div>
-                  <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 border border-zinc-900" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-zinc-100">{t("liveAgent")}</span>
-                  <span className="text-[9px] text-zinc-500">{t("alwaysOnline")}</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowLiveChat(false)}
-                className="p-1 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-zinc-950/20">
-              {chatMessages.map((msg) => {
-                const isUser = msg.sender === "user";
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col max-w-[80%] ${
-                      isUser ? "self-end items-end" : "self-start items-start"
-                    }`}
-                  >
-                    <div
-                      className={`px-3 py-2 rounded-xl text-xs leading-relaxed ${
-                        isUser
-                          ? "bg-blue-600 text-white rounded-br-none"
-                          : "bg-zinc-800 text-zinc-200 rounded-bl-none border border-zinc-700/50"
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                    <span className="text-[8px] text-zinc-500 mt-1 px-1 font-medium">
-                      {msg.time}
-                    </span>
-                  </div>
-                );
-              })}
-              {isTyping && (
-                <div className="self-start flex flex-col items-start max-w-[80%]">
-                  <div className="bg-zinc-800 text-zinc-400 px-3 py-2 rounded-xl rounded-bl-none border border-zinc-700/50 text-xs flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="h-1.5 w-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="h-1.5 w-1.5 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-zinc-800 bg-zinc-900 flex gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder={t("typeMessage")}
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
-              />
-              <button
-                type="submit"
-                className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors focus:outline-none"
-              >
-                <Send className="h-4 w-4" />
               </button>
             </form>
           </div>

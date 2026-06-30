@@ -19,7 +19,7 @@ function mapVerificationStatus(v: any): VerificationStatus {
 
 export async function getVerificationStatus(): Promise<VerificationStatus> {
   const res = await api.get<ApiResponse<any>>(
-    "/api/verification/captain/verification/status",
+    "/api/captain/verification/status",
   );
   return mapVerificationStatus(res.data.data);
 }
@@ -30,7 +30,7 @@ export async function submitVerification(
   const mappedType = data.documentType === "commercial_license" ? "commercial_register" : data.documentType;
   
   const res = await api.post<ApiResponse<any>>(
-    "/api/verification/captain/verification/upload",
+    "/api/captain/verification/upload",
     {
       documentType: mappedType,
       documentUrl: data.documentImageUrl || "",

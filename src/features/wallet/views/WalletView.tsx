@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Transaction } from "../types";
 import { useTranslations } from "next-intl";
 import { getWallet, topUp, withdraw } from "../api";
+import { getCurrentUser } from "@/features/auth/api";
 
 type TopUpFormValues = z.infer<typeof topUpSchema>;
 type WithdrawFormValues = z.infer<typeof withdrawSchema>;
@@ -72,16 +73,37 @@ export default function WalletView() {
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const {
     register: registerTopUp,
     handleSubmit: handleTopUpSubmit,
     formState: { errors: topUpErrors },
     reset: resetTopUp,
+    watch: watchTopUp,
+    setValue: setTopUpValue,
   } = useForm<TopUpFormValues>({
     resolver: zodResolver(topUpSchema),
     defaultValues: { amount: 100, paymentMethod: "visa" },
   });
+
+  const paymentMethod = watchTopUp("paymentMethod");
+
+  useEffect(() => {
+    getCurrentUser().then(setCurrentUser).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      const names = currentUser.fullName?.split(" ") || [];
+      const fName = names[0] || "";
+      const lName = names.slice(1).join(" ") || "User";
+      setTopUpValue("phone", currentUser.phone || "");
+      setTopUpValue("email", currentUser.email || "");
+      setTopUpValue("firstName", fName);
+      setTopUpValue("lastName", lName);
+    }
+  }, [currentUser, setTopUpValue]);
 
   const {
     register: registerWithdraw,
@@ -99,6 +121,10 @@ export default function WalletView() {
       const response = await topUp({
         amount: data.amount,
         paymentMethod: data.paymentMethod,
+        phone: data.phone,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
       });
 
       if (response?.redirectUrl) {
@@ -370,6 +396,65 @@ export default function WalletView() {
                   <option value="vodafone_cash" className="bg-zinc-900 text-zinc-200">{t("vodafoneCash")}</option>
                 </select>
               </div>
+
+              {paymentMethod === "vodafone_cash" && (
+                <div className="flex flex-col gap-3 border border-zinc-800 rounded-lg p-3 bg-zinc-950/40 mt-1">
+                  <p className="text-[11px] font-bold text-zinc-400">Vodafone Cash Details</p>
+                  
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Wallet Number (Phone)</label>
+                    <input
+                      type="text"
+                      {...registerTopUp("phone")}
+                      className="w-full bg-zinc-955 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+                      placeholder="e.g. 01012345678"
+                    />
+                    {topUpErrors.phone && (
+                      <span className="text-[10px] text-red-400">{topUpErrors.phone.message}</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Email Address</label>
+                    <input
+                      type="email"
+                      {...registerTopUp("email")}
+                      className="w-full bg-zinc-955 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+                      placeholder="email@example.com"
+                    />
+                    {topUpErrors.email && (
+                      <span className="text-[10px] text-red-400">{topUpErrors.email.message}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">First Name</label>
+                      <input
+                        type="text"
+                        {...registerTopUp("firstName")}
+                        className="w-full bg-zinc-955 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+                        placeholder="First Name"
+                      />
+                      {topUpErrors.firstName && (
+                        <span className="text-[10px] text-red-400">{topUpErrors.firstName.message}</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Last Name</label>
+                      <input
+                        type="text"
+                        {...registerTopUp("lastName")}
+                        className="w-full bg-zinc-955 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+                        placeholder="Last Name"
+                      />
+                      {topUpErrors.lastName && (
+                        <span className="text-[10px] text-red-400">{topUpErrors.lastName.message}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               <button
                 type="submit"
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 shadow-md focus:outline-none"

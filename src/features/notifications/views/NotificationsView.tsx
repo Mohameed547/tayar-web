@@ -16,6 +16,7 @@ interface ExtNotification extends Notification {
   captainName?: string;
   shipmentDate?: string;
   rawRelatedShipment?: any;
+  rawType?: string;
 }
 
 export default function NotificationsView() {
@@ -53,6 +54,7 @@ export default function NotificationsView() {
         month: 'short'
       }),
       type: mapBackendTypeToFrontend(n.type),
+      rawType: n.type,
       isRead: n.isRead,
       shipmentId: typeof shipmentObj === 'object' && shipmentObj ? shipmentObj._id || shipmentObj.id : n.relatedShipment,
       captainName: typeof shipmentObj === 'object' && shipmentObj?.captain?.fullName ? shipmentObj.captain.fullName : undefined,
@@ -71,26 +73,67 @@ export default function NotificationsView() {
     const shipmentObj = item.rawRelatedShipment || {};
     const trackingNo = typeof shipmentObj === 'object' && shipmentObj ? shipmentObj.trackingNumber : undefined;
     const cleanTrackingNo = trackingNo || item.shipmentId || "";
+    const captainName = item.captainName || (locale === 'ar' ? 'كابتن' : 'Captain');
 
-    switch (item.type) {
-      case "pickup":
+    // Handle tracking states with dynamic, variable messages & titles from translation keys
+    if (item.rawType === "picked_up") {
+      try {
         return {
-          title: t("pickupTitle") || item.title,
+          title: t("pickedUpTitle") || item.title,
           message: t("pickupMessage")
             ? t("pickupMessage")
-                .replace("Karim M.", item.captainName || (locale === 'ar' ? 'كريم م.' : 'Karim M.'))
-                .replace("كريم م.", item.captainName || (locale === 'ar' ? 'كريم م.' : 'Karim M.'))
+                .replace("Karim M.", captainName)
+                .replace("كريم م.", captainName)
                 .replace("SC-00412", cleanTrackingNo)
             : item.message,
         };
-      case "offer":
+      } catch (e) {
+        return { title: item.title, message: item.message };
+      }
+    }
+    if (item.rawType === "in_transit") {
+      try {
         return {
-          title: t("acceptedTitle") || item.title,
-          message: t("acceptedMessage")
-            ? t("acceptedMessage")
-                .replace("SC-00412", cleanTrackingNo)
-            : item.message,
+          title: t("inTransitTitle") || item.title,
+          message: t("inTransitMessage", { trackingNo: cleanTrackingNo }),
         };
+      } catch (e) {
+        return { title: item.title, message: item.message };
+      }
+    }
+    if (item.rawType === "captain_assigned" || item.rawType === "offer_accepted") {
+      try {
+        return {
+          title: t("offerAcceptedTitle") || item.title,
+          message: t("offerAcceptedMessage", { captain: captainName, trackingNo: cleanTrackingNo }),
+        };
+      } catch (e) {
+        return { title: item.title, message: item.message };
+      }
+    }
+    if (item.rawType === "delivered") {
+      try {
+        return {
+          title: t("deliveredTitleDynamic") || item.title,
+          message: t("deliveredMessageDynamic", { trackingNo: cleanTrackingNo }),
+        };
+      } catch (e) {
+        return { title: item.title, message: item.message };
+      }
+    }
+    if (item.rawType === "cancelled") {
+      try {
+        return {
+          title: t("cancelledTitle") || item.title,
+          message: t("cancelledMessage", { trackingNo: cleanTrackingNo }),
+        };
+      } catch (e) {
+        return { title: item.title, message: item.message };
+      }
+    }
+
+    // Fallback to parsed/original structures
+    switch (item.type) {
       case "received": {
         const priceMatch = item.message.match(/EGP\s*(\d+)/i) || item.message.match(/(\d+)\s*EGP/i);
         const price = priceMatch ? priceMatch[1] : "";
@@ -104,33 +147,41 @@ export default function NotificationsView() {
         const isOffer = item.message.toLowerCase().includes("offer");
         
         if (isOffer && price) {
-          return {
-            title: locale === 'ar' ? 'عرض جديد مقدم' : 'New Offer Received',
-            message: locale === 'ar'
-              ? (providerName 
-                  ? `قدم ${providerName} عرضاً جديداً بقيمة ${price} ج.م للشحنة ${cleanTrackingNo}.`
-                  : `لديك عرض جديد بقيمة ${price} ج.م للشحنة ${cleanTrackingNo}.`)
-              : (providerName
-                  ? `${providerName} sent a new offer of EGP ${price} for shipment ${cleanTrackingNo}.`
-                  : `You received a new offer of EGP ${price} for shipment ${cleanTrackingNo}.`),
-          };
+          try {
+            if (providerName) {
+              return {
+                title: t("newOfferTitle") || item.title,
+                message: t("newOfferMessageWithProvider", {
+                  provider: providerName,
+                  price: price,
+                  trackingNo: cleanTrackingNo
+                }),
+              };
+            } else {
+              return {
+                title: t("newOfferTitle") || item.title,
+                message: t("newOfferMessageNoProvider", {
+                  price: price,
+                  trackingNo: cleanTrackingNo
+                }),
+              };
+            }
+          } catch (e) {
+            return { title: item.title, message: item.message };
+          }
         }
 
-        return {
-          title: t("receivedTitle") || item.title,
-          message: t("receivedMessage")
-            ? t("receivedMessage").replace("SC-00412", cleanTrackingNo)
-            : item.message,
-        };
+        try {
+          return {
+            title: t("receivedTitle") || item.title,
+            message: t("receivedMessage")
+              ? t("receivedMessage").replace("SC-00412", cleanTrackingNo)
+              : item.message,
+          };
+        } catch (e) {
+          return { title: item.title, message: item.message };
+        }
       }
-      case "delivered":
-        return {
-          title: t("deliveredTitle") || item.title,
-          message: t("deliveredMessage")
-            ? t("deliveredMessage")
-                .replace("SC-00408", cleanTrackingNo)
-            : item.message,
-        };
       default:
         return {
           title: item.title,
@@ -375,7 +426,7 @@ export default function NotificationsView() {
                     {message}
                   </p>
 
-                  {(item.captainName || item.shipmentDate) && (
+                  {item.type !== "received" && (item.captainName || item.shipmentDate) && (
                     <div className="mt-2.5 pt-2 border-t border-zinc-800/40 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-400 font-medium">
                       {item.captainName && (
                         <div>
@@ -395,11 +446,15 @@ export default function NotificationsView() {
                   {item.shipmentId && (
                     <div className="mt-3 flex items-center">
                       <Link
-                        href={`/tracking/${item.shipmentId}`}
+                        href={item.type === "received" ? `/offers/${item.shipmentId}` : `/tracking/${item.shipmentId}`}
                         onClick={(e) => handleViewDetails(item, e)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-blue-400 hover:bg-zinc-750 hover:text-blue-300 transition-all border border-zinc-700/80"
                       >
-                        <span>{locale === 'ar' ? 'عرض تفاصيل الشحنة ←' : 'View Shipment Details →'}</span>
+                        <span>
+                          {item.type === "received"
+                            ? `${t("viewOffers")} ←`
+                            : `${t("viewDetails")} ←`}
+                        </span>
                       </Link>
                     </div>
                   )}
