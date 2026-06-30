@@ -16,14 +16,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            className="block text-sm font-medium text-[var(--dh-text-sub)]"
           >
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--dh-text-dim)]">
               {leftIcon}
             </div>
           )}
@@ -31,25 +31,24 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             ref={ref}
             className={cn(
-              "w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400",
+              "w-full rounded-xl border bg-[var(--dh-bg-card)] px-4 py-3 text-sm text-[var(--dh-text-main)] placeholder:text-[var(--dh-text-dim)]",
               "transition-all duration-200 outline-none",
-              "border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              "dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500",
+              "border-[var(--dh-border)] hover:border-[var(--dh-text-dim)] focus:border-[var(--dh-brand)] focus:ring-2 focus:ring-[var(--dh-brand-glow)]",
               leftIcon && "pr-10",
               rightIcon && "pl-10",
               error &&
-                "border-red-400 focus:border-red-500 focus:ring-red-500/20",
+                "border-[var(--dh-danger)] focus:border-[var(--dh-danger)] focus:ring-[var(--dh-danger)]/20",
               className,
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--dh-text-dim)]">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <p className="text-xs text-red-500">⚠ {error}</p>}
+        {error && <p className="text-xs text-[var(--dh-danger)]">⚠ {error}</p>}
       </div>
     );
   },

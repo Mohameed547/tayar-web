@@ -16,7 +16,7 @@ import dynamic from "next/dynamic";
 const MapView = dynamic(() => import("@/shared/ui/MapView"), {
   ssr: false,
   loading: () => (
-    <div className="h-[320px] w-full bg-zinc-950 flex items-center justify-center text-xs text-zinc-500 font-semibold border border-zinc-800 rounded-xl">
+    <div className="h-[320px] w-full bg-[var(--dh-bg-muted)] flex items-center justify-center text-xs text-[var(--dh-text-sub)] font-semibold border border-[var(--dh-border)] rounded-xl animate-pulse">
       Loading Map Container...
     </div>
   ),
@@ -417,35 +417,35 @@ export default function NewShipmentView() {
   };
 
   return (
-    <div className="flex flex-col gap-6 text-zinc-100 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+    <div className="flex flex-col gap-6 text-[var(--dh-text-main)] max-w-5xl mx-auto">
+      <div className="flex items-center justify-between border-b border-[var(--dh-border)] pb-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--dh-text-main)]">
             {t("title")}
           </h1>
-          <p className="text-xs text-blue-500 font-semibold mt-1">
+          <p className="text-xs text-[var(--dh-brand)] font-semibold mt-1">
             {t("step")}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-1.5 w-8 rounded-full bg-blue-600" />
-          <span className="h-1.5 w-6 rounded-full bg-zinc-800" />
-          <span className="h-1.5 w-6 rounded-full bg-zinc-800" />
+          <span className="h-1.5 w-8 rounded-full bg-[var(--dh-brand)]" />
+          <span className="h-1.5 w-6 rounded-full bg-[var(--dh-border)]" />
+          <span className="h-1.5 w-6 rounded-full bg-[var(--dh-border)]" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="lg:col-span-7 flex flex-col gap-5 bg-zinc-900/40 border border-zinc-800 rounded-xl p-6 shadow-sm"
+          className="lg:col-span-7 flex flex-col gap-5 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl p-6 shadow-sm"
         >
-          <div className="text-[11px] text-zinc-400 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800/80 leading-relaxed">
+          <div className="text-[11px] text-[var(--dh-text-sub)] bg-[var(--dh-bg-muted)] p-3 rounded-lg border border-[var(--dh-border)] leading-relaxed">
             💡 {locale === 'ar'
               ? 'تلميح: اضغط على حقل "عنوان الاستلام" أو "عنوان التسليم" أولاً، ثم انقر على أي مكان في الخريطة لتحديده تلقائياً.'
               : 'Tip: Click on either the "Pickup Address" or "Delivery Address" field first, then click anywhere on the map to set it automatically.'}
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
               {t("pickupAddress")}
             </label>
             <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -455,10 +455,10 @@ export default function NewShipmentView() {
                 {...register("pickupAddress")}
                 onFocus={() => setActiveField("pickup")}
                 className={cn(
-                  "w-full bg-zinc-900 border ps-10 pe-12 py-2.5 text-sm text-zinc-200 focus:outline-none transition-all duration-200",
+                  "w-full bg-[var(--dh-bg-card)] border ps-10 pe-12 py-2.5 text-sm text-[var(--dh-text-main)] focus:outline-none transition-all duration-200 rounded-lg",
                   activeField === "pickup"
                     ? "border-rose-500 ring-1 ring-rose-500/30"
-                    : "border-zinc-800 focus:border-zinc-700"
+                    : "border-[var(--dh-border)] focus:border-[var(--dh-brand)]"
                 )}
                 placeholder={t("pickupPlaceholder")}
               />
@@ -467,7 +467,7 @@ export default function NewShipmentView() {
                 onClick={() => handleGetCurrentLocation('pickup')}
                 disabled={detectingLocation === 'pickup'}
                 title={t("selectCurrentLocation")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-rose-500 transition-colors disabled:opacity-50"
+                className="absolute end-3 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-md hover:bg-[var(--dh-bg-muted)] text-[var(--dh-text-sub)] hover:text-rose-500 transition-colors disabled:opacity-50"
               >
                 {detectingLocation === 'pickup' ? (
                   <div className="h-3 w-3 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
@@ -477,13 +477,13 @@ export default function NewShipmentView() {
               </button>
 
               {pickupSuggestions.length > 0 && (
-                <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-zinc-950/95 border border-zinc-800 rounded-lg shadow-xl backdrop-blur-md divide-y divide-zinc-900 scrollbar-thin scrollbar-thumb-zinc-800">
+                <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg shadow-xl divide-y divide-[var(--dh-border)]">
                   {pickupSuggestions.map((item, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleSelectSuggestion('pickup', item)}
-                      className="w-full text-start px-4 py-3 text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors flex items-start gap-2.5"
+                      className="w-full text-start px-4 py-3 text-xs text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] transition-colors flex items-start gap-2.5"
                     >
                       <MapPin className="h-3.5 w-3.5 mt-0.5 text-rose-500 shrink-0" />
                       <span className="truncate">{item.display_name}</span>
@@ -493,14 +493,14 @@ export default function NewShipmentView() {
               )}
             </div>
             {errors.pickupAddress && (
-              <span className="text-[11px] text-red-400 font-medium">
+              <span className="text-[11px] text-[var(--dh-danger)] font-medium">
                 {validation(errors.pickupAddress.message as never)}
               </span>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
               {t("deliveryAddress")}
             </label>
             <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -510,10 +510,10 @@ export default function NewShipmentView() {
                 {...register("deliveryAddress")}
                 onFocus={() => setActiveField("delivery")}
                 className={cn(
-                  "w-full bg-zinc-900 border ps-10 pe-12 py-2.5 text-sm text-zinc-200 focus:outline-none transition-all duration-200",
+                  "w-full bg-[var(--dh-bg-card)] border ps-10 pe-12 py-2.5 text-sm text-[var(--dh-text-main)] focus:outline-none transition-all duration-200 rounded-lg",
                   activeField === "delivery"
                     ? "border-emerald-500 ring-1 ring-emerald-500/30"
-                    : "border-zinc-800 focus:border-zinc-700"
+                    : "border-[var(--dh-border)] focus:border-[var(--dh-brand)]"
                 )}
                 placeholder={t("deliveryPlaceholder")}
               />
@@ -522,7 +522,7 @@ export default function NewShipmentView() {
                 onClick={() => handleGetCurrentLocation('delivery')}
                 disabled={detectingLocation === 'delivery'}
                 title={t("selectCurrentLocation")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-emerald-500 transition-colors disabled:opacity-50"
+                className="absolute end-3 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-md hover:bg-[var(--dh-bg-muted)] text-[var(--dh-text-sub)] hover:text-emerald-500 transition-colors disabled:opacity-50"
               >
                 {detectingLocation === 'delivery' ? (
                   <div className="h-3 w-3 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
@@ -532,13 +532,13 @@ export default function NewShipmentView() {
               </button>
 
               {deliverySuggestions.length > 0 && (
-                <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-zinc-950/95 border border-zinc-800 rounded-lg shadow-xl backdrop-blur-md divide-y divide-zinc-900 scrollbar-thin scrollbar-thumb-zinc-800">
+                <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg shadow-xl divide-y divide-[var(--dh-border)]">
                   {deliverySuggestions.map((item, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleSelectSuggestion('delivery', item)}
-                      className="w-full text-start px-4 py-3 text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors flex items-start gap-2.5"
+                      className="w-full text-start px-4 py-3 text-xs text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] transition-colors flex items-start gap-2.5"
                     >
                       <MapPin className="h-3.5 w-3.5 mt-0.5 text-emerald-500 shrink-0" />
                       <span className="truncate">{item.display_name}</span>
@@ -548,7 +548,7 @@ export default function NewShipmentView() {
               )}
             </div>
             {errors.deliveryAddress && (
-              <span className="text-[11px] text-red-400 font-medium">
+              <span className="text-[11px] text-[var(--dh-danger)] font-medium">
                 {validation(errors.deliveryAddress.message as never)}
               </span>
             )}
@@ -556,49 +556,49 @@ export default function NewShipmentView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-zinc-400">
+              <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
                 {t("weight")}
               </label>
               <input
                 type="number"
                 step="0.1"
                 {...register("weight", { valueAsNumber: true })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+                className="w-full bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--dh-text-main)] focus:outline-none focus:border-[var(--dh-brand)] transition-colors"
                 placeholder="2.5"
               />
               {errors.weight && (
-                <span className="text-[11px] text-red-400 font-medium">
+                <span className="text-[11px] text-[var(--dh-danger)] font-medium">
                   {validation(errors.weight.message as never)}
                 </span>
               )}
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-zinc-400">
+              <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
                 {t("packageType")}
               </label>
               <select
                 {...register("packageType")}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 transition-colors cursor-pointer appearance-none"
+                className="w-full bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--dh-text-main)] focus:outline-none focus:border-[var(--dh-brand)] transition-colors cursor-pointer appearance-none"
                 style={{
                   backgroundImage: `url("data:image/svg+xml;utf8,<svg fill='%2371717a' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 10px center'
                 }}
               >
-                <option value="small_box" className="bg-zinc-900 text-zinc-200">{t("smallBox")}</option>
-                <option value="medium_box" className="bg-zinc-900 text-zinc-200">{t("mediumBox")}</option>
-                <option value="large_box" className="bg-zinc-900 text-zinc-200">{t("largeBox")}</option>
-                <option value="pallet" className="bg-zinc-900 text-zinc-200">{t("pallet")}</option>
+                <option value="small_box" className="bg-[var(--dh-bg-card)] text-[var(--dh-text-main)]">{t("smallBox")}</option>
+                <option value="medium_box" className="bg-[var(--dh-bg-card)] text-[var(--dh-text-main)]">{t("mediumBox")}</option>
+                <option value="large_box" className="bg-[var(--dh-bg-card)] text-[var(--dh-text-main)]">{t("largeBox")}</option>
+                <option value="pallet" className="bg-[var(--dh-bg-card)] text-[var(--dh-text-main)]">{t("pallet")}</option>
               </select>
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
               {t("deliverySpeed")}
             </label>
-            <div className="grid grid-cols-3 gap-2 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+            <div className="grid grid-cols-3 gap-2 bg-[var(--dh-bg-muted)] p-1 rounded-xl border border-[var(--dh-border)]">
               {[
                 { id: "standard", label: t("standard"), sub: t("standardTime") },
                 { id: "express", label: t("express"), sub: t("expressTime") },
@@ -616,8 +616,8 @@ export default function NewShipmentView() {
                   className={cn(
                     "flex flex-col items-center justify-center py-2.5 rounded-lg transition-all duration-200",
                     deliverySpeed === speed.id
-                      ? "bg-zinc-900 border border-zinc-700 text-blue-400 shadow-sm ring-1 ring-zinc-700"
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40 border border-transparent"
+                      ? "bg-[var(--dh-bg-card)] border border-[var(--dh-border)] text-[var(--dh-brand)] shadow-sm font-bold"
+                      : "text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-card)]/40 border border-transparent"
                   )}
                 >
                   <span className="text-xs font-bold">{speed.label}</span>
@@ -629,16 +629,16 @@ export default function NewShipmentView() {
 
           {deliverySpeed === "scheduled" && (
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-zinc-400">
+              <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
                 {t("scheduledDate")}
               </label>
               <input
                 type="date"
                 {...register("scheduledDate")}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-zinc-700 transition-colors"
+                className="w-full bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--dh-text-main)] focus:outline-none focus:border-[var(--dh-brand)] transition-colors"
               />
               {errors.scheduledDate && (
-                <span className="text-[11px] text-red-400 font-medium">
+                <span className="text-[11px] text-[var(--dh-danger)] font-medium">
                   {validation(errors.scheduledDate.message as never)}
                 </span>
               )}
@@ -646,30 +646,30 @@ export default function NewShipmentView() {
           )}
 
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-zinc-400">
+            <label className="text-xs font-semibold text-[var(--dh-text-sub)]">
               {t("notes")}
             </label>
             <textarea
               {...register("notes")}
               rows={3}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors resize-none"
+              className="w-full bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--dh-text-main)] placeholder-[var(--dh-text-dim)] focus:outline-none focus:border-[var(--dh-brand)] transition-colors resize-none"
               placeholder={t("notesPlaceholder")}
             />
             {errors.notes && (
-              <span className="text-[11px] text-red-400 font-medium">
+              <span className="text-[11px] text-[var(--dh-danger)] font-medium">
                 {validation(errors.notes.message as never)}
               </span>
             )}
           </div>
 
           {submitError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-xs font-medium flex items-start gap-2.5 shadow-sm">
-              <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+            <div className="bg-[var(--dh-danger)]/10 border border-[var(--dh-danger)]/20 text-[var(--dh-danger)] p-4 rounded-xl text-xs font-medium flex items-start gap-2.5 shadow-sm">
+              <AlertCircle className="h-4 w-4 text-[var(--dh-danger)] shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-red-300">
+                <p className="font-semibold text-[var(--dh-danger)]/80">
                   {locale === 'ar' ? 'فشل في إنشاء الشحنة' : 'Failed to create shipment'}
                 </p>
-                <p className="mt-1 text-zinc-400 leading-relaxed">{submitError}</p>
+                <p className="mt-1 text-[var(--dh-text-sub)] leading-relaxed">{submitError}</p>
               </div>
             </div>
           )}
@@ -677,7 +677,7 @@ export default function NewShipmentView() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 mt-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 shadow-md focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 mt-2 bg-[var(--dh-brand)] hover:bg-[var(--dh-brand-hover)] disabled:bg-[var(--dh-brand)]/80 text-white font-semibold py-3 rounded-lg text-sm transition-all duration-200 shadow-md focus:outline-none"
           >
             {submitting ? (
               <span>{t("posting")}</span>
@@ -692,12 +692,12 @@ export default function NewShipmentView() {
 
         <div className="lg:col-span-5 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center text-xs font-semibold text-zinc-500 mb-1">
+            <div className="flex justify-between items-center text-xs font-semibold text-[var(--dh-text-muted)] mb-1">
               <span>{locale === 'ar' ? 'معاينة خريطة المسار' : 'Route Map Preview'}</span>
               {activeField && (
                 <span className={cn(
                   "animate-pulse text-[11px] font-bold px-2 py-0.5 rounded",
-                  activeField === 'pickup' ? "text-rose-400 bg-rose-500/10" : "text-emerald-400 bg-emerald-500/10"
+                  activeField === 'pickup' ? "text-rose-600 bg-rose-50" : "text-emerald-600 bg-emerald-50"
                 )}>
                   📍 {activeField === 'pickup' 
                     ? (locale === 'ar' ? 'انقر لتحديد موقع الاستلام' : 'Click map to set Pickup') 
@@ -714,46 +714,46 @@ export default function NewShipmentView() {
             />
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm flex flex-col gap-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 border-b border-zinc-800 pb-2">
+          <div className="bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl p-5 shadow-sm flex flex-col gap-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--dh-text-muted)] border-b border-[var(--dh-border)] pb-2">
               {t("summary")}
             </h3>
 
             <div className="flex flex-col gap-3 text-xs">
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">{t("distance")}</span>
-                <span className="text-zinc-200 font-semibold">{distance}</span>
+                <span className="text-[var(--dh-text-muted)] font-medium">{t("distance")}</span>
+                <span className="text-[var(--dh-text-main)] font-semibold">{distance}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">{t("weight")}</span>
-                <span className="text-zinc-200 font-semibold">{weight ? `${weight} kg` : "-"}</span>
+                <span className="text-[var(--dh-text-muted)] font-medium">{t("weight")}</span>
+                <span className="text-[var(--dh-text-main)] font-semibold">{weight ? `${weight} kg` : "-"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">{t("type")}</span>
-                <span className="text-zinc-200 font-semibold">{getPackageTypeLabel(packageType)}</span>
+                <span className="text-[var(--dh-text-muted)] font-medium">{t("type")}</span>
+                <span className="text-[var(--dh-text-main)] font-semibold">{getPackageTypeLabel(packageType)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">{t("speed")}</span>
-                <span className="text-zinc-200 font-semibold">{getSpeedLabel(deliverySpeed)}</span>
+                <span className="text-[var(--dh-text-muted)] font-medium">{t("speed")}</span>
+                <span className="text-[var(--dh-text-main)] font-semibold">{getSpeedLabel(deliverySpeed)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500 font-medium">
+                <span className="text-[var(--dh-text-muted)] font-medium">
                   {locale === 'ar' ? 'الوصول المتوقع' : 'Estimated Arrival'}
                 </span>
-                <span className="text-zinc-200 font-semibold">
+                <span className="text-[var(--dh-text-main)] font-semibold">
                   {hasCompleteRoute ? calculateEstimatedArrival(distanceKm, deliverySpeed, locale) : "-"}
                 </span>
               </div>
               {deliverySpeed === "scheduled" && scheduledDate && (
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 font-medium">{t("scheduledDate")}</span>
-                  <span className="text-zinc-200 font-semibold">{String(scheduledDate)}</span>
+                  <span className="text-[var(--dh-text-muted)] font-medium">{t("scheduledDate")}</span>
+                  <span className="text-[var(--dh-text-main)] font-semibold">{String(scheduledDate)}</span>
                 </div>
               )}
-              <hr className="border-zinc-800 my-1" />
+              <hr className="border-[var(--dh-border)] my-1" />
               <div className="flex flex-col gap-2 mt-1">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-zinc-400 font-bold">
+                  <span className="text-[var(--dh-text-muted)] font-bold">
                     {locale === 'ar' ? 'نطاق الميزانية (ج.م)' : 'Budget Range (EGP)'}
                   </span>
                   {isPriceEdited && (
@@ -768,7 +768,7 @@ export default function NewShipmentView() {
                         setMaxBudget(autoMax);
                         setValue("price", computedVal, { shouldValidate: true });
                       }}
-                      className="text-[10px] text-blue-500 hover:text-blue-400 font-semibold focus:outline-none"
+                      className="text-[10px] text-[var(--dh-brand)] hover:text-[var(--dh-brand-hover)] font-semibold focus:outline-none"
                     >
                       {t("resetToAuto")}
                     </button>
@@ -778,7 +778,7 @@ export default function NewShipmentView() {
                 {hasCompleteRoute && (
                   <div className="grid grid-cols-2 gap-3 mt-1">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-zinc-500 font-semibold">
+                      <span className="text-[10px] text-[var(--dh-text-sub)] font-semibold">
                         {locale === 'ar' ? 'الحد الأدنى' : 'Min Price'}
                       </span>
                       <input
@@ -790,11 +790,11 @@ export default function NewShipmentView() {
                           setIsPriceEdited(true);
                           setValue("price", Math.round((val + (maxBudget || 0)) / 2), { shouldValidate: true });
                         }}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-blue-400 font-bold focus:outline-none focus:border-zinc-700 transition-colors"
+                        className="w-full bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--dh-brand)] font-bold focus:outline-none focus:border-[var(--dh-brand)] transition-colors"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-zinc-500 font-semibold">
+                      <span className="text-[10px] text-[var(--dh-text-sub)] font-semibold">
                         {locale === 'ar' ? 'الحد الأقصى' : 'Max Price'}
                       </span>
                       <input
@@ -806,7 +806,7 @@ export default function NewShipmentView() {
                           setIsPriceEdited(true);
                           setValue("price", Math.round(((minBudget || 0) + val) / 2), { shouldValidate: true });
                         }}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-blue-400 font-bold focus:outline-none focus:border-zinc-700 transition-colors"
+                        className="w-full bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--dh-brand)] font-bold focus:outline-none focus:border-[var(--dh-brand)] transition-colors"
                       />
                     </div>
                   </div>

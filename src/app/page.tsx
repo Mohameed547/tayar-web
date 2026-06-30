@@ -67,10 +67,10 @@ export default function Home() {
   const cur = SLIDES[slide];
 
   return (
-    <main className="bg-white text-[#0D1B3E] overflow-x-hidden">
+    <main className="bg-[var(--dh-bg-app)] text-[var(--dh-text-main)] overflow-x-hidden">
 
       {/* HERO */}
-      <section className="relative bg-gradient-to-br from-[#F8FAFE] via-white to-[#EFF4FF] overflow-hidden">
+      <section className="hero-section relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--dh-bg-app) 0%, var(--dh-bg-card) 60%, var(--dh-bg-muted) 100%)" }}>
         {/* BG dots pattern */}
         <div className="absolute inset-0 opacity-20"
           style={{ backgroundImage: "radial-gradient(#2563EB33 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
@@ -151,7 +151,7 @@ export default function Home() {
       </section>
 
       {/* STATS RIBBON */}
-      <section className="bg-[#2563EB] py-12">
+      <section className="landing-brand-ribbon py-12" style={{ background: "linear-gradient(135deg, var(--dh-brand-hover) 0%, var(--dh-brand) 100%)" }}>
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
           {STATS.map((s, i) => (
             <div key={i}>
@@ -163,7 +163,7 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="py-24 bg-white">
+      <section id="features" className="py-24" style={{ background: "var(--dh-bg-card)" }}>
         <div className="max-w-7xl mx-auto px-4 md:px-10">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">المميزات</span>
@@ -172,7 +172,7 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURES.map((f, i) => (
-              <div key={i} className="group p-8 rounded-3xl border-2 border-[#F1F5F9] hover:border-[#2563EB]/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white cursor-default">
+              <div key={i} className="feature-card group p-8 rounded-3xl border-2 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-default" style={{ borderColor: "var(--dh-border)", background: "var(--dh-bg-card)" }}>
                 <div className="w-12 h-12 rounded-2xl bg-[#EFF4FF] group-hover:bg-[#2563EB] flex items-center justify-center text-[#2563EB] group-hover:text-white transition-all duration-300 mb-5">
                   {f.icon}
                 </div>
@@ -185,7 +185,7 @@ export default function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" className="py-24 bg-[#F8FAFE]">
+      <section id="how-it-works" className="py-24" style={{ background: "var(--dh-bg-app)" }}>
         <div className="max-w-5xl mx-auto px-4 md:px-10">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">كيف يعمل</span>
@@ -207,7 +207,7 @@ export default function Home() {
       </section>
 
       {/* DASHBOARD PREVIEW */}
-      <section className="py-24 bg-white overflow-hidden">
+      <section className="py-24 overflow-hidden" style={{ background: "var(--dh-bg-card)" }}>
         <div className="max-w-7xl mx-auto px-4 md:px-10">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">لوحة التحكم</span>
@@ -215,18 +215,18 @@ export default function Home() {
           </div>
 
           {/* Dashboard mockup */}
-          <div className="rounded-3xl border-2 border-[#E2E8F0] shadow-2xl overflow-hidden bg-[#F8FAFE]">
+          <div className="rounded-3xl border-2 shadow-2xl overflow-hidden dashboard-mockup" style={{ background: "var(--dh-bg-app)", borderColor: "var(--dh-border)" }}>
             {/* Top bar */}
-            <div className="bg-white border-b border-[#E2E8F0] px-6 py-4 flex items-center gap-3">
+            <div className="dashboard-mockup-topbar border-b px-6 py-4 flex items-center gap-3" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border)" }}>
               <div className="w-3 h-3 rounded-full bg-red-400" />
               <div className="w-3 h-3 rounded-full bg-yellow-400" />
               <div className="w-3 h-3 rounded-full bg-green-400" />
-              <div className="flex-1 mx-4 bg-[#F1F5F9] rounded-lg px-4 py-1.5 text-xs text-[#94A3B8]">app.tayar.com/dashboard</div>
+              <div className="flex-1 mx-4 rounded-lg px-4 py-1.5 text-xs dashboard-url-bar" style={{ background: "var(--dh-bg-muted)", color: "var(--dh-text-dim)" }}>app.tayar.com/dashboard</div>
             </div>
 
             <div className="flex min-h-[500px]">
               {/* Sidebar */}
-              <div className="w-56 bg-white border-l border-[#E2E8F0] p-4 flex flex-col gap-1 shrink-0">
+              <div className="dashboard-mockup-sidebar w-56 border-l p-4 flex flex-col gap-1 shrink-0" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border)" }}>
                 <div className="flex items-center gap-2 p-3 mb-4">
                   <div className="w-8 h-8 rounded-xl bg-[#2563EB] flex items-center justify-center">
                     <span className="text-white text-xs font-black">ط</span>
@@ -251,7 +251,7 @@ export default function Home() {
                     { label: "توصيل اليوم", val: "928", chg: "+15.7%", color: "text-[#F97316]" },
                     { label: "إجمالي الإيرادات", val: "24,560", chg: "+21.4%", color: "text-purple-600" },
                   ].map((s, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 border border-[#F1F5F9] shadow-sm">
+                    <div key={i} className="dashboard-stat-card rounded-2xl p-4 border" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border)" }}>
                       <p className="text-[10px] text-[#94A3B8] font-semibold mb-2">{s.label}</p>
                       <div className="flex items-end justify-between">
                         <span className={`text-xl font-black ${s.color}`}>{s.val}</span>
@@ -264,7 +264,7 @@ export default function Home() {
                 {/* Chart + Orders + Map */}
                 <div className="grid grid-cols-12 gap-4">
                   {/* Chart */}
-                  <div className="col-span-5 bg-white rounded-2xl p-4 border border-[#F1F5F9] shadow-sm">
+                  <div className="col-span-5 dashboard-chart-card rounded-2xl p-4 border" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border)" }}>
                     <p className="text-xs font-bold text-[#64748B] mb-4">الطلبات خلال 7 أيام</p>
                     <svg viewBox="0 0 260 120" className="w-full h-28">
                       <defs>
@@ -284,7 +284,7 @@ export default function Home() {
                   </div>
 
                   {/* Recent orders */}
-                  <div className="col-span-4 bg-white rounded-2xl p-4 border border-[#F1F5F9] shadow-sm">
+                  <div className="col-span-4 dashboard-chart-card rounded-2xl p-4 border" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border)" }}>
                     <p className="text-xs font-bold text-[#64748B] mb-3">الطلبات الأخيرة</p>
                     <div className="space-y-2.5">
                       {[
@@ -302,7 +302,7 @@ export default function Home() {
                   </div>
 
                   {/* Map */}
-                  <div className="col-span-3 bg-[#EFF4FF] rounded-2xl border border-[#DBEAFE] overflow-hidden relative">
+                  <div className="col-span-3 map-panel rounded-2xl border overflow-hidden relative" style={{ background: "var(--dh-bg-muted)", borderColor: "var(--dh-border-brand)" }}>
                     <p className="text-[10px] font-bold text-[#2563EB] p-3">التتبع المباشر</p>
                     <svg viewBox="0 0 150 120" className="w-full h-28 opacity-70">
                       <path d="M10,60 Q40,30 75,50 T140,30" fill="none" stroke="#2563EB" strokeWidth="2" strokeDasharray="4 3" />
@@ -320,7 +320,7 @@ export default function Home() {
       </section>
 
       {/* TRUST SECTION */}
-      <section className="py-16 bg-[#F8FAFE] border-y border-[#E2E8F0]">
+      <section className="py-16 border-y" style={{ background: "var(--dh-bg-app)", borderColor: "var(--dh-border)" }}>
         <div className="max-w-5xl mx-auto px-4 text-center">
           <p className="text-[#94A3B8] text-sm font-semibold mb-8">موثوق من قِبَل الشركات الرائدة</p>
           <div className="flex flex-wrap justify-center gap-10 items-center opacity-60">
@@ -332,7 +332,7 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="py-24 bg-white">
+      <section className="py-24" style={{ background: "var(--dh-bg-card)" }}>
         <div className="max-w-3xl mx-auto px-4">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">الأسئلة الشائعة</span>
@@ -340,14 +340,15 @@ export default function Home() {
           </div>
           <div className="space-y-4">
             {FAQS.map((item, i) => (
-              <div key={i} className="border-2 border-[#F1F5F9] rounded-2xl overflow-hidden transition-all">
+              <div key={i} className="faq-item border-2 rounded-2xl overflow-hidden transition-all" style={{ borderColor: "var(--dh-border)" }}>
                 <button onClick={() => setFaq(faq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-6 text-right font-bold text-[#0D1B3E] hover:bg-[#F8FAFE] transition-colors">
+                  className="w-full flex items-center justify-between p-6 text-right font-bold transition-colors"
+                  style={{ color: "var(--dh-text-main)" }}>
                   <span>{item.q}</span>
                   <ChevronDown className={`w-5 h-5 text-[#2563EB] transition-transform ${faq === i ? "rotate-180" : ""}`} />
                 </button>
                 {faq === i && (
-                  <div className="px-6 pb-6 text-[#64748B] text-sm leading-relaxed border-t border-[#F1F5F9] pt-4">
+                  <div className="px-6 pb-6 text-sm leading-relaxed border-t pt-4" style={{ color: "var(--dh-text-sub)", borderColor: "var(--dh-border)" }}>
                     {item.a}
                   </div>
                 )}
@@ -358,7 +359,7 @@ export default function Home() {
       </section>
 
       {/* ── TRUST METRICS BAR ── */}
-      <section className="py-10 bg-white border-y-2 border-[#F1F5F9]">
+      <section className="py-10 border-y-2" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border-subtle)" }}>
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6" dir="rtl">
           {[
             { icon: "🏆", val: "50,000+", label: "طلب مكتمل بنجاح" },
@@ -366,11 +367,11 @@ export default function Home() {
             { icon: "⭐", val: "4.9 / 5", label: "تقييم المستخدمين" },
             { icon: "🌍", val: "25+ مدينة", label: "نطاق التغطية الجغرافية" },
           ].map((m, i) => (
-            <div key={i} className="flex items-center gap-4 p-5 rounded-2xl border-2 border-[#F1F5F9] hover:border-[#2563EB]/20 hover:bg-[#F8FAFE] transition-all">
+            <div key={i} className="trust-metric-card flex items-center gap-4 p-5 rounded-2xl border-2 transition-all" style={{ borderColor: "var(--dh-border)" }}>
               <span className="text-3xl">{m.icon}</span>
               <div>
-                <div className="text-xl font-black text-[#0D1B3E]">{m.val}</div>
-                <div className="text-xs text-[#64748B] font-semibold mt-0.5">{m.label}</div>
+                <div className="text-xl font-black" style={{ color: "var(--dh-text-main)" }}>{m.val}</div>
+                <div className="text-xs font-semibold mt-0.5" style={{ color: "var(--dh-text-muted)" }}>{m.label}</div>
               </div>
             </div>
           ))}
@@ -378,7 +379,7 @@ export default function Home() {
       </section>
 
       {/* ── DELIVERY WORKFLOW TIMELINE ── */}
-      <section className="py-24 bg-[#F8FAFE]">
+      <section className="py-24" style={{ background: "var(--dh-bg-app)" }}>
         <div className="max-w-5xl mx-auto px-4 md:px-10" dir="rtl">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">آلية العمل</span>
@@ -419,7 +420,7 @@ export default function Home() {
       </section>
 
       {/* ── LIVE TRACKING SHOWCASE ── */}
-      <section className="py-24 bg-white overflow-hidden">
+      <section className="py-24 overflow-hidden" style={{ background: "var(--dh-bg-card)" }}>
         <div className="max-w-7xl mx-auto px-4 md:px-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Visual */}
@@ -490,7 +491,7 @@ export default function Home() {
       </section>
 
       {/* ── ROLE-BASED FEATURES ── */}
-      <section className="py-24 bg-[#F8FAFE]">
+      <section className="py-24" style={{ background: "var(--dh-bg-app)" }}>
         <div className="max-w-7xl mx-auto px-4 md:px-10" dir="rtl">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">حلول لكل الأدوار</span>
@@ -538,7 +539,7 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="py-24 bg-white">
+      <section className="py-24" style={{ background: "var(--dh-bg-card)" }}>
         <div className="max-w-6xl mx-auto px-4 md:px-10" dir="rtl">
           <div className="text-center mb-16">
             <span className="text-[#2563EB] text-sm font-bold uppercase tracking-widest">آراء العملاء</span>
@@ -551,7 +552,7 @@ export default function Home() {
               { name: "سارة الأحمد", role: "مديرة مكتب توصيل", text: "أدرت أسطولاً من 30 كابتن عبر طيار بكل سهولة. التقارير التفصيلية أعانتني على تحسين الأداء بشكل ملحوظ.", stars: 5, initials: "سا" },
               { name: "محمد الشامي", role: "كابتن توصيل", text: "طيار غيّر حياتي المهنية. أتحكم في جدولي وأختار الطلبات المناسبة وأربح أكثر من أي منصة أخرى.", stars: 5, initials: "مش" },
             ].map((t, i) => (
-              <div key={i} className="p-7 rounded-3xl border-2 border-[#F1F5F9] bg-white hover:border-[#2563EB]/20 hover:shadow-lg transition-all duration-300">
+              <div key={i} className="testimonial-card p-7 rounded-3xl border-2 transition-all duration-300" style={{ background: "var(--dh-bg-card)", borderColor: "var(--dh-border)" }}>
                 <div className="flex gap-1 mb-5">
                   {Array.from({ length: t.stars }).map((_, s) => (
                     <span key={s} className="text-[#F97316] text-lg">★</span>

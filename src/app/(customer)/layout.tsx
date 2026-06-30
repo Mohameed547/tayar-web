@@ -15,7 +15,7 @@ export default function CustomerLayout({
 
   return (
     <div
-      className="customer-surface flex h-screen w-screen overflow-hidden bg-zinc-950"
+      className="customer-surface flex h-screen w-screen overflow-hidden bg-[var(--dh-bg-app)]"
       data-surface="customer"
     >
       {/* Sidebar navigation for desktop */}
@@ -30,7 +30,7 @@ export default function CustomerLayout({
         <Topbar onMenuClick={() => setIsMobileMenuOpen(true)} />
 
         {/* Scrollable content canvas */}
-        <main className="flex-1 overflow-y-auto p-6 bg-zinc-950">
+        <main className="flex-1 overflow-y-auto p-6 bg-[var(--dh-bg-app)]">
           {children}
         </main>
       </div>

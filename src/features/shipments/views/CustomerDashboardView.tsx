@@ -108,9 +108,9 @@ export default function CustomerDashboardView() {
 
   if (checkingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0B0F19] text-zinc-400 text-sm font-semibold">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--dh-bg-app)] text-[var(--dh-text-sub)] text-sm font-semibold">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-t-blue-500 border-zinc-800 animate-spin" />
+          <div className="h-8 w-8 rounded-full border-2 border-t-[var(--dh-brand)] border-[var(--dh-border)] animate-spin" />
           <span>{locale === 'ar' ? 'جاري التحقق من الصلاحيات...' : 'Verifying permissions...'}</span>
         </div>
       </div>
@@ -119,9 +119,9 @@ export default function CustomerDashboardView() {
 
   if (!authorized || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0B0F19] text-zinc-400 text-sm font-semibold">
+      <div className="flex items-center justify-center min-h-screen bg-[var(--dh-bg-app)] text-[var(--dh-text-sub)] text-sm font-semibold">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 rounded-full border-2 border-t-blue-500 border-zinc-800 animate-spin" />
+          <div className="h-8 w-8 rounded-full border-2 border-t-[var(--dh-brand)] border-[var(--dh-border)] animate-spin" />
           <span>{locale === 'ar' ? 'جاري تحميل لوحة التحكم...' : 'Loading dashboard...'}</span>
         </div>
       </div>
@@ -129,18 +129,18 @@ export default function CustomerDashboardView() {
   }
 
   return (
-    <div className="flex flex-col gap-8 text-zinc-100 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-8 text-[var(--dh-text-main)] max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--dh-text-main)]">
             {t("greeting", { name: customerName })}
           </h1>
-          <p className="text-xs text-zinc-500 font-semibold">{formattedDate}</p>
+          <p className="text-xs text-[var(--dh-text-muted)] font-semibold">{formattedDate}</p>
         </div>
 
         <Link
           href="/shipments/new"
-          className="flex items-center gap-2 px-4.5 py-2.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all duration-200 shadow-md focus:outline-none"
+          className="flex items-center gap-2 px-4.5 py-2.5 rounded-lg text-xs font-bold bg-[var(--dh-brand)] hover:bg-[var(--dh-brand-hover)] text-white transition-all duration-200 shadow-md focus:outline-none"
         >
           <Plus className="h-4 w-4 stroke-[2.5]" />
           <span>{t("newShipment")}</span>
@@ -153,24 +153,24 @@ export default function CustomerDashboardView() {
           value={shipments.length.toString()}
           icon={Package}
           description={t("totalShippedDescription")}
-          colorClass="text-zinc-100"
-          iconColorClass="text-zinc-400 bg-zinc-900 border-zinc-800"
+          colorClass="text-[var(--dh-text-main)]"
+          iconColorClass="text-[var(--dh-text-sub)] bg-[var(--dh-bg-muted)] border-[var(--dh-border)]"
         />
         <StatCard
           title={t("activeNow")}
           value={activeShipments.length.toString()}
           icon={Clock}
           description={t("activeNowDescription")}
-          colorClass="text-blue-400"
-          iconColorClass="text-blue-400 bg-blue-500/10 border-blue-500/20"
+          colorClass="text-[var(--dh-brand)]"
+          iconColorClass="text-[var(--dh-brand)] bg-[var(--dh-brand-subtle)] border-[var(--dh-brand)]/20"
         />
         <StatCard
           title={t("walletBalance")}
           value={walletBalance}
           icon={Wallet}
           description={t("walletDescription")}
-          colorClass="text-emerald-400"
-          iconColorClass="text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+          colorClass="text-[var(--dh-success)]"
+          iconColorClass="text-[var(--dh-success)] bg-[var(--dh-success)]/10 border-[var(--dh-success)]/20"
           href="/wallet"
         />
         <StatCard
@@ -178,14 +178,14 @@ export default function CustomerDashboardView() {
           value={`${averageRating} ★`}
           icon={Star}
           description={t("ratingDescription")}
-          colorClass="text-amber-400"
-          iconColorClass="text-amber-400 bg-amber-500/10 border-amber-500/20"
+          colorClass="text-[var(--dh-accent)]"
+          iconColorClass="text-[var(--dh-accent)] bg-[var(--dh-accent)]/10 border-[var(--dh-accent)]/20"
           href="/reviews"
         />
       </div>
 
       <div className="flex flex-col gap-4.5 mt-2">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-500">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--dh-text-muted)]">
           {t("activeShipments")}
         </h2>
 
@@ -196,11 +196,11 @@ export default function CustomerDashboardView() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-12 bg-zinc-900/40 border border-zinc-800 border-dashed rounded-xl text-center">
-            <p className="text-xs text-zinc-500">{t("noActive")}</p>
+          <div className="flex flex-col items-center justify-center p-12 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] border-dashed rounded-xl text-center">
+            <p className="text-xs text-[var(--dh-text-muted)]">{t("noActive")}</p>
             <Link
               href="/shipments/new"
-              className="text-xs text-blue-500 hover:text-blue-400 font-semibold mt-2 underline underline-offset-4"
+              className="text-xs text-[var(--dh-brand)] hover:text-[var(--dh-brand-hover)] font-semibold mt-2 underline underline-offset-4"
             >
               {t("requestShipment")}
             </Link>

@@ -56,12 +56,12 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-6 bg-zinc-950 border-b border-zinc-800 text-zinc-100 gap-4">
+    <header className="flex items-center justify-between h-16 px-6 bg-[var(--dh-bg-topbar)] border-b border-[var(--dh-border)] text-[var(--dh-text-main)] gap-4">
       {/* Hamburger menu button for mobile */}
       {onMenuClick && (
         <button
           onClick={onMenuClick}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 md:hidden transition-colors focus:outline-none shrink-0"
+          className="p-1.5 rounded-lg text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] md:hidden transition-colors focus:outline-none shrink-0"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -70,11 +70,11 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
       {/* Left side search trigger */}
       <div className="flex items-center flex-1 max-w-md">
         <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--dh-text-dim)]" />
           <input
             type="text"
             placeholder={t("searchPlaceholder")}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-1.5 text-sm text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+            className="w-full bg-[var(--dh-bg-muted)] border border-[var(--dh-border)] rounded-xl pl-10 pr-4 py-1.5 text-sm text-[var(--dh-text-main)] placeholder-[var(--dh-text-dim)] focus:outline-none focus:border-[var(--dh-brand)] transition-colors"
           />
         </div>
       </div>
@@ -82,33 +82,33 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
       {/* Right side notifications and profile */}
       <div className="flex items-center gap-4">
         <div className="hidden items-center gap-2 lg:flex">
-          <ThemeToggle className="border-zinc-800 bg-zinc-900 dark:bg-zinc-900" />
-          <LocaleToggle className="border-zinc-800 bg-zinc-900 dark:bg-zinc-900" />
+          <ThemeToggle className="border-[var(--dh-border)] bg-[var(--dh-bg-muted)]" />
+          <LocaleToggle className="border-[var(--dh-border)] bg-[var(--dh-bg-muted)]" />
         </div>
         {/* Notification bell */}
         <button
           onClick={() => router.push("/notifications")}
-          className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+          className="relative p-2 rounded-lg text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] transition-colors"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white ring-2 ring-zinc-950">
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--dh-danger)] text-[9px] font-black text-white ring-2 ring-[var(--dh-bg-topbar)]">
               {unreadCount}
             </span>
           )}
         </button>
 
         {/* Vertical divider */}
-        <div className="h-6 w-px bg-zinc-800" />
+        <div className="h-6 w-px bg-[var(--dh-border)]" />
 
         {/* Profile Dropdown */}
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-zinc-900 transition-colors focus:outline-none"
+            className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-[var(--dh-bg-muted)] transition-colors focus:outline-none"
           >
             {/* Avatar badge */}
-            <div className="flex items-center justify-center h-8 w-8 rounded-full overflow-hidden bg-blue-600 text-white font-bold text-xs shrink-0">
+            <div className="flex items-center justify-center h-8 w-8 rounded-full overflow-hidden bg-[var(--dh-brand)] text-white font-bold text-xs shrink-0">
               {user && user.avatar ? (
                 <img
                   src={user.avatar}
@@ -122,14 +122,14 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
               )}
             </div>
             <div className="hidden sm:flex flex-col items-start text-left">
-              <span className="text-sm font-semibold leading-tight text-zinc-200">
+              <span className="text-sm font-semibold leading-tight text-[var(--dh-text-main)]">
                 {user ? user.name : "Loading..."}
               </span>
-              <span className="text-[10px] text-zinc-500">
+              <span className="text-[10px] text-[var(--dh-text-muted)]">
                 {user ? getLocalizedRole(user.role) : "..."}
               </span>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 text-zinc-500 transition-transform duration-200" style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }} />
+            <ChevronDown className="h-3.5 w-3.5 text-[var(--dh-text-dim)] transition-transform duration-200" style={{ transform: dropdownOpen ? "rotate(180deg)" : "none" }} />
           </button>
 
           {/* Dropdown Menu */}
@@ -140,24 +140,24 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
                 className="fixed inset-0 z-10"
                 onClick={() => setDropdownOpen(false)}
               />
-              <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl py-1 z-20">
+              <div className="absolute right-0 mt-2 w-48 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl shadow-xl py-1 z-20">
                 <Link
                   href="/profile"
                   onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors"
                 >
-                  <UserIcon className="h-4 w-4 text-zinc-500" />
+                  <UserIcon className="h-4 w-4 text-[var(--dh-text-dim)]" />
                   <span>{t("myProfile")}</span>
                 </Link>
                 <Link
                   href="/profile?tab=settings"
                   onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors"
                 >
-                  <Settings className="h-4 w-4 text-zinc-500" />
+                  <Settings className="h-4 w-4 text-[var(--dh-text-dim)]" />
                   <span>{t("accountSettings")}</span>
                 </Link>
-                <hr className="border-zinc-800 my-1" />
+                <hr className="border-[var(--dh-border)] my-1" />
                 <button
                   onClick={async () => {
                     setDropdownOpen(false);
@@ -168,7 +168,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
                     }
                     router.push("/login");
                   }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-danger)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-danger)]/80 transition-colors text-left"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>{t("signOut")}</span>
