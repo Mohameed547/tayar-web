@@ -5,9 +5,20 @@ import type { ApiResponse } from "@/shared/types/api";
 import { mockProviderDashboardData } from "@/features/captain/data/mock-dashboard-data";
 
 function mapWalletTransaction(t: any): WalletTransaction {
+  const purpose = t.purpose?.toLowerCase();
+  let description = t.description;
+  if (!description) {
+    if (purpose === "topup" || purpose === "deposit") description = "شحن المحفظة (Top-up)";
+    else if (purpose === "withdrawal") description = "سحب نقدي (Withdrawal)";
+    else if (purpose === "refund") description = "استرداد أموال (Refund)";
+    else if (purpose === "payment") description = "دفع خدمة (Payment)";
+    else if (purpose === "earning") description = "أرباح توصيل (Earnings)";
+    else description = t.purpose || "معاملة مالية";
+  }
+
   return {
     id: t._id || t.id,
-    description: t.description || (t.purpose === "earning" ? "أرباح توصيل" : t.purpose) || "",
+    description,
     amountEGP: t.amount,
     type: t.type === "Debit" || t.type === "debit" ? "debit" : "credit",
     date: t.createdAt || t.date || new Date().toISOString(),

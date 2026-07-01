@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useTranslations, useLocale } from "next-intl";
 import { createShipment } from "@/features/shipments";
+import { getWallet } from "@/features/wallet/api";
 import { calculateDistance, reverseGeocode, fetchAddressSuggestions, type MapSuggestion } from "@/lib/utils/map";
 import dynamic from "next/dynamic";
 
@@ -83,9 +84,33 @@ export default function NewShipmentView() {
   const validation = useTranslations("validation");
   const router = useRouter();
   const locale = useLocale();
+  
+  const getValidationError = (messageKey: string | undefined) => {
+    if (!messageKey) return "";
+    try {
+      if (messageKey.includes(" ") || messageKey.includes(":")) {
+        return locale === 'ar' ? 'يرجى إدخال قيمة صحيحة' : 'Please enter a valid value';
+      }
+      return validation(messageKey as any);
+    } catch {
+      return locale === 'ar' ? 'يرجى إدخال قيمة صحيحة' : 'Please enter a valid value';
+    }
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [isPriceEdited, setIsPriceEdited] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    getWallet()
+      .then((data) => {
+        setWalletBalance(data.balance);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch wallet balance:", err);
+      });
+  }, []);
 
   // Map state
   const [pickupCoords, setPickupCoords] = useState<[number, number] | undefined>([30.0444, 31.2357]);
@@ -349,6 +374,17 @@ export default function NewShipmentView() {
   const onSubmit = async (data: ShipmentFormValues) => {
     setSubmitting(true);
     setSubmitError(null);
+
+    const currentCost = data.price || minBudget || 0;
+    if (walletBalance !== null && walletBalance < currentCost) {
+      const balanceErr = locale === 'ar'
+        ? `رصيد المحفظة الحالي (${walletBalance} ج.م) غير كافٍ لتغطية تكلفة الشحنة المتوقعة (${currentCost} ج.م). يرجى شحن محفظتك للمتابعة.`
+        : `Your current wallet balance (${walletBalance} EGP) is insufficient to cover the expected shipment cost (${currentCost} EGP). Please top up your wallet to continue.`;
+      setSubmitError(balanceErr);
+      setSubmitting(false);
+      return;
+    }
+
     console.log("Submitting shipment request payload:", data);
     try {
       const newShipment = await createShipment({
@@ -549,7 +585,7 @@ export default function NewShipmentView() {
             </div>
             {errors.deliveryAddress && (
               <span className="text-[11px] text-[var(--dh-danger)] font-medium">
-                {validation(errors.deliveryAddress.message as never)}
+                {getValidationError(errors.deliveryAddress.message)}
               </span>
             )}
           </div>
@@ -568,7 +604,7 @@ export default function NewShipmentView() {
               />
               {errors.weight && (
                 <span className="text-[11px] text-[var(--dh-danger)] font-medium">
-                  {validation(errors.weight.message as never)}
+                  {getValidationError(errors.weight.message)}
                 </span>
               )}
             </div>
@@ -639,7 +675,7 @@ export default function NewShipmentView() {
               />
               {errors.scheduledDate && (
                 <span className="text-[11px] text-[var(--dh-danger)] font-medium">
-                  {validation(errors.scheduledDate.message as never)}
+                  {getValidationError(errors.scheduledDate.message)}
                 </span>
               )}
             </div>
@@ -657,10 +693,29 @@ export default function NewShipmentView() {
             />
             {errors.notes && (
               <span className="text-[11px] text-[var(--dh-danger)] font-medium">
-                {validation(errors.notes.message as never)}
+                {getValidationError(errors.notes.message)}
               </span>
             )}
           </div>
+
+          {walletBalance !== null && hasCompleteRoute && walletBalance < (price || minBudget || 0) && (
+            <div className="bg-[var(--dh-danger)]/10 border border-[var(--dh-danger)]/20 text-[var(--dh-danger)] p-4 rounded-xl text-xs font-medium flex items-start gap-2.5 shadow-sm">
+              <AlertCircle className="h-4 w-4 text-[var(--dh-danger)] shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-[var(--dh-danger)]/80">
+                  {locale === 'ar' ? 'رصيد المحفظة غير كافٍ' : 'Insufficient Wallet Balance'}
+                </p>
+                <p className="mt-1 text-[var(--dh-text-sub)] leading-relaxed">
+                  {locale === 'ar' 
+                    ? `رصيدك الحالي (${walletBalance} ج.م) أقل من تكلفة الشحنة المتوقعة (${price || minBudget || 0} ج.م).`
+                    : `Your current balance (${walletBalance} EGP) is less than the expected shipment cost (${price || minBudget || 0} EGP).`}
+                  <a href="/wallet" className="underline font-bold text-[var(--dh-brand)] ml-1 hover:text-[var(--dh-brand-hover)] transition-colors">
+                    {locale === 'ar' ? 'اشحن محفظتك الآن' : 'Top up your wallet now'}
+                  </a>
+                </p>
+              </div>
+            </div>
+          )}
 
           {submitError && (
             <div className="bg-[var(--dh-danger)]/10 border border-[var(--dh-danger)]/20 text-[var(--dh-danger)] p-4 rounded-xl text-xs font-medium flex items-start gap-2.5 shadow-sm">

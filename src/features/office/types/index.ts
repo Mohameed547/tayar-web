@@ -3,6 +3,7 @@
 
 export interface Captain {
   id: string;
+  userId?: string;
   name: string;
   phone: string;
   status: "available" | "busy" | "offline";
