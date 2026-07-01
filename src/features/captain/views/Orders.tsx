@@ -61,6 +61,9 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
     return 0
   })
 
+  const currentCaptain = captains.find(c => c.userId === order.captain?.id)
+  const selectedValue = currentCaptain ? currentCaptain.id : ""
+
   return (
     <div className="flex flex-col gap-1.5 items-end">
       {errorMsg && (
@@ -88,7 +91,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
         </div>
 
         <select
-          value={order.captain?.id || ""}
+          value={selectedValue}
           disabled={loading || order.status === 'in_progress' || order.status === 'delivered'}
           onChange={handleAssign}
           className="bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-100 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-50"
@@ -99,7 +102,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
               : (isRTL ? 'إعادة تعيين كابتن...' : 'Reassign Captain...')}
           </option>
           {sortedCaptains.map((cap) => (
-            <option key={cap.id} value={cap.id}>
+            <option key={cap.id} value={cap.id} disabled={cap.status !== 'available' && cap.id !== selectedValue}>
               {cap.name} ({cap.status === 'available' ? (isRTL ? 'متاح' : 'Available') : (isRTL ? 'مشغول' : 'Busy')})
             </option>
           ))}
@@ -112,16 +115,19 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
 function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boolean; t: any }) {
   const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const currentStatus = order.rawStatus || order.status;
 
   const handleAcceptAssignment = async () => {
     setLoading(true)
+    setErrorMsg('')
     try {
       await acceptAssignment(order.id)
       dispatch(fetchCaptainDashboard('captain'))
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
     } finally {
       setLoading(false)
     }
@@ -129,11 +135,13 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
 
   const handleRejectAssignment = async () => {
     setLoading(true)
+    setErrorMsg('')
     try {
       await rejectAssignment(order.id)
       dispatch(fetchCaptainDashboard('captain'))
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
     } finally {
       setLoading(false)
     }
@@ -141,27 +149,34 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
 
   if (order.captainStatus === 'pending') {
     return (
-      <div className="flex gap-2">
-        <button
-          onClick={handleAcceptAssignment}
-          disabled={loading}
-          className="px-3 py-[6px] bg-green-600 hover:bg-green-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
-        >
-          {loading && (
-            <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
-          )}
-          {isRTL ? 'قبول العرض' : 'Accept Offer'}
-        </button>
-        <button
-          onClick={handleRejectAssignment}
-          disabled={loading}
-          className="px-3 py-[6px] bg-red-600 hover:bg-red-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
-        >
-          {loading && (
-            <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
-          )}
-          {isRTL ? 'رفض العرض' : 'Reject Offer'}
-        </button>
+      <div className="flex flex-col gap-1.5 items-end">
+        {errorMsg && (
+          <span className="text-[10px] text-red-400 font-medium mb-1 max-w-[200px] text-right">
+            {errorMsg}
+          </span>
+        )}
+        <div className="flex gap-2">
+          <button
+            onClick={handleAcceptAssignment}
+            disabled={loading}
+            className="px-3 py-[6px] bg-green-600 hover:bg-green-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {loading && (
+              <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+            )}
+            {isRTL ? 'قبول العرض' : 'Accept Offer'}
+          </button>
+          <button
+            onClick={handleRejectAssignment}
+            disabled={loading}
+            className="px-3 py-[6px] bg-red-600 hover:bg-red-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {loading && (
+              <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+            )}
+            {isRTL ? 'رفض العرض' : 'Reject Offer'}
+          </button>
+        </div>
       </div>
     )
   }
@@ -172,6 +187,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
 
   const handleAction = async () => {
     setLoading(true)
+    setErrorMsg('')
     try {
       let nextStatus = 'delivered';
       if (currentStatus === 'assigned' || currentStatus === 'captain_assignment') {
@@ -192,8 +208,9 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
         }
       }
       dispatch(fetchCaptainDashboard('captain'))
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
     } finally {
       setLoading(false)
     }
@@ -211,16 +228,23 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
   }
 
   return (
-    <button
-      onClick={handleAction}
-      disabled={loading}
-      className={`px-3 py-[6px] ${buttonBg} text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50`}
-    >
-      {loading && (
-        <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+    <div className="flex flex-col gap-1.5 items-end">
+      {errorMsg && (
+        <span className="text-[10px] text-red-400 font-medium mb-1 max-w-[200px] text-right">
+          {errorMsg}
+        </span>
       )}
-      {buttonText}
-    </button>
+      <button
+        onClick={handleAction}
+        disabled={loading}
+        className={`px-3 py-[6px] ${buttonBg} text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50`}
+      >
+        {loading && (
+          <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+        )}
+        {buttonText}
+      </button>
+    </div>
   )
 }
 

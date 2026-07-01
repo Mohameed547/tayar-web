@@ -8,6 +8,8 @@ export const sharedMessages = {
       close: "Close",
       currency: "EGP",
       copyright: "All rights reserved.",
+      from: "From",
+      to: "To",
     },
     navigation: {
       howItWorks: "How it works",
@@ -160,6 +162,8 @@ export const sharedMessages = {
       close: "إغلاق",
       currency: "ج.م",
       copyright: "جميع الحقوق محفوظة.",
+      from: "من",
+      to: "إلى",
     },
     navigation: {
       howItWorks: "كيف تعمل المنصة",

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { useTheme } from '@/shared/providers/theme-provider'
+import { useTranslations } from 'next-intl'
 
 interface MapViewProps {
   pickupCoords?: [number, number]
@@ -25,37 +27,40 @@ export default function MapView({
 }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<L.Map | null>(null)
+  const { theme } = useTheme()
+  const t = useTranslations('common')
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
   
   const pickupMarkerRef = useRef<L.Marker | null>(null)
   const deliveryMarkerRef = useRef<L.Marker | null>(null)
   const captainMarkerRef = useRef<L.Marker | null>(null)
   const polylineRef = useRef<L.Polyline | null>(null)
 
-  const getGreenPin = () => L.divIcon({
+  const getGreenPin = (label: string) => L.divIcon({
     className: 'custom-pin-green',
-    html: `<div class="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500/20 border-2 border-emerald-500 shadow-lg">
-      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+    html: `<div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; background-color: #10b981; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);">
+      <span style="font-size: 11px; font-weight: 900; color: #ffffff; direction: rtl; unicode-bidi: embed;">${label}</span>
     </div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   })
 
-  const getRedPin = () => L.divIcon({
+  const getRedPin = (label: string) => L.divIcon({
     className: 'custom-pin-red',
-    html: `<div class="flex items-center justify-center w-7 h-7 rounded-full bg-rose-500/20 border-2 border-rose-500 shadow-lg">
-      <div class="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
+    html: `<div style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; background-color: #f43f5e; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(244, 63, 94, 0.8);">
+      <span style="font-size: 11px; font-weight: 900; color: #ffffff; direction: rtl; unicode-bidi: embed;">${label}</span>
     </div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   })
 
   const getCaptainIcon = () => L.divIcon({
     className: 'custom-pin-captain',
-    html: `<div class="flex items-center justify-center w-9 h-9 rounded-full bg-blue-500/30 border-2 border-blue-500 shadow-xl">
-      <span class="text-sm">🚚</span>
+    html: `<div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 9999px; background-color: #2563eb; border: 2px solid #ffffff; box-shadow: 0 0 12px rgba(37, 99, 235, 0.9); font-size: 18px;">
+      🚚
     </div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
   })
 
   const onMapClickRef = useRef(onMapClick)
@@ -76,9 +81,13 @@ export default function MapView({
       attributionControl: false,
     })
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    const satelliteUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+
+    const initialTileLayer = L.tileLayer(satelliteUrl, {
       maxZoom: 20,
     }).addTo(mapInstance)
+
+    tileLayerRef.current = initialTileLayer
 
     setMap(mapInstance)
 
@@ -97,6 +106,20 @@ export default function MapView({
   }, [])
 
   useEffect(() => {
+    if (!map || !tileLayerRef.current) return
+
+    const satelliteUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+
+    tileLayerRef.current.remove()
+
+    const newTileLayer = L.tileLayer(satelliteUrl, {
+      maxZoom: 20,
+    }).addTo(map)
+
+    tileLayerRef.current = newTileLayer
+  }, [map, theme])
+
+  useEffect(() => {
     if (!map) return
 
     const bounds: L.LatLngExpression[] = []
@@ -105,8 +128,9 @@ export default function MapView({
       bounds.push(pickupCoords)
       if (pickupMarkerRef.current) {
         pickupMarkerRef.current.setLatLng(pickupCoords)
+        pickupMarkerRef.current.setIcon(getRedPin(t('from')))
       } else {
-        pickupMarkerRef.current = L.marker(pickupCoords, { icon: getRedPin() }).addTo(map)
+        pickupMarkerRef.current = L.marker(pickupCoords, { icon: getRedPin(t('from')) }).addTo(map)
       }
     } else if (pickupMarkerRef.current) {
       pickupMarkerRef.current.remove()
@@ -117,8 +141,9 @@ export default function MapView({
       bounds.push(deliveryCoords)
       if (deliveryMarkerRef.current) {
         deliveryMarkerRef.current.setLatLng(deliveryCoords)
+        deliveryMarkerRef.current.setIcon(getGreenPin(t('to')))
       } else {
-        deliveryMarkerRef.current = L.marker(deliveryCoords, { icon: getGreenPin() }).addTo(map)
+        deliveryMarkerRef.current = L.marker(deliveryCoords, { icon: getGreenPin(t('to')) }).addTo(map)
       }
     } else if (deliveryMarkerRef.current) {
       deliveryMarkerRef.current.remove()
@@ -146,10 +171,10 @@ export default function MapView({
         polylineRef.current.setLatLngs(routePath)
       } else {
         polylineRef.current = L.polyline(routePath, {
-          color: '#3b82f6',
-          weight: 3.5,
-          opacity: 0.8,
-          dashArray: '5, 8',
+          color: '#06b6d4', // High-contrast Cyan
+          weight: 4.5,      // Slightly thicker for satellite view
+          opacity: 0.9,
+          dashArray: '6, 8',
         }).addTo(map)
       }
     } else if (polylineRef.current) {
@@ -162,7 +187,7 @@ export default function MapView({
     } else if (bounds.length === 1) {
       map.setView(bounds[0], zoom)
     }
-  }, [map, pickupCoords, deliveryCoords, captainCoords, zoom])
+  }, [map, pickupCoords, deliveryCoords, captainCoords, zoom, t])
 
   return (
     <div 

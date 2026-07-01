@@ -35,6 +35,7 @@ export async function getTeamCaptains(): Promise<Captain[]> {
 
     return list.map((c: any) => ({
       id: c.id || c._id || "",
+      userId: c.userId || "",
       name: c.fullName || c.name || "Captain",
       phone: c.phone || "",
       status: c.status || "offline",
@@ -55,6 +56,7 @@ export async function addTeamCaptain(
   return {
     captain: {
       id: result?.captain?.id || result?.captain?._id || "",
+      userId: result?.captain?.userId || "",
       name: result?.captain?.fullName || result?.captain?.name || "",
       phone: result?.captain?.phone || "",
       status: result?.captain?.status || "offline",
@@ -74,6 +76,7 @@ export async function updateCaptainStatus(
   const result = response.data.data;
   return {
     id: result?.id || result?._id || id,
+    userId: result?.userId || "",
     name: result?.fullName || result?.name || "",
     phone: result?.phone || "",
     status: result?.status || status,
