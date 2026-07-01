@@ -82,12 +82,12 @@ export const shipmentRequestSchema = z
   .object({
     pickupAddress: z.string().min(5, "pickupShort"),
     deliveryAddress: z.string().min(5, "deliveryShort"),
-    weight: z.number().positive("weightPositive"),
+    weight: z.number({ message: "weightPositive" }).positive("weightPositive"),
     packageType: z.enum(["small_box", "medium_box", "large_box", "pallet"]),
     deliverySpeed: z.enum(["standard", "express", "scheduled"]),
     scheduledDate: z.union([z.string(), z.date()]).optional(),
     notes: z.string().max(300, "notesMax").optional(),
-    price: z.number().positive("pricePositive").optional(),
+    price: z.number({ message: "pricePositive" }).positive("pricePositive").optional(),
   })
   .refine(
     (data) => {

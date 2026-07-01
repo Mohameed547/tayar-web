@@ -1,7 +1,8 @@
 "use client";
 
 import { Wallet as WalletIcon, Plus, ArrowUpRight, ArrowDownLeft, TrendingUp, X, Lock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { topUpSchema, withdrawSchema } from "@/lib/validation/common";
@@ -70,6 +71,19 @@ export default function WalletView() {
   useEffect(() => {
     fetchWalletData();
   }, [t]);
+
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+
+  useEffect(() => {
+    if (status === "success") {
+      fetchWalletData();
+      const timer = setTimeout(() => {
+        fetchWalletData();
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -178,7 +192,7 @@ export default function WalletView() {
       setBalance((prev) => prev - data.amount);
       const newTx: Transaction = {
         id: `tx-${transactions.length + 1}`,
-        type: "payment",
+        type: "withdraw",
         amount: -data.amount,
         description: t("withdrawalDescription", { destination: data.destination }),
         date: new Date().toISOString(),
@@ -189,19 +203,25 @@ export default function WalletView() {
     }
   };
 
-  const totalLoaded = transactions
-    .filter((t) => t.type === "topup")
-    .reduce((sum, t) => sum + Math.max(0, t.amount), 0);
+  const totalLoaded = useMemo(() => {
+    return transactions
+      .filter((t) => t.type === "topup")
+      .reduce((sum, t) => sum + Math.max(0, t.amount), 0);
+  }, [transactions]);
 
-  const totalPaid = Math.abs(
-    transactions
-      .filter((t) => t.type === "payment" && t.amount < 0)
-      .reduce((sum, t) => sum + t.amount, 0)
-  );
+  const totalPaid = useMemo(() => {
+    return Math.abs(
+      transactions
+        .filter((t) => (t.type === "payment" || t.type === "withdraw") && t.amount < 0)
+        .reduce((sum, t) => sum + t.amount, 0)
+    );
+  }, [transactions]);
 
-  const totalSaved = transactions
-    .filter((t) => t.type === "cashback")
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalSaved = useMemo(() => {
+    return transactions
+      .filter((t) => t.type === "cashback")
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-4xl mx-auto">
@@ -215,10 +235,10 @@ export default function WalletView() {
 
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                     {t("availableBalance")}
                   </span>
-                  <p className="text-3xl font-extrabold text-zinc-100 mt-1.5">
+                  <p className="text-3xl font-extrabold text-white mt-1.5">
                     EGP {balance.toFixed(2)}
                   </p>
                 </div>
@@ -228,7 +248,7 @@ export default function WalletView() {
               </div>
 
               {lockedBalance > 0 && (
-                <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-lg mt-1">
+                <div className="flex items-center gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-lg mt-1">
                   <Lock className="h-3.5 w-3.5" />
                   <span>
                     الرصيد المعلق (إسكرو): <strong>EGP {lockedBalance.toFixed(2)}</strong>
@@ -238,13 +258,13 @@ export default function WalletView() {
 
               <div className="flex justify-between items-center border-t border-zinc-800/60 pt-3 text-[11px]">
                 <div className="flex flex-col">
-                  <span className="text-zinc-500 font-medium">{t("walletId")}</span>
-                  <span className="text-zinc-300 font-bold mt-0.5">
+                  <span className="text-slate-400 font-medium">{t("walletId")}</span>
+                  <span className="text-slate-200 font-bold mt-0.5">
                     {walletId ? `SC-W-${walletId.slice(-5).toUpperCase()}` : "SC-W-00412"}
                   </span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-zinc-500 font-medium">الرصيد الكلي</span>
+                  <span className="text-slate-400 font-medium">الرصيد الكلي</span>
                   <span className="text-blue-400 font-bold mt-0.5">EGP {(balance + lockedBalance).toFixed(2)}</span>
                 </div>
               </div>
