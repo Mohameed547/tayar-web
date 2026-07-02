@@ -114,13 +114,15 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
 
 function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boolean; t: any }) {
   const dispatch = useAppDispatch()
+  const [acceptLoading, setAcceptLoading] = useState(false)
+  const [rejectLoading, setRejectLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
   const currentStatus = order.rawStatus || order.status;
 
   const handleAcceptAssignment = async () => {
-    setLoading(true)
+    setAcceptLoading(true)
     setErrorMsg('')
     try {
       await acceptAssignment(order.id)
@@ -129,12 +131,12 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       console.error(err)
       setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
     } finally {
-      setLoading(false)
+      setAcceptLoading(false)
     }
   }
 
   const handleRejectAssignment = async () => {
-    setLoading(true)
+    setRejectLoading(true)
     setErrorMsg('')
     try {
       await rejectAssignment(order.id)
@@ -143,7 +145,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       console.error(err)
       setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
     } finally {
-      setLoading(false)
+      setRejectLoading(false)
     }
   }
 
@@ -158,20 +160,20 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
         <div className="flex gap-2">
           <button
             onClick={handleAcceptAssignment}
-            disabled={loading}
+            disabled={acceptLoading || rejectLoading}
             className="px-3 py-[6px] bg-green-600 hover:bg-green-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
-            {loading && (
+            {acceptLoading && (
               <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
             )}
             {isRTL ? 'قبول العرض' : 'Accept Offer'}
           </button>
           <button
             onClick={handleRejectAssignment}
-            disabled={loading}
+            disabled={acceptLoading || rejectLoading}
             className="px-3 py-[6px] bg-red-600 hover:bg-red-700 text-white text-[12px] font-semibold rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
           >
-            {loading && (
+            {rejectLoading && (
               <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
             )}
             {isRTL ? 'رفض العرض' : 'Reject Offer'}
