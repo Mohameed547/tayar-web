@@ -20,7 +20,7 @@ export default function Footer() {
         <footer className="border-t border-[var(--dh-border)] bg-[var(--dh-bg-topbar)]">
             <div className="max-w-6xl mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
                 <div className="flex flex-col gap-4">
-                    <DelixLogo className="h-7 w-7" textClassName="font-display font-extrabold text-lg text-[var(--dh-text-main)] tracking-tight" />
+                    <DelixLogo className="h-10" />
                     <p className="text-sm text-[var(--dh-text-sub)] mt-2">
                         {t("description")}
                     </p>

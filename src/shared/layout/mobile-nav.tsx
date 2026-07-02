@@ -92,7 +92,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
           {/* Header section with close toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 px-2">
-              <DelixLogo className="h-7 w-7" textClassName="text-[19px] font-black tracking-tight text-white" />
+              <DelixLogo className="h-8" />
             </div>
             <button
               onClick={onClose}
@@ -145,7 +145,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
         {/* Footer / Info */}
         <div className="px-3 text-xs text-zinc-600">
-          <p>© 2026 Delix</p>
+          <p>© 2026 طيار</p>
         </div>
       </div>
     </div>

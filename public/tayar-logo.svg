@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 300" fill="none">
+  <defs>
+    <!-- Blue gradient for Arabic text طيار -->
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+    <!-- Orange gradient for wing/arrow element -->
+    <linearGradient id="orangeGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="50%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FB923C"/>
+    </linearGradient>
+    <!-- Transition gradient where blue text meets wing -->
+    <linearGradient id="blueOrangeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="70%" stop-color="#7C3AED" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#EA580C" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Arabic text "طيار" rendered as styled path shapes -->
+  <!-- Using font-based approach: the text is the Arabic word طيار in bold italic blue -->
+  
+  <!-- Letter ر (Ra) - rightmost, standalone -->
+  <!-- Smooth curved stroke going down-right -->
+  <path d="M 82 185 C 78 175, 72 162, 68 148 C 65 138, 64 128, 67 120 C 70 112, 77 108, 85 110 C 93 112, 97 122, 95 135 C 93 148, 86 162, 82 175 Z" 
+        fill="url(#blueGrad)"/>
+  
+  <!-- Letter ا (Alef) -->
+  <path d="M 118 90 L 122 90 L 122 188 L 118 188 Z" fill="url(#blueGrad)" rx="2"/>
+  
+  <!-- Letter ي (Ya) body -->
+  <path d="M 160 130 C 175 115, 200 108, 225 110 C 240 112, 248 120, 245 132 C 242 144, 228 150, 210 152 C 192 154, 170 148, 155 140 C 148 136, 145 130, 148 124 Z" 
+        fill="url(#blueGrad)"/>
+  <!-- Ya dots (two dots below) -->
+  <circle cx="175" cy="170" r="6" fill="url(#blueGrad)"/>
+  <circle cx="195" cy="170" r="6" fill="url(#blueGrad)"/>
+  
+  <!-- Letter ط (Ta) - complex shape -->
+  <path d="M 255 155 C 260 120, 280 95, 310 88 C 335 82, 355 90, 360 108 C 365 126, 350 148, 325 158 C 305 166, 280 165, 262 158 Z" 
+        fill="url(#blueGrad)"/>
+  <!-- Inner cup of ط -->
+  <path d="M 270 148 C 275 128, 290 112, 308 108 C 320 105, 330 110, 332 120 C 334 130, 326 142, 314 148 C 302 154, 285 153, 273 148 Z" 
+        fill="none" stroke="white" stroke-width="2.5"/>
+
+  <!-- Wing element - feather/flame shapes (orange) -->
+  <!-- Bottom feather stroke -->
+  <path d="M 330 170 C 360 165, 400 152, 440 130 C 420 140, 390 158, 360 168 Z" 
+        fill="url(#orangeGrad)" opacity="0.9"/>
+  <!-- Middle feather stroke -->
+  <path d="M 325 155 C 358 145, 400 128, 450 100 C 430 115, 395 135, 358 148 Z" 
+        fill="url(#orangeGrad)" opacity="0.95"/>
+  <!-- Top feather / main wing -->
+  <path d="M 318 140 C 355 122, 400 100, 455 72 C 432 90, 395 112, 355 132 Z" 
+        fill="url(#orangeGrad)"/>
+
+  <!-- Arrow head pointing upper-right -->
+  <polygon points="472,55 510,38 498,78" fill="url(#orangeGrad)"/>
+  <!-- Arrow shaft -->
+  <line x1="455" y1="72" x2="498" y2="50" stroke="url(#orangeGrad)" stroke-width="8" stroke-linecap="round"/>
+</svg>

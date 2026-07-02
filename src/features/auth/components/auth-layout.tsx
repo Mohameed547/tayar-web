@@ -34,7 +34,7 @@ export function AuthLayout({
         {/* Logo + Language Toggle */}
         <div className="mb-8 flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <DelixLogo className="h-9 w-9" textClassName="text-2xl font-black tracking-tight text-[var(--dh-text-main)]" />
+            <DelixLogo className="h-10" />
           </Link>
 
           <div className="flex items-center gap-2">
@@ -65,7 +65,7 @@ export function AuthLayout({
         </div>
 
         <p className="mt-6 text-center text-xs text-[var(--dh-text-dim)]">
-          © {new Date().getFullYear()} Delix. {t("copyright")}
+          © {new Date().getFullYear()} طيار. {t("copyright")}
         </p>
       </div>
     </div>

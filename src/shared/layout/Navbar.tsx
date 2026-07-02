@@ -25,7 +25,7 @@ export default function Navbar() {
       <div className="h-16 flex items-center justify-between px-4 md:px-10">
         {/* Logo */}
         <Link href={ROUTES.HOME} className="flex items-center gap-2 no-underline hover:opacity-90 transition-opacity">
-          <DelixLogo className="h-7 w-7" textClassName="font-display font-extrabold text-xl text-[var(--dh-text-main)] tracking-tight" />
+          <DelixLogo className="h-9" />
         </Link>
 
         {/* Desktop Links */}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { ROUTES } from "@/constants/routes";
@@ -15,6 +15,43 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [faq, setFaq] = useState<number | null>(null);
   const [sent, setSent] = useState(false);
+  const [statsVisible, setStatsVisible] = useState(false);
+  const [counters, setCounters] = useState([0, 0, 0, 0]);
+  const statsRef = useRef<HTMLElement>(null);
+
+  // Animated counter hook
+  const animateCounters = useCallback(() => {
+    const targets = [50000, 10000, 3000, 998];
+    const duration = 1800;
+    const steps = 60;
+    const stepTime = duration / steps;
+    let step = 0;
+    const timer = setInterval(() => {
+      step++;
+      const progress = step / steps;
+      // easeOutQuart
+      const ease = 1 - Math.pow(1 - progress, 4);
+      setCounters(targets.map(t => Math.round(t * ease)));
+      if (step >= steps) clearInterval(timer);
+    }, stepTime);
+  }, []);
+
+  useEffect(() => {
+    const el = statsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsVisible(true);
+          animateCounters();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [animateCounters]);
 
   const SLIDES = isAr ? [
     {
@@ -183,15 +220,150 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS RIBBON */}
-      <section className="landing-brand-ribbon py-12" style={{ background: "linear-gradient(135deg, var(--dh-brand-hover) 0%, var(--dh-brand) 100%)" }}>
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
-          {STATS.map((s, i) => (
-            <div key={i}>
-              <div className="text-4xl font-black">{s.value}</div>
-              <div className="text-blue-200 text-sm font-semibold mt-1">{s.label}</div>
-            </div>
-          ))}
+      {/* ── PREMIUM STATS SECTION ── */}
+      <section
+        ref={statsRef}
+        className="py-24 relative overflow-hidden bg-gradient-to-b from-[var(--dh-bg-app)] to-[var(--dh-bg-muted)]/40"
+      >
+        {/* Background Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.25] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(#2563EB1a 1.5px, transparent 1.5px)", backgroundSize: "24px 24px" }} />
+
+        <div className="max-w-6xl mx-auto px-4 md:px-10 relative z-10">
+          {/* Section header */}
+          <div className={`text-center mb-16 transition-all duration-1000 ${
+            statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}>
+            <span className="inline-flex items-center gap-2 bg-[#2563EB]/5 text-[#2563EB] text-xs font-black uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full border border-[#2563EB]/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F97316] animate-pulse" />
+              {isAr ? "بالأرقام" : "BY THE NUMBERS"}
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#0D1B3E] tracking-tight mt-4">
+              {isAr ? "منصة تثق بها الآلاف" : "A platform trusted by thousands"}
+            </h2>
+            <p className="text-[#64748B] mt-4 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+              {isAr
+                ? "أرقام حقيقية تعكس حجم ثقة عملائنا وجودة خدمتنا"
+                : "Real numbers that reflect the trust of our clients and the quality of our service"}
+            </p>
+          </div>
+
+          {/* Stats cards grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                raw: counters[0],
+                display: `${(counters[0] / 1000).toFixed(counters[0] >= 1000 ? 0 : 1)}K+`,
+                label: isAr ? "طلب مكتمل" : "Delivered Orders",
+                sub: isAr ? "شحنة وصلت بأمان" : "Shipments safely delivered",
+                delay: "0ms",
+                accent: "#2563EB",
+                bg: "#EFF4FF",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+                  </svg>
+                ),
+              },
+              {
+                raw: counters[1],
+                display: `${(counters[1] / 1000).toFixed(counters[1] >= 1000 ? 0 : 1)}K+`,
+                label: isAr ? "كابتن نشط" : "Active Captains",
+                sub: isAr ? "على استعداد دائم" : "Always ready to deliver",
+                delay: "75ms",
+                accent: "#2563EB",
+                bg: "#EFF4FF",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 010 7.75"/>
+                  </svg>
+                ),
+              },
+              {
+                raw: counters[2],
+                display: `${(counters[2] / 1000).toFixed(counters[2] >= 1000 ? 0 : 1)}K+`,
+                label: isAr ? "عميل سعيد" : "Happy Clients",
+                sub: isAr ? "يعودون إلينا دائماً" : "Keep coming back to us",
+                delay: "150ms",
+                accent: "#2563EB",
+                bg: "#EFF4FF",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                  </svg>
+                ),
+              },
+              {
+                raw: counters[3],
+                display: `${(counters[3] / 10).toFixed(1)}%`,
+                label: isAr ? "نسبة النجاح" : "Success Rate",
+                sub: isAr ? "توصيل موثوق في كل مرة" : "Reliable delivery every time",
+                delay: "225ms",
+                accent: "#2563EB",
+                bg: "#EFF4FF",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                    <path d="M22 4L12 14.01l-3-3"/>
+                  </svg>
+                ),
+              },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="group relative bg-white/80 backdrop-blur-sm rounded-[24px] border border-slate-200/60 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] hover:-translate-y-2 transition-all duration-500 cursor-default overflow-hidden"
+                style={{
+                  transitionDelay: stat.delay,
+                  opacity: statsVisible ? 1 : 0,
+                  transform: statsVisible ? "translateY(0)" : "translateY(32px)",
+                  transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${stat.delay}, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${stat.delay}, box-shadow 0.4s ease, transform 0.4s ease, border-color 0.4s ease`,
+                }}
+              >
+                {/* Glow/Light effect behind card on hover */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-[#2563EB]/[0.01] to-[#F97316]/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                <div className="p-8 flex flex-col justify-between h-full relative z-10">
+                  {/* Top Row: Icon Container & Decorative Circle */}
+                  <div className="flex items-center justify-between mb-8">
+                    <div
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 bg-slate-50 group-hover:bg-[#2563EB] text-[#2563EB] group-hover:text-white border border-slate-100 group-hover:border-[#2563EB] group-hover:rotate-[-6deg] group-hover:scale-105"
+                    >
+                      {stat.icon}
+                    </div>
+                    {/* Tiny decorative tag */}
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#E2E8F0] group-hover:bg-[#F97316] transition-colors duration-500" />
+                  </div>
+
+                  {/* Middle Row: Massive Stats Value */}
+                  <div className="flex items-baseline gap-1" dir="ltr">
+                    <span className="text-4xl md:text-5xl font-black tracking-tight text-[#0D1B3E] group-hover:text-[#2563EB] transition-colors duration-300 tabular-nums">
+                      {stat.display}
+                    </span>
+                  </div>
+
+                  {/* Bottom Row: Text Labels */}
+                  <div className="mt-4 pt-4 border-t border-slate-100/60">
+                    <h3 className="text-base font-bold text-[#0D1B3E] group-hover:text-[#2563EB] transition-colors duration-300">
+                      {stat.label}
+                    </h3>
+                    <p className="text-xs text-[#94A3B8] mt-1.5 font-medium leading-relaxed">
+                      {stat.sub}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Corner Gradient Accent */}
+                <div
+                  className="absolute bottom-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                  style={{ background: `radial-gradient(circle, ${stat.accent}14, transparent)` }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

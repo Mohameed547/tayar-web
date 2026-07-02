@@ -182,7 +182,7 @@ export default function Sidebar() {
         <div className="flex flex-col gap-5 overflow-y-auto flex-1">
           {/* Brand Logo */}
           <div className="flex items-center justify-between gap-2 px-3 py-2">
-            <DelixLogo className="h-7 w-7" textClassName="text-[19px] font-black tracking-tight text-[var(--dh-text-main)]" />
+            <DelixLogo className="h-8" />
             <button
               onClick={() => dispatch(setSidebarOpen(false))}
               className="md:hidden text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)]"
