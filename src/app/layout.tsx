@@ -11,7 +11,7 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Delix",
+  title: "Tayar",
   description: "Smart shipping platform. Your deal. Our delivery. Done.",
 };
 

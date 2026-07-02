@@ -24,8 +24,8 @@ interface TayarLogoProps {
  */
 export function TayarLogo({ height = 42, className = '' }: TayarLogoProps) {
   // Natural logo dimensions (px) — matches the brand asset aspect ratio
-  const LOGO_W = 1063;
-  const LOGO_H = 600;
+  const LOGO_W = 1024;
+  const LOGO_H = 682;
   const width = Math.round((height / LOGO_H) * LOGO_W);
 
   return (
