@@ -21,13 +21,14 @@ const MapView = dynamic(() => import("@/shared/ui/MapView"), {
   ssr: false,
   loading: () => (
     <div className="h-[250px] w-full bg-zinc-950 flex items-center justify-center text-xs text-zinc-550 font-semibold border border-zinc-800 rounded-xl mt-3">
-      Loading Route Map...
+      Loading map...
     </div>
   ),
 })
 
 function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captains: any[]; isRTL: boolean }) {
   const dispatch = useAppDispatch()
+  const t = useCaptainTranslations()
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [discount, setDiscount] = useState<number>(0)
@@ -47,7 +48,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
       dispatch(fetchCaptainDashboard('office'))
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
+      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
     } finally {
       setLoading(false)
     }
@@ -78,7 +79,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
 
         {/* Discount input field */}
         <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1">
-          <span className="text-[10px] text-zinc-400 font-medium">{isRTL ? 'خصم %' : 'Discount %'}</span>
+          <span className="text-[10px] text-zinc-400 font-medium">{t('discountLabel')}</span>
           <input
             type="number"
             min={0}
@@ -98,12 +99,12 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
         >
           <option value="">
             {order.status === 'pending_assignment'
-              ? (isRTL ? 'اختر كابتن للتعيين...' : 'Select Captain to Assign...')
-              : (isRTL ? 'إعادة تعيين كابتن...' : 'Reassign Captain...')}
+              ? t('reassignCaptain')
+              : t('selectCaptain')}
           </option>
           {sortedCaptains.map((cap) => (
             <option key={cap.id} value={cap.id} disabled={cap.status !== 'available' && cap.id !== selectedValue}>
-              {cap.name} ({cap.status === 'available' ? (isRTL ? 'متاح' : 'Available') : (isRTL ? 'مشغول' : 'Busy')})
+              {cap.name} ({cap.status === 'available' ? t('captainAvailable') : t('captainBusy')})
             </option>
           ))}
         </select>
@@ -114,6 +115,7 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
 
 function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boolean; t: any }) {
   const dispatch = useAppDispatch()
+  const captainT = useCaptainTranslations()
   const [acceptLoading, setAcceptLoading] = useState(false)
   const [rejectLoading, setRejectLoading] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -129,7 +131,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       dispatch(fetchCaptainDashboard('captain'))
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
+      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
     } finally {
       setAcceptLoading(false)
     }
@@ -143,7 +145,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       dispatch(fetchCaptainDashboard('captain'))
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
+      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
     } finally {
       setRejectLoading(false)
     }
@@ -212,7 +214,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       dispatch(fetchCaptainDashboard('captain'))
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.response?.data?.message || err.message || 'Action failed')
+      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
     } finally {
       setLoading(false)
     }
@@ -300,7 +302,7 @@ export default function Orders() {
       <div className="flex flex-col gap-3">
         {orders.length === 0 ? (
           <div className="text-center py-8 text-sm text-[var(--color-text-sub)] bg-zinc-900/20 border border-zinc-800/40 rounded-xl">
-            {isRTL ? 'لا توجد طلبيات حالية' : 'No current orders'}
+          {isRTL ? 'لا توجد طلبيات حالية' : t('noOrders')}
           </div>
         ) : (
           orders.map(order => (

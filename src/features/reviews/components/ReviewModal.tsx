@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import RatingStars from "./RatingStars";
 import { createReview } from "../api";
 import { useNotifications } from "@/shared/providers/socket-notification-provider";
+import { useTranslations } from "next-intl";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export default function ReviewModal({
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { triggerLocalToast } = useNotifications();
+  const t = useTranslations("customer");
 
   if (!isOpen) return null;
 
@@ -46,12 +48,20 @@ export default function ReviewModal({
         rating,
         comment: comment.trim(),
       });
-      triggerLocalToast("Success", "Review submitted successfully!", "success");
+      triggerLocalToast(
+        t("reviews.reviewSubmittedTitle"),
+        t("reviews.reviewSubmittedMessage"),
+        "success"
+      );
       onSubmitSuccess();
       onClose();
     } catch (err: any) {
       console.error(err);
-      triggerLocalToast("Error", err.response?.data?.message || "Failed to submit review.", "error");
+      triggerLocalToast(
+        t("reviews.reviewFailedTitle"),
+        err.response?.data?.message || t("reviews.reviewFailedMessage"),
+        "error"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +73,7 @@ export default function ReviewModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-850 px-5 py-4">
           <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-wider">
-            Review Shipment {trackingNumber}
+            {t("reviews.modalTitle")} #{trackingNumber}
           </h3>
           <button
             onClick={onClose}
@@ -77,7 +87,7 @@ export default function ReviewModal({
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
           <div>
             <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block mb-1">
-              Reviewing {revieweeType === "Office" ? "Office" : "Driver"}
+              {t("reviews.reviewing")} {revieweeType === "Office" ? t("reviews.office") : t("reviews.driver")}
             </label>
             <div className="text-sm font-semibold text-zinc-200 bg-zinc-850 border border-zinc-800 rounded-lg px-3 py-2">
               {revieweeName}
@@ -86,7 +96,7 @@ export default function ReviewModal({
 
           <div>
             <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block mb-2">
-              Your Rating
+              {t("reviews.yourRating")}
             </label>
             <RatingStars
               rating={rating}
@@ -98,13 +108,13 @@ export default function ReviewModal({
 
           <div>
             <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block mb-1.5">
-              Review Comment (Optional)
+              {t("reviews.commentLabel")}
             </label>
             <textarea
               rows={3}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Tell us about your experience..."
+              placeholder={t("reviews.commentPlaceholder")}
               maxLength={500}
               className="w-full text-xs bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition-colors resize-none"
             />
@@ -117,14 +127,14 @@ export default function ReviewModal({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors focus:outline-none"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-5 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-zinc-950 disabled:opacity-50 transition-all focus:outline-none shadow-sm"
             >
-              {isSubmitting ? "Submitting..." : "Submit Review"}
+              {isSubmitting ? t("reviews.submitting") : t("reviews.submit")}
             </button>
           </div>
         </form>
