@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { shipmentRequestSchema } from "@/lib/validation/common";
 import { cn } from "@/lib/utils";
@@ -186,6 +186,7 @@ export default function NewShipmentView() {
     control,
     setValue,
     getValues,
+    watch,
     formState: { errors },
   } = useForm<ShipmentFormValues>({
     resolver: zodResolver(shipmentRequestSchema),
@@ -206,19 +207,16 @@ export default function NewShipmentView() {
     packageType,
     deliverySpeed,
     scheduledDate,
-  ] = useWatch({
-    control,
-    name: [
-      "pickupAddress",
-      "deliveryAddress",
-      "weight",
-      "packageType",
-      "deliverySpeed",
-      "scheduledDate",
-    ],
-  });
+  ] = watch([
+    "pickupAddress",
+    "deliveryAddress",
+    "weight",
+    "packageType",
+    "deliverySpeed",
+    "scheduledDate",
+  ]);
 
-  const price = useWatch({ control, name: "price" });
+  const price = watch("price");
 
   const hasCompleteRoute = Boolean(pickupCoords && deliveryCoords);
   const distanceKm = hasCompleteRoute && pickupCoords && deliveryCoords
