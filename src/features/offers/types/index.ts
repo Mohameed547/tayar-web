@@ -14,6 +14,7 @@ export interface Offer {
   coverage: "insured" | "none";
   description: string;
   isBestValue?: boolean;
+  providerId?: string;
 }
 
 // ─── Captain/Office-facing offer types ───────────────────────────────────────

@@ -89,6 +89,13 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
           captainStatus: s.captainStatus,
           officeDiscountPercentage: s.officeDiscountPercentage,
           captainPrice: s.captainPrice,
+          proofOfDelivery: s.proofOfDelivery ? {
+            otpCode: s.proofOfDelivery.otpCode || null,
+            recipientName: s.proofOfDelivery.recipientName || null,
+            signatureImage: s.proofOfDelivery.signatureImage || null,
+            packageImage: s.proofOfDelivery.packageImage || null,
+            verifiedAt: s.proofOfDelivery.verifiedAt || null,
+          } : undefined,
         };
       });
     } catch (error) {
@@ -130,6 +137,13 @@ export async function getCaptainOrders(accountType?: "office" | "captain"): Prom
         captainStatus: s.captainStatus,
         officeDiscountPercentage: s.officeDiscountPercentage,
         captainPrice: s.captainPrice,
+        proofOfDelivery: s.proofOfDelivery ? {
+          otpCode: s.proofOfDelivery.otpCode || null,
+          recipientName: s.proofOfDelivery.recipientName || null,
+          signatureImage: s.proofOfDelivery.signatureImage || null,
+          packageImage: s.proofOfDelivery.packageImage || null,
+          verifiedAt: s.proofOfDelivery.verifiedAt || null,
+        } : undefined,
       };
     });
   } catch (error) {
@@ -148,7 +162,14 @@ export async function getCaptainOrderById(id: string): Promise<ProviderOrder> {
 
 export async function updateOrderStatus(
   id: string,
-  data: UpdateOrderStatusRequest,
+  data: UpdateOrderStatusRequest & {
+    otpCode?: string;
+    recipientName?: string;
+    signatureImage?: string;
+    packageImage?: string;
+    lat?: number;
+    lng?: number;
+  },
 ): Promise<ProviderOrder> {
   let backendStatus = data.status;
   if (data.status === "in_progress") {
@@ -160,6 +181,12 @@ export async function updateOrderStatus(
     {
       status: backendStatus,
       note: `Status updated to ${data.status} via captain dashboard`,
+      otpCode: data.otpCode,
+      recipientName: data.recipientName,
+      signatureImage: data.signatureImage,
+      packageImage: data.packageImage,
+      lat: data.lat,
+      lng: data.lng,
     },
   );
 
@@ -178,5 +205,20 @@ export async function acceptAssignment(id: string): Promise<any> {
 
 export async function rejectAssignment(id: string): Promise<any> {
   const response = await api.patch<ApiResponse<any>>(`/api/shipments/${id}/reject-assignment`);
+  return response.data;
+}
+
+export async function generateOTP(shipmentId: string): Promise<any> {
+  const response = await api.post<ApiResponse<any>>(`/api/tracking/${shipmentId}/otp/generate`);
+  return response.data;
+}
+
+export async function verifyOTP(shipmentId: string, otpCode: string): Promise<any> {
+  const response = await api.post<ApiResponse<any>>(`/api/tracking/${shipmentId}/otp/verify`, { otpCode });
+  return response.data;
+}
+
+export async function pingLocation(shipmentId: string, lat: number, lng: number): Promise<any> {
+  const response = await api.post<ApiResponse<any>>(`/api/tracking/${shipmentId}/location`, { lat, lng });
   return response.data;
 }

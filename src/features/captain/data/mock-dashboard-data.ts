@@ -112,6 +112,6 @@ export const mockVerificationByAccount: Record<AccountType, VerificationStatus> 
 };
 
 export const mockProfileByAccount: Record<AccountType, ProviderProfile> = {
-  office: { name: "Sherif Logistics Co.", phone: "+20 100 234 5678" },
-  captain: { name: "Mohamed El-Sayed", phone: "+20 112 345 6789" },
+  office: { name: "Sherif Logistics Co.", phone: "+20 100 234 5678", email: "office@tayar.com" },
+  captain: { name: "Mohamed El-Sayed", phone: "+20 112 345 6789", email: "captain@tayar.com" },
 };

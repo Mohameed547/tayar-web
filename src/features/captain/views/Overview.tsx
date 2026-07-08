@@ -6,6 +6,7 @@ import {
   selectAccountType,
   selectEarnings,
   selectRequests,
+  selectRating,
 } from '@/features/captain/store/selectors'
 import MetricCard            from '@/shared/ui/MetricCard'
 import Card                  from '@/shared/ui/Card'
@@ -16,8 +17,13 @@ export default function Overview() {
   const accountType = useAppSelector(selectAccountType)
   const earnings    = useAppSelector(selectEarnings)
   const requests    = useAppSelector(selectRequests)
+  const rating      = useAppSelector(selectRating)
   const isOffice    = accountType === 'office'
   const latestReq   = requests[0]
+
+  const displayRating = rating && rating.averageRating && rating.averageRating > 0
+    ? rating.averageRating.toFixed(1)
+    : "5.0"
 
   return (
     <div>
@@ -39,7 +45,7 @@ export default function Overview() {
           <MetricCard value="12" label={t('activeDeliveries')} />
         )}
         <MetricCard value={String(requests.length)} label={t('newRequests')} />
-        <MetricCard value="4.9" label={t('ratingScore')} />
+        <MetricCard value={displayRating} label={t('ratingScore')} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

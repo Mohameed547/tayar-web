@@ -36,6 +36,13 @@ export interface Shipment {
   deliveryProgressPercent?: number;
   selectedOfferId?: string;
   createdAt: string;
+  proofOfDelivery?: {
+    otpCode: string | null;
+    recipientName: string | null;
+    signatureImage: string | null;
+    packageImage: string | null;
+    verifiedAt: string | null;
+  };
 }
 
 // ─── Captain/Office-facing shipment types ─────────────────────────────────────
@@ -78,4 +85,11 @@ export interface ProviderOrder {
   captainStatus?: string;
   officeDiscountPercentage?: number;
   captainPrice?: number;
+  proofOfDelivery?: {
+    otpCode: string | null;
+    recipientName: string | null;
+    signatureImage: string | null;
+    packageImage: string | null;
+    verifiedAt: string | null;
+  };
 }

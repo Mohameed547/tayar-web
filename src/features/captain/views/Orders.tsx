@@ -1,5 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { Camera, X, Lock, User, FileText } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setActiveScreen, setOnlineState } from '@/features/captain/store/dashboard-slice'
 import {
@@ -11,7 +13,7 @@ import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-tra
 import Card from '@/shared/ui/Card'
 import Badge from '@/shared/ui/Badge'
 import { assignShipmentToCaptain, reassignShipmentToCaptain, updateDriverAvailability } from '@/features/office'
-import { updateOrderStatus, acceptAssignment, rejectAssignment } from '@/features/shipments'
+import { updateOrderStatus, acceptAssignment, rejectAssignment, pingLocation } from '@/features/shipments'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { useLocale } from 'next-intl'
 
@@ -115,11 +117,21 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
 
 function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boolean; t: any }) {
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const captainT = useCaptainTranslations()
   const [acceptLoading, setAcceptLoading] = useState(false)
   const [rejectLoading, setRejectLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+
+  // PoD Modal States
+  const [showPodModal, setShowPodModal] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [recipientName, setRecipientName] = useState('')
+  const [packageImage, setPackageImage] = useState<string | null>(null)
+  const [isDrawing, setIsDrawing] = useState(false)
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const currentStatus = order.rawStatus || order.status;
 
@@ -150,6 +162,63 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       setRejectLoading(false)
     }
   }
+
+  const startDrawing = (e: any) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX || e.touches?.[0]?.clientX;
+    const clientY = e.clientY || e.touches?.[0]?.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: any) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX || e.touches?.[0]?.clientX;
+    const clientY = e.clientY || e.touches?.[0]?.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const endDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPackageImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (order.captainStatus === 'pending') {
     return (
@@ -190,28 +259,96 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
   }
 
   const handleAction = async () => {
+    let nextStatus = 'delivered';
+    if (currentStatus === 'assigned' || currentStatus === 'captain_assignment') {
+      nextStatus = 'picked_up';
+    } else if (currentStatus === 'picked_up') {
+      nextStatus = 'in_transit';
+    } else if (currentStatus === 'in_transit' || currentStatus === 'out_for_delivery') {
+      nextStatus = 'delivered';
+    }
+
+    if (nextStatus === 'delivered') {
+      router.push(`/captain-dashboard/verify/${order.id}`);
+      return;
+    }
+
     setLoading(true)
     setErrorMsg('')
     try {
-      let nextStatus = 'delivered';
-      if (currentStatus === 'assigned' || currentStatus === 'captain_assignment') {
-        nextStatus = 'picked_up';
-      } else if (currentStatus === 'picked_up') {
-        nextStatus = 'in_transit';
-      } else if (currentStatus === 'in_transit' || currentStatus === 'out_for_delivery') {
-        nextStatus = 'delivered';
-      }
-
       await updateOrderStatus(order.id, { status: nextStatus as any })
-      if (nextStatus === 'delivered') {
-        dispatch(setOnlineState(true))
-        try {
-          await updateDriverAvailability('available')
-        } catch (dbErr) {
-          console.error("Failed to update captain status in DB:", dbErr)
+      dispatch(fetchCaptainDashboard('captain'))
+    } catch (err: any) {
+      console.error(err)
+      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmitPod = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode || !recipientName) {
+      setErrorMsg(isRTL ? 'يرجى ملء جميع الحقول المطلوبة' : 'Please fill all required fields');
+      return;
+    }
+
+    setLoading(true)
+    setErrorMsg('')
+
+    const canvas = canvasRef.current;
+    let signatureBase64: string | null = null;
+    if (canvas) {
+      const blank = document.createElement('canvas');
+      blank.width = canvas.width;
+      blank.height = canvas.height;
+      if (canvas.toDataURL() !== blank.toDataURL()) {
+        signatureBase64 = canvas.toDataURL();
+      }
+    }
+
+    let coords: { lat: number; lng: number } | null = null;
+    try {
+      coords = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
+        if (!navigator.geolocation) {
+          resolve(null);
+          return;
         }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      });
+    } catch (gErr) {
+      console.error("Geolocation error:", gErr);
+    }
+
+    if (!coords) {
+      setErrorMsg(isRTL ? 'يرجى السماح بالوصول للموقع الجغرافي لتأكيد التوصيل' : 'Please allow location access to verify delivery');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await updateOrderStatus(order.id, {
+        status: 'delivered' as any,
+        otpCode,
+        recipientName,
+        signatureImage: signatureBase64 || undefined,
+        packageImage: packageImage || undefined,
+        lat: coords.lat,
+        lng: coords.lng,
+      })
+
+      dispatch(setOnlineState(true))
+      try {
+        await updateDriverAvailability('available')
+      } catch (dbErr) {
+        console.error("Failed to update captain status in DB:", dbErr)
       }
       dispatch(fetchCaptainDashboard('captain'))
+      setShowPodModal(false)
     } catch (err: any) {
       console.error(err)
       setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
@@ -248,6 +385,168 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
         )}
         {buttonText}
       </button>
+
+      {showPodModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div 
+            dir={isRTL ? 'rtl' : 'ltr'}
+            className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 text-white"
+          >
+            <div className="flex justify-between items-center px-5 py-4 border-b border-slate-800">
+              <h3 className="text-md font-bold flex items-center gap-2">
+                <Lock className="h-4 w-4 text-blue-500" />
+                {isRTL ? 'تأكيد إثبات التوصيل' : 'Confirm Proof of Delivery'}
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setShowPodModal(false)}
+                className="text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitPod} className="p-5 space-y-4">
+              {/* Recipient Name */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  {isRTL ? 'اسم المستلم *' : 'Recipient Name *'}
+                </label>
+                <div className="relative">
+                  <span className={`absolute inset-y-0 ${isRTL ? 'right-3' : 'left-3'} flex items-center text-slate-500`}>
+                    <User className="h-4 w-4" />
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    placeholder={isRTL ? 'أدخل اسم الشخص الذي استلم الشحنة' : 'Enter name of recipient'}
+                    className={`w-full bg-slate-800 border border-slate-700 rounded-lg py-2 ${isRTL ? 'pr-9 pl-3' : 'pl-9 pr-3'} text-sm focus:outline-none focus:border-blue-500 text-white placeholder-slate-500`}
+                  />
+                </div>
+              </div>
+
+              {/* OTP Code */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  {isRTL ? 'رمز التحقق (OTP) *' : 'Verification Code (OTP) *'}
+                </label>
+                <div className="relative">
+                  <span className={`absolute inset-y-0 ${isRTL ? 'right-3' : 'left-3'} flex items-center text-slate-500`}>
+                    <Lock className="h-4 w-4" />
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="XXXXXX"
+                    className={`w-full bg-slate-800 border border-slate-700 rounded-lg py-2 ${isRTL ? 'pr-9 pl-3' : 'pl-9 pr-3'} text-sm font-mono tracking-widest text-center text-white focus:outline-none focus:border-blue-500 placeholder-slate-500`}
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {isRTL 
+                    ? 'اطلب رمز الـ OTP المكون من 6 أرقام من العميل لتأكيد تسليم الشحنة.' 
+                    : 'Ask the customer for the 6-digit OTP code to verify delivery.'}
+                </p>
+              </div>
+
+              {/* Package Photo Upload */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  {isRTL ? 'صورة الشحنة المسلمة' : 'Delivered Package Photo'}
+                </label>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-lg cursor-pointer text-xs font-medium text-slate-200 transition-colors">
+                    <Camera className="h-3.5 w-3.5" />
+                    {isRTL ? 'التقاط / رفع صورة' : 'Capture / Upload'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                  {packageImage && (
+                    <div className="relative h-10 w-10 border border-slate-700 rounded-md overflow-hidden">
+                      <img src={packageImage} alt="Package" className="h-full w-full object-cover" />
+                      <button 
+                        type="button" 
+                        onClick={() => setPackageImage(null)}
+                        className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-0.5 hover:bg-red-700"
+                      >
+                        <X className="h-2 w-2" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Digital Signature canvas */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-semibold text-slate-300">
+                    {isRTL ? 'توقيع المستلم' : 'Recipient Signature'}
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={clearCanvas}
+                    className="text-[10px] text-red-400 hover:text-red-300 font-medium"
+                  >
+                    {isRTL ? 'مسح التوقيع' : 'Clear'}
+                  </button>
+                </div>
+                <div className="relative">
+                  <canvas
+                    ref={canvasRef}
+                    width={380}
+                    height={120}
+                    className="w-full h-[120px] bg-slate-950 border border-slate-800 rounded-lg cursor-crosshair touch-none"
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={endDrawing}
+                    onMouseLeave={endDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={endDrawing}
+                  />
+                </div>
+              </div>
+
+              {/* Error block */}
+              {errorMsg && (
+                <div className="text-xs text-red-400 font-medium text-center bg-red-950/40 border border-red-900/50 py-1.5 rounded-lg">
+                  {errorMsg}
+                </div>
+              )}
+
+              {/* Submit Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPodModal(false)}
+                  className="flex-1 py-2 border border-slate-800 hover:bg-slate-800 text-xs font-semibold rounded-lg transition-colors text-slate-300"
+                >
+                  {isRTL ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-xs font-semibold rounded-lg transition-colors text-white flex items-center justify-center gap-1.5"
+                >
+                  {loading && (
+                    <span className="h-3 w-3 rounded-full border-2 border-t-transparent border-white animate-spin" />
+                  )}
+                  {isRTL ? 'تأكيد الشحنة' : 'Confirm Delivery'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -262,6 +561,41 @@ export default function Orders() {
   const isRTL = locale === 'ar'
   const isOffice = accountType === 'office'
   const [expandedMapId, setExpandedMapId] = useState<string | null>(null)
+
+  // Background location pinging for active shipments in transit
+  useEffect(() => {
+    if (accountType !== 'captain') return;
+
+    const activeOrders = orders.filter(o => {
+      const s = o.rawStatus || o.status;
+      return s === 'picked_up' || s === 'in_transit' || s === 'in_progress' || s === 'out_for_delivery';
+    });
+
+    if (activeOrders.length === 0) return;
+
+    const intervalId = setInterval(() => {
+      if (!navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          // Ping the server for each active order
+          for (const order of activeOrders) {
+            try {
+              await pingLocation(order.id, latitude, longitude);
+              console.log(`Pinged location for order ${order.id}: [${latitude}, ${longitude}]`);
+            } catch (err) {
+              console.error(`Failed to ping location for order ${order.id}:`, err);
+            }
+          }
+        },
+        (err) => console.error("Error reading geolocation for background ping:", err),
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }, 15000); // Send location update every 15 seconds
+
+    return () => clearInterval(intervalId);
+  }, [accountType, orders]);
 
   const getStatusBadge = (status: string, captainName?: string, rawStatus?: string, captainStatus?: string) => {
     const finalStatus = rawStatus || status;
@@ -337,6 +671,16 @@ export default function Orders() {
                       </p>
                     )
                   )}
+                  {order.pickupAddress && (
+                    <p className="text-[11px] text-[var(--color-text-sub)] mt-1">
+                      <span className="font-semibold text-[var(--color-text-main)]">{t('pickupAddress')}:</span> {order.pickupAddress}
+                    </p>
+                  )}
+                  {order.deliveryAddress && (
+                    <p className="text-[11px] text-[var(--color-text-sub)] mt-1">
+                      <span className="font-semibold text-[var(--color-text-main)]">{t('deliveryAddress')}:</span> {order.deliveryAddress}
+                    </p>
+                  )}
                 </div>
                 <div>
                   {isOffice ? (
@@ -376,7 +720,7 @@ export default function Orders() {
                         rel="noopener noreferrer"
                         className="text-[10px] font-extrabold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
                       >
-                        🚀 {t('navPickup')}
+                        🚀 {order.pickupAddress ? (order.pickupAddress.length > 25 ? order.pickupAddress.slice(0, 25) + '...' : order.pickupAddress) : t('navPickup')}
                       </a>
                       <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[1] : order.deliveryCoords[0]},${order.deliveryCoords[0] > order.deliveryCoords[1] ? order.deliveryCoords[0] : order.deliveryCoords[1]}`}
@@ -384,7 +728,7 @@ export default function Orders() {
                         rel="noopener noreferrer"
                         className="text-[10px] font-extrabold text-red-400 hover:text-red-300 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded transition-colors uppercase tracking-wider"
                       >
-                        🚀 {t('navDelivery')}
+                        🚀 {order.deliveryAddress ? (order.deliveryAddress.length > 25 ? order.deliveryAddress.slice(0, 25) + '...' : order.deliveryAddress) : t('navDelivery')}
                       </a>
                     </div>
                   </div>

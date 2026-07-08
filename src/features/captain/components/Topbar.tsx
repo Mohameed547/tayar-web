@@ -52,7 +52,7 @@ export default function Topbar() {
   const accountType  = useAppSelector(selectAccountType)
   const locale       = useLocale()
   const t            = useCaptainTranslations()
-  const { unreadCount } = useNotifications()
+  const { unreadCount, triggerLocalToast } = useNotifications()
   const isRTL        = locale === 'ar'
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -82,6 +82,19 @@ export default function Topbar() {
 
   const handleToggleOnline = async () => {
     if (!user || isBusy) return
+
+    // Prevent pending accounts from going online
+    if (user.status === 'pending') {
+      triggerLocalToast(
+        locale === 'ar' ? 'الحساب قيد المراجعة' : 'Account Pending Review',
+        locale === 'ar'
+          ? 'عذراً، لا يمكنك تفعيل وضع النشاط لأن حسابك في انتظار التوثيق والمراجعة من قبل الإدارة.'
+          : 'Sorry, you cannot go online because your account is pending verification and review.',
+        'warning'
+      );
+      return;
+    }
+
     const nextOnline = !isOnline
     dispatch(toggleOnline())
     try {
@@ -122,7 +135,11 @@ export default function Topbar() {
     : 'bg-[var(--dh-bg-card)] border border-[var(--dh-border)] text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)]'
   let indicatorClass = isOnline ? 'bg-[var(--dh-success)] animate-pulse' : 'bg-[var(--dh-text-muted)]'
 
-  if (isBusy) {
+  if (user?.status === 'pending') {
+    statusText = locale === 'ar' ? 'في انتظار التوثيق' : 'Pending Verification'
+    statusClass = 'bg-amber-500/10 border border-amber-500/20 !text-amber-500 cursor-not-allowed font-semibold'
+    indicatorClass = 'bg-amber-500 animate-pulse'
+  } else if (isBusy) {
     statusText = t('busy')
     statusClass = 'bg-[var(--dh-warning-glow)] border border-[var(--dh-warning)]/20 text-[var(--dh-warning)] cursor-not-allowed'
     indicatorClass = 'bg-[var(--dh-warning)]'

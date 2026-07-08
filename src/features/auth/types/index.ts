@@ -16,6 +16,7 @@ export interface User {
   createdAt: string;
   driverStatus?: "available" | "busy" | "offline";
   officeStatus?: "available" | "offline";
+  status?: "pending" | "active" | "suspended" | "banned";
 }
 
 export interface AuthTokens {

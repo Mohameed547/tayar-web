@@ -25,6 +25,7 @@ function mapUser(rawUser: any): User {
     createdAt: rawUser.createdAt || new Date().toISOString(),
     driverStatus: rawUser.driverStatus,
     officeStatus: rawUser.officeStatus,
+    status: rawUser.status,
   };
 }
 

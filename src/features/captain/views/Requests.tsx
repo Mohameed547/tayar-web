@@ -9,6 +9,12 @@ import { submitOffer } from '@/features/offers'
 import Card from '@/shared/ui/Card'
 import Badge from '@/shared/ui/Badge'
 import { useLocale } from 'next-intl'
+import { WifiOff, Power, Clock } from 'lucide-react'
+import { getCurrentUser } from '@/features/auth/api'
+import type { User } from '@/features/auth/types'
+import { updateDriverAvailability, updateOfficeAvailability } from '@/features/office'
+import { useNotifications } from '@/shared/providers/socket-notification-provider'
+import { setOnlineState, setActiveScreen } from '@/features/captain/store/dashboard-slice'
 
 const formatEstDelivery = (days: number, hours: number, minutes: number, isAr: boolean) => {
   const parts: string[] = [];
@@ -68,6 +74,41 @@ export default function Requests() {
   const dispatch = useAppDispatch()
   const locale = useLocale()
   const isRTL = locale === 'ar'
+
+  const [user, setUser] = React.useState<User | null>(null)
+  const { triggerLocalToast } = useNotifications()
+
+  React.useEffect(() => {
+    getCurrentUser()
+      .then((data) => setUser(data))
+      .catch((err) => console.error("Error fetching user in Requests view:", err));
+  }, []);
+
+  const handleGoOnline = async () => {
+    if (!user) return;
+
+    if (user.status === 'pending') {
+      triggerLocalToast(
+        locale === 'ar' ? 'الحساب قيد المراجعة' : 'Account Pending Review',
+        locale === 'ar'
+          ? 'عذراً، لا يمكنك تفعيل وضع النشاط لأن حسابك في انتظار التوثيق والمراجعة من قبل الإدارة.'
+          : 'Sorry, you cannot go online because your account is pending verification and review.',
+        'warning'
+      );
+      return;
+    }
+
+    try {
+      if (user.role === 'office') {
+        await updateOfficeAvailability('available')
+      } else {
+        await updateDriverAvailability('available')
+      }
+      dispatch(setOnlineState(true))
+    } catch (err) {
+      console.error("Failed to update status in DB:", err)
+    }
+  }
 
   const getPackageTypeLabel = (val: string) => {
     switch (val) {
@@ -198,6 +239,50 @@ export default function Requests() {
     }
   }
 
+  if (user?.status === 'pending') {
+    return (
+      <div>
+        <div className="mb-[22px]">
+          <h1 className="text-[22px] font-extrabold text-[var(--color-text-main)] mb-1">
+            {t('requests_title')}
+          </h1>
+          <p className="text-[13px] text-[var(--color-text-sub)]">{t('requests_sub')}</p>
+        </div>
+        
+        <div className="relative flex flex-col items-center justify-center p-10 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-2xl text-center shadow-[0_8px_32px_rgba(0,0,0,0.04)] max-w-md mx-auto mt-12 overflow-hidden transition-all duration-300">
+          {/* Decorative ambient blur light */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Glowing Status Icon Container */}
+          <div className="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mb-6 shadow-[0_0_20px_rgba(245,158,11,0.08)]">
+            <Clock className="h-6 w-6 animate-pulse" />
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            </span>
+          </div>
+
+          <h3 className="text-base font-extrabold !text-[var(--dh-text-main)] mb-3 tracking-tight">
+            {locale === 'ar' ? 'حسابك في انتظار التوثيق' : 'Account Pending Verification'}
+          </h3>
+
+          <p className="text-[12px] !text-[var(--dh-text-muted)] leading-relaxed mb-8 max-w-[280px]">
+            {locale === 'ar' 
+              ? 'يرجى الانتظار لحين مراجعة وتوثيق حسابك من قِبل الإدارة لتتمكن من تفعيل النشاط واستقبل عروض الشحن.' 
+              : 'Please wait for the administration to review and verify your account to activate status and receive offers.'}
+          </p>
+
+          <button
+            onClick={() => dispatch(setActiveScreen('verification'))}
+            className="inline-flex items-center justify-center gap-2 w-full px-6 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] !text-black text-xs font-bold rounded-xl transition-all duration-200 shadow-[0_4px_16px_rgba(245,158,11,0.2)] focus:outline-none"
+          >
+            <span>{locale === 'ar' ? 'الذهاب لصفحة التوثيق' : 'Go to Verification'}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!isOnline) {
     return (
       <div>
@@ -208,18 +293,36 @@ export default function Requests() {
           <p className="text-[13px] text-[var(--color-text-sub)]">{t('requests_sub')}</p>
         </div>
         
-        <div className="flex flex-col items-center justify-center p-8 bg-zinc-900 border border-zinc-850 rounded-xl text-center shadow-lg max-w-lg mx-auto mt-6">
-          <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4 text-zinc-400 text-lg animate-pulse">
-            📴
+        <div className="relative flex flex-col items-center justify-center p-10 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-2xl text-center shadow-[0_8px_32px_rgba(0,0,0,0.04)] max-w-md mx-auto mt-12 overflow-hidden transition-all duration-300">
+          {/* Decorative ambient blur light */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-40 bg-[var(--dh-brand-glow)] rounded-full blur-3xl pointer-events-none" />
+
+          {/* Glowing Status Icon Container */}
+          <div className="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-[var(--dh-brand-subtle)] border border-[var(--dh-brand)]/20 text-[var(--dh-brand)] mb-6 shadow-[0_0_20px_var(--dh-brand-glow)]">
+            <WifiOff className="h-6 w-6" />
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--dh-brand)] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--dh-brand)]"></span>
+            </span>
           </div>
-          <h3 className="text-sm font-bold text-zinc-200 mb-2">
-            {locale === 'ar' ? 'أنت غير متصل بالإنترنت حالياً' : 'You are currently Offline'}
+
+          <h3 className="text-base font-extrabold !text-[var(--dh-text-main)] mb-3 tracking-tight">
+            {locale === 'ar' ? 'أنت في وضع عدم الاتصال بالخدمة حالياً' : 'You are currently Offline'}
           </h3>
-          <p className="text-[11px] text-zinc-400 leading-relaxed mb-4 max-w-xs">
+
+          <p className="text-[12px] !text-[var(--dh-text-muted)] leading-relaxed mb-8 max-w-[280px]">
             {locale === 'ar' 
-              ? 'يرجى تفعيل حالة النشاط (🟢 نشط) من الشريط العلوي لتتمكن من تلقي طلبات الشحن الجديدة وتقديم عروض الأسعار.' 
-              : 'Please change your status to Active (🟢 Online) from the top bar to start receiving new cargo requests and submitting quotes.'}
+              ? 'قم بتفعيل وضع النشاط لتتمكن من استقبال طلبات الشحن الجديدة وتقديم عروض أسعار تنافسية للعملاء.' 
+              : 'Switch your status to active to start receiving real-time shipment requests and submitting offers.'}
           </p>
+
+          <button
+            onClick={handleGoOnline}
+            className="inline-flex items-center justify-center gap-2 w-full px-6 py-2.5 bg-[var(--dh-brand)] hover:bg-[var(--dh-brand-hover)] active:scale-[0.98] !text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-[0_4px_16px_var(--dh-brand-glow)] focus:outline-none"
+          >
+            <Power className="h-3.5 w-3.5" />
+            <span>{locale === 'ar' ? 'تفعيل وضع النشاط' : 'Go Online'}</span>
+          </button>
         </div>
       </div>
     );

@@ -5,6 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useTheme } from '@/shared/providers/theme-provider'
 import { useTranslations } from 'next-intl'
+import { Navigation } from 'lucide-react'
 
 interface MapViewProps {
   pickupCoords?: [number, number]
@@ -14,6 +15,7 @@ interface MapViewProps {
   onMapClick?: (lat: number, lng: number) => void
   zoom?: number
   height?: string
+  locale?: string
 }
 
 export default function MapView({
@@ -24,6 +26,7 @@ export default function MapView({
   onMapClick,
   zoom = 12,
   height = '350px',
+  locale = 'en',
 }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<L.Map | null>(null)
@@ -35,6 +38,9 @@ export default function MapView({
   const deliveryMarkerRef = useRef<L.Marker | null>(null)
   const captainMarkerRef = useRef<L.Marker | null>(null)
   const polylineRef = useRef<L.Polyline | null>(null)
+  
+  const [autoFollow, setAutoFollow] = useState(true)
+  const hasFitBoundsRef = useRef(false)
 
   const getGreenPin = (label: string) => L.divIcon({
     className: 'custom-pin-green',
@@ -128,9 +134,9 @@ export default function MapView({
       bounds.push(pickupCoords)
       if (pickupMarkerRef.current) {
         pickupMarkerRef.current.setLatLng(pickupCoords)
-        pickupMarkerRef.current.setIcon(getRedPin(t('from')))
+        pickupMarkerRef.current.setIcon(getRedPin(t('from') || 'From'))
       } else {
-        pickupMarkerRef.current = L.marker(pickupCoords, { icon: getRedPin(t('from')) }).addTo(map)
+        pickupMarkerRef.current = L.marker(pickupCoords, { icon: getRedPin(t('from') || 'From') }).addTo(map)
       }
     } else if (pickupMarkerRef.current) {
       pickupMarkerRef.current.remove()
@@ -141,9 +147,9 @@ export default function MapView({
       bounds.push(deliveryCoords)
       if (deliveryMarkerRef.current) {
         deliveryMarkerRef.current.setLatLng(deliveryCoords)
-        deliveryMarkerRef.current.setIcon(getGreenPin(t('to')))
+        deliveryMarkerRef.current.setIcon(getGreenPin(t('to') || 'To'))
       } else {
-        deliveryMarkerRef.current = L.marker(deliveryCoords, { icon: getGreenPin(t('to')) }).addTo(map)
+        deliveryMarkerRef.current = L.marker(deliveryCoords, { icon: getGreenPin(t('to') || 'To') }).addTo(map)
       }
     } else if (deliveryMarkerRef.current) {
       deliveryMarkerRef.current.remove()
@@ -182,19 +188,49 @@ export default function MapView({
       polylineRef.current = null
     }
 
-    if (bounds.length > 1) {
+    if (!hasFitBoundsRef.current && bounds.length > 1) {
       map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40] })
-    } else if (bounds.length === 1) {
-      map.setView(bounds[0], zoom)
+      hasFitBoundsRef.current = true
     }
   }, [map, pickupCoords, deliveryCoords, captainCoords, zoom, t])
 
+  // Separate effect for live auto follow to prevent fitting bounds repeatedly
+  useEffect(() => {
+    if (map && captainCoords && !isNaN(captainCoords[0]) && !isNaN(captainCoords[1]) && autoFollow) {
+      map.panTo(captainCoords)
+    }
+  }, [map, captainCoords, autoFollow])
+
+  const isAr = locale === 'ar'
+  const autoFollowLabel = isAr 
+    ? (autoFollow ? "تتبع تلقائي: مفعل" : "تتبع تلقائي: معطل")
+    : (autoFollow ? "Auto-Follow: ON" : "Auto-Follow: OFF")
+
   return (
-    <div 
-      ref={mapContainerRef} 
-      className="w-full rounded-xl border border-zinc-800/80 shadow-inner bg-zinc-950 overflow-hidden"
-      style={{ height }} 
-    />
+    <div className="relative w-full rounded-xl border border-zinc-800/80 shadow-inner bg-zinc-950 overflow-hidden">
+      <div 
+        ref={mapContainerRef} 
+        className="w-full"
+        style={{ height }} 
+      />
+      {captainCoords && (
+        <button
+          type="button"
+          onClick={() => {
+            setAutoFollow(!autoFollow)
+            if (map && captainCoords) map.panTo(captainCoords)
+          }}
+          className={`absolute bottom-4 right-4 z-[1000] px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border shadow-lg ${
+            autoFollow 
+              ? "bg-blue-600 border-blue-500 text-white" 
+              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+          }`}
+        >
+          <Navigation className={`h-3.5 w-3.5 shrink-0 transition-transform ${autoFollow ? 'rotate-45' : ''}`} />
+          <span>{autoFollowLabel}</span>
+        </button>
+      )}
+    </div>
   )
 }
 

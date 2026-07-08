@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { tokenStorage } from "@/lib/auth/token-storage";
-import { Bell, Truck, Check, Wallet, Info, X, Headphones } from "lucide-react";
+import { Bell, Truck, Check, Wallet, Info, X, Headphones, AlertTriangle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 
@@ -141,6 +141,8 @@ export function SocketNotificationProvider({ children }: { children: React.React
         return <Wallet className="h-5 w-5 text-amber-400" />;
       case "support_reply":
         return <Headphones className="h-5 w-5 text-indigo-400" />;
+      case "warning":
+        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
       default:
         return <Bell className="h-5 w-5 text-purple-400" />;
     }

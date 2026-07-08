@@ -1,7 +1,7 @@
 export const customerMessages = {
   en: {
     dashboard: {
-      greeting: "Good morning, {name}",
+      greeting: "Welcome back, {name}",
       newShipment: "New shipment",
       totalShipped: "Total shipped",
       totalShippedDescription: "Packages delivered safely",
@@ -324,7 +324,7 @@ export const customerMessages = {
   },
   ar: {
     dashboard: {
-      greeting: "صباح الخير، {name}",
+      greeting: "مرحباً بك، {name}",
       newShipment: "شحنة جديدة",
       totalShipped: "إجمالي الشحنات",
       totalShippedDescription: "طرود تم توصيلها بأمان",

@@ -21,6 +21,9 @@ function mapProviderProfile(user: any): ProviderProfile {
     name: user.fullName || user.name || "",
     phone: user.phone || "",
     avatar: user.profileImage || user.avatar || undefined,
+    email: user.email || "",
+    createdAt: user.createdAt || undefined,
+    status: user.status || undefined,
   };
 }
 

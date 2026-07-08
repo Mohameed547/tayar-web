@@ -22,6 +22,7 @@ export function mapOffer(o: any): Offer {
     coverage: o.coverage?.toLowerCase() === "insured" ? "insured" : "none",
     description: o.description || "",
     isBestValue: !!o.isBestValue,
+    providerId: o.offerer?._id || (typeof o.offerer === "string" ? o.offerer : undefined),
   };
 }
 

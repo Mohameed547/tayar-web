@@ -62,6 +62,7 @@ export default function CustomerDashboardView() {
   const locale = useLocale();
   const router = useRouter();
   const [formattedDate, setFormattedDate] = useState("");
+  const [greetingText, setGreetingText] = useState("");
   const [customerName, setCustomerName] = useState(mockCustomer.name.split(" ")[0]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [walletBalance, setWalletBalance] = useState("EGP 0");
@@ -116,6 +117,20 @@ export default function CustomerDashboardView() {
   }, [locale]);
 
   useEffect(() => {
+    if (!customerName) return;
+    const hour = new Date().getHours();
+    let text = "";
+    if (hour >= 5 && hour < 12) {
+      text = locale === "ar" ? `صباح الخير، ${customerName}` : `Good morning, ${customerName}`;
+    } else if (hour >= 12 && hour < 18) {
+      text = locale === "ar" ? `مساء الخير، ${customerName}` : `Good afternoon, ${customerName}`;
+    } else {
+      text = locale === "ar" ? `مساء الخير، ${customerName}` : `Good evening, ${customerName}`;
+    }
+    setGreetingText(text);
+  }, [locale, customerName]);
+
+  useEffect(() => {
     if (!authorized) return;
 
     Promise.all([
@@ -167,7 +182,7 @@ export default function CustomerDashboardView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight text-[var(--dh-text-main)]">
-            {t("greeting", { name: customerName })}
+            {greetingText || (locale === "ar" ? `مرحباً بك، ${customerName}` : `Welcome back, ${customerName}`)}
           </h1>
           <p className="text-xs text-[var(--dh-text-muted)] font-semibold">{formattedDate}</p>
         </div>
