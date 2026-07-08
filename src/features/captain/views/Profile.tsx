@@ -6,7 +6,7 @@ import { updateProfile } from '@/features/captain/store/data-slice'
 import { selectProfile, selectVerification, selectAccountType } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import { getProviderProfile, updateProviderProfile, uploadAvatar } from '@/features/profile'
-import { User, Phone, CheckCircle, Eye, Camera } from 'lucide-react'
+import { User, Phone, CheckCircle, Eye, Camera, Mail, Calendar } from 'lucide-react'
 import { useLocale } from 'next-intl'
 
 export default function Profile() {
@@ -92,6 +92,18 @@ export default function Profile() {
 
   const isOffice = accountType === 'office'
 
+  const joinedDate = profile.createdAt
+    ? new Date(profile.createdAt).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : new Date().toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+
   return (
     <div className="flex flex-col gap-6 text-[var(--color-text-main)] max-w-3xl mx-auto">
       {/* Title */}
@@ -163,12 +175,16 @@ export default function Profile() {
               {t(isOffice ? 'accountType_office' : 'accountType_captain')}
             </span>
           </div>
-          {verification.isVerified ? (
+          {profile.status === 'active' ? (
             <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               {t('verifiedBadge')}
             </span>
-          ) : (
+          ) : profile.status === 'pending' ? (
             <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              {locale === 'ar' ? 'في انتظار التوثيق' : 'Pending Verification'}
+            </span>
+          ) : (
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
               {t('notVerifiedBadge')}
             </span>
           )}
@@ -217,11 +233,29 @@ export default function Profile() {
                     </div>
                   </div>
 
+                  {profile.email && (
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-4 w-4 text-[var(--dh-text-muted)] shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-[var(--dh-text-muted)] font-medium">{locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</span>
+                        <span className="text-[var(--color-text-main)] font-semibold mt-0.5">{profile.email}</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-[var(--dh-text-muted)] shrink-0" />
                     <div className="flex flex-col">
                       <span className="text-[var(--dh-text-muted)] font-medium">{t('contactNumber')}</span>
                       <span className="text-[var(--color-text-main)] font-semibold mt-0.5">{profile.phone}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-[var(--dh-text-muted)] shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[var(--dh-text-muted)] font-medium">{locale === 'ar' ? 'تاريخ الانضمام' : 'Joined Date'}</span>
+                      <span className="text-[var(--color-text-main)] font-semibold mt-0.5">{joinedDate}</span>
                     </div>
                   </div>
                 </div>
@@ -245,6 +279,21 @@ export default function Profile() {
                     placeholder={profile.name}
                   />
                 </div>
+
+                {/* Email Input (Disabled) */}
+                {profile.email && (
+                  <div className="flex flex-col gap-1.5 opacity-60">
+                    <label className="text-xs font-semibold text-[var(--color-text-sub)]">
+                      {locale === 'ar' ? 'البريد الإلكتروني (غير قابل للتعديل)' : 'Email Address (Not Editable)'}
+                    </label>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      className="w-full bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-xs text-[var(--dh-text-muted)] cursor-not-allowed focus:outline-none"
+                    />
+                  </div>
+                )}
 
                 {/* Phone Input */}
                 <div className="flex flex-col gap-1.5">

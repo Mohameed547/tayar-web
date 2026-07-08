@@ -148,18 +148,21 @@ export default function NewShipmentView() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        if (field === 'pickup') {
+          setPickupCoords([latitude, longitude]);
+        } else {
+          setDeliveryCoords([latitude, longitude]);
+        }
         try {
           const address = await reverseGeocode(latitude, longitude);
-          if (field === 'pickup') {
-            setPickupCoords([latitude, longitude]);
-            setValue('pickupAddress', address, { shouldValidate: true });
-          } else if (field === 'delivery') {
-            setDeliveryCoords([latitude, longitude]);
-            setValue('deliveryAddress', address, { shouldValidate: true });
-          }
+          setValue(field === 'pickup' ? 'pickupAddress' : 'deliveryAddress', address, { shouldValidate: true });
         } catch (err) {
           console.error("Error geocoding current location:", err);
-          setValue(field === 'pickup' ? 'pickupAddress' : 'deliveryAddress', '');
+          setValue(
+            field === 'pickup' ? 'pickupAddress' : 'deliveryAddress',
+            `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`,
+            { shouldValidate: true }
+          );
         } finally {
           setDetectingLocation(null);
         }
@@ -259,13 +262,13 @@ export default function NewShipmentView() {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
+          setDeliveryCoords([latitude, longitude]);
           try {
             const latestVal = getValues('deliveryAddress');
             const loadingMsgAr = 'جاري تحديد موقعك الحالي...';
             const loadingMsgEn = 'Locating your current location...';
             if (!latestVal || latestVal === loadingMsgAr || latestVal === loadingMsgEn) {
               const address = await reverseGeocode(latitude, longitude);
-              setDeliveryCoords([latitude, longitude]);
               setValue('deliveryAddress', address, { shouldValidate: true });
             }
           } catch (err) {
@@ -274,7 +277,7 @@ export default function NewShipmentView() {
             const loadingMsgAr = 'جاري تحديد موقعك الحالي...';
             const loadingMsgEn = 'Locating your current location...';
             if (latestVal === loadingMsgAr || latestVal === loadingMsgEn) {
-              setValue('deliveryAddress', '');
+              setValue('deliveryAddress', `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`, { shouldValidate: true });
             }
           }
         },

@@ -2,16 +2,45 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Phone, MessageSquare, Ship, Navigation } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { 
+  ArrowLeft, 
+  Phone, 
+  MessageSquare, 
+  Package, 
+  Navigation,
+  ShieldAlert,
+  KeyRound,
+  Coins,
+  DollarSign,
+  CheckCircle2,
+  Wallet,
+  ExternalLink,
+  Lock,
+  AlertCircle,
+  MapPin,
+  Signal,
+  RefreshCw,
+  Clock,
+  Compass,
+  Copy,
+  Star,
+  Camera
+} from "lucide-react";
 import { mockShipments, mockOffers } from "@/constants/mock-data";
 import TrackingTimeline from "../components/tracking-timeline";
 import { useTranslations, useLocale } from "next-intl";
 import { getShipmentById } from "@/features/shipments/api";
+import { generateOTP } from "@/features/shipments/api/captain-api";
 import { getOffersForShipment } from "@/features/offers/api";
+import { ReviewModal } from "@/features/reviews";
 import { getTrackingDetails } from "@/features/tracking/api";
+import { getWallet } from "@/features/wallet/api";
 import type { Shipment } from "@/features/shipments/types";
 import type { Offer } from "@/features/offers/types";
 import type { TrackingMilestone } from "../types";
+import type { Wallet as UserWallet } from "@/features/wallet/types";
+import { useNotifications } from "@/shared/providers/socket-notification-provider";
 import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/shared/ui/MapView"), {
@@ -28,9 +57,31 @@ interface TrackingDetailViewProps {
   offerId: string | null;
 }
 
+const statusDescriptions = {
+  en: {
+    pending_offers: "Awaiting offers from captains",
+    captain_assignment: "Assigning a captain",
+    picked_up: "Package picked up by captain",
+    in_transit: "Captain is heading to destination",
+    out_for_delivery: "Captain is delivering the package",
+    delivered: "Shipment delivered successfully",
+    cancelled: "Shipment cancelled",
+  },
+  ar: {
+    pending_offers: "في انتظار عروض الكباتن",
+    captain_assignment: "جاري تعيين كابتن للطلب",
+    picked_up: "تم استلام الشحنة بواسطة الكابتن",
+    in_transit: "الكابتن في طريقه إلى الوجهة",
+    out_for_delivery: "خرجت الشحنة للتسليم النهائي",
+    delivered: "تم توصيل الشحنة بنجاح",
+    cancelled: "تم إلغاء الشحنة",
+  }
+};
+
 export default function TrackingDetailView({ id, offerId }: TrackingDetailViewProps) {
   const t = useTranslations("customer.tracking");
   const locale = useLocale();
+  const { socket } = useNotifications();
 
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -38,6 +89,43 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
   const [error, setError] = useState<string | null>(null);
   const [captainCoords, setCaptainCoords] = useState<[number, number] | undefined>(undefined);
   const [trackingDetails, setTrackingDetails] = useState<any>(null);
+  const [otpLoading, setOtpLoading] = useState(false);
+  
+  // Custom states for production logistics experience
+  const [wallet, setWallet] = useState<UserWallet | null>(null);
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<number>(Date.now());
+  const [secondsSinceLastUpdate, setSecondsSinceLastUpdate] = useState(0);
+  const [otpTimeLeft, setOtpTimeLeft] = useState<string>("");
+  const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  const handleRegenerateOTP = async () => {
+    if (!shipment?.id) return;
+    setOtpLoading(true);
+    try {
+      const res = await generateOTP(shipment.id);
+      if (res?.data?.otpCode) {
+        setOtpExpiresAt(res.data.expiresAt || new Date(Date.now() + 10 * 60 * 1000).toISOString());
+        setShipment(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            proofOfDelivery: {
+              otpCode: res.data.otpCode,
+              recipientName: prev.proofOfDelivery?.recipientName ?? null,
+              signatureImage: prev.proofOfDelivery?.signatureImage ?? null,
+              packageImage: prev.proofOfDelivery?.packageImage ?? null,
+              verifiedAt: prev.proofOfDelivery?.verifiedAt ?? null,
+            }
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Failed to generate new OTP:", err);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -56,14 +144,49 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
         console.error("Failed to fetch offers, using mock fallback:", err);
         return mockOffers;
       }),
-    ]).then(([loadedShipment, loadedOffers]) => {
+      getWallet().catch((err) => {
+        console.error("Failed to fetch wallet info:", err);
+        return null;
+      })
+    ]).then(([loadedShipment, loadedOffers, loadedWallet]) => {
       if (loadedShipment) {
         setShipment(loadedShipment);
         setOffers(loadedOffers);
+        if (loadedShipment.proofOfDelivery?.otpCode && !loadedShipment.proofOfDelivery?.verifiedAt) {
+          setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString());
+        }
+      }
+      if (loadedWallet) {
+        setWallet(loadedWallet);
       }
       setLoading(false);
     });
   }, [id]);
+
+  useEffect(() => {
+    if (!socket || !shipment?.id) return;
+
+    socket.emit("joinShipment", shipment.id);
+
+    const handleStatusUpdate = (data: { shipmentId: string; status: string }) => {
+      if (data.shipmentId === shipment.id) {
+        setShipment((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            status: data.status as any,
+          };
+        });
+      }
+    };
+
+    socket.on("statusUpdate", handleStatusUpdate);
+
+    return () => {
+      socket.emit("leaveShipment", shipment.id);
+      socket.off("statusUpdate", handleStatusUpdate);
+    };
+  }, [socket, shipment?.id]);
 
   useEffect(() => {
     if (!shipment?.id) return;
@@ -73,6 +196,7 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
         const details = await getTrackingDetails(shipment.id);
         if (details) {
           setTrackingDetails(details);
+          setLastUpdatedTime(Date.now());
           if (details.currentLocation?.coords) {
             const [lng, lat] = details.currentLocation.coords;
             if (!isNaN(lat) && !isNaN(lng)) {
@@ -106,6 +230,38 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     }
   }, [shipment?.id, shipment?.status]);
 
+  // Timer effect for last GPS update
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSecondsSinceLastUpdate(Math.floor((Date.now() - lastUpdatedTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lastUpdatedTime]);
+
+  // Timer effect for OTP countdown
+  useEffect(() => {
+    if (!otpExpiresAt) {
+      setOtpTimeLeft("");
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      const expiry = new Date(otpExpiresAt).getTime();
+      const now = Date.now();
+      const diff = expiry - now;
+      if (diff <= 0) {
+        setOtpTimeLeft(locale === 'ar' ? 'منتهي الصلاحية' : 'Expired');
+        clearInterval(interval);
+      } else {
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        setOtpTimeLeft(`${mins}m ${secs}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpExpiresAt, locale]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-sm font-semibold">
@@ -128,21 +284,83 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     );
   }
 
-  const captain = shipment.captain;
+  if (shipment.status === 'cancelled') {
+    return (
+      <div className="flex flex-col gap-6 max-w-2xl mx-auto p-4">
+        <div className="bg-zinc-900 border border-red-500/20 rounded-2xl p-6 md:p-8 flex flex-col items-center text-center shadow-lg gap-6">
+          <div className="h-16 w-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 animate-pulse">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-zinc-100">
+              {locale === "ar" ? "تم إلغاء الشحنة" : "Shipment Cancelled"}
+            </h1>
+            <p className="text-sm text-zinc-400 max-w-md leading-relaxed">
+              {locale === "ar" 
+                ? "لقد تم إلغاء هذه الشحنة بواسطة المسؤول أو النظام. تم إرجاع المبالغ المحتجزة بالكامل إلى محفظتك." 
+                : "This shipment has been cancelled by the admin or the system. Any locked funds have been fully refunded to your wallet."}
+            </p>
+          </div>
+
+          <div className={cn(
+            "w-full bg-zinc-950/60 border border-zinc-850 p-4.5 rounded-xl flex flex-col gap-3 text-xs",
+            locale === "ar" ? "text-right" : "text-left"
+          )}>
+            <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+              <span className="text-zinc-500 font-semibold">{locale === "ar" ? "رقم التتبع" : "Tracking Number"}</span>
+              <span className="font-mono font-bold text-zinc-300">{shipment.trackingNumber}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-zinc-500 font-semibold">{locale === "ar" ? "نقطة الاستلام" : "Pickup Location"}</span>
+              <span className="text-zinc-300">{shipment.pickupAddress}</span>
+            </div>
+            <div className="flex flex-col gap-1 border-t border-zinc-900/60 pt-2">
+              <span className="text-zinc-500 font-semibold">{locale === "ar" ? "نقطة التسليم" : "Delivery Location"}</span>
+              <span className="text-zinc-300">{shipment.deliveryAddress}</span>
+            </div>
+            {shipment.price && (
+              <div className="flex justify-between items-center border-t border-zinc-900/60 pt-2">
+                <span className="text-zinc-500 font-semibold">{locale === "ar" ? "المبلغ المسترد" : "Refunded Amount"}</span>
+                <span className="font-bold text-emerald-400">EGP {shipment.price.toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full justify-center mt-2">
+            <Link
+              href="/dashboard"
+              className="flex-1 max-w-xs px-5 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 hover:text-white text-xs font-bold rounded-xl transition-all shadow-md text-center border border-zinc-700"
+            >
+              {locale === "ar" ? "العودة للرئيسية" : "Go to Dashboard"}
+            </Link>
+            <Link
+              href="/shipments/new"
+              className="flex-1 max-w-xs px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all shadow-md text-center"
+            >
+              {locale === "ar" ? "طلب شحنة جديدة" : "Request New Shipment"}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const captain = shipment.captain as any;
   const selectedOffer = offers.find((o) => o.id === offerId);
   const displayProvider = captain
     ? {
-        name: captain.name,
+        name: captain.fullName || captain.name || "Captain",
         rating: captain.rating !== undefined ? captain.rating : 5.0,
         avatarUrl:
-          captain.avatar &&
-          (captain.avatar.startsWith("http") ||
-            captain.avatar.startsWith("/") ||
-            captain.avatar.startsWith("data:"))
-            ? captain.avatar
+          (captain.profileImage || captain.avatar) &&
+          ((captain.profileImage || captain.avatar).startsWith("http") ||
+            (captain.profileImage || captain.avatar).startsWith("/") ||
+            (captain.profileImage || captain.avatar).startsWith("data:"))
+            ? (captain.profileImage || captain.avatar)
             : null,
-        initials: captain.name
-          ? captain.name
+        initials: (captain.fullName || captain.name || "Captain")
+          ? (captain.fullName || captain.name || "Captain")
               .split(" ")
               .map((w: string) => w[0])
               .join("")
@@ -174,12 +392,6 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
       }
     : null;
 
-  const getStatus = (isCompleted: boolean, isActive: boolean): "completed" | "active" | "pending" => {
-    if (isCompleted) return "completed";
-    if (isActive) return "active";
-    return "pending";
-  };
-
   const formatMilestoneTime = (timestamp?: string) => {
     if (!timestamp) return undefined;
     const date = new Date(timestamp);
@@ -195,48 +407,6 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     return milestone ? formatMilestoneTime(milestone.timestamp) : fallbackText;
   };
 
-  const milestones: TrackingMilestone[] = [
-    {
-      step: 1,
-      title: t("shipmentCreated") || "Shipment created",
-      timestamp: shipment.createdAt ? formatMilestoneTime(shipment.createdAt) : "Just now",
-      status: getStatus(true, shipment.status === "pending_offers"),
-    },
-    {
-      step: 2,
-      title: t("offerAccepted") || "Offer accepted",
-      timestamp: getMilestoneTime("assigned", shipment.status !== "pending_offers" ? "Completed" : undefined),
-      status: getStatus(shipment.status !== "pending_offers", shipment.status === "captain_assignment"),
-    },
-    {
-      step: 3,
-      title: t("packagePickedUp") || "Package picked up",
-      timestamp: getMilestoneTime("picked_up", ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
-      status: getStatus(
-        ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status),
-        shipment.status === "picked_up"
-      ),
-    },
-    {
-      step: 4,
-      title: t("inTransit") || "In transit",
-      timestamp: getMilestoneTime("in_transit", ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
-      status: getStatus(
-        ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status),
-        ["in_transit", "out_for_delivery"].includes(shipment.status)
-      ),
-    },
-    {
-      step: 5,
-      title: t("delivered") || "Delivered",
-      timestamp: getMilestoneTime("delivered", shipment.status === "delivered" ? "Completed" : undefined),
-      status: getStatus(
-        shipment.status === "delivered",
-        shipment.status === "delivered"
-      ),
-    },
-  ];
-
   const parseCoords = (coords?: [number, number]): [number, number] | undefined => {
     if (!coords || coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return undefined;
     return [coords[1], coords[0]];
@@ -244,6 +414,25 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
 
   const parsedPickup = parseCoords(shipment.pickupCoords);
   const parsedDelivery = parseCoords(shipment.deliveryCoords);
+
+  const getDistance = (coords1?: [number, number], coords2?: [number, number]) => {
+    if (!coords1 || !coords2) return null;
+    const [lat1, lon1] = coords1;
+    const [lat2, lon2] = coords2;
+    const R = 6371; // km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // in km
+  };
+
+  const liveRemainingKm = getDistance(captainCoords, parsedDelivery);
 
   const computedEtaText = shipment.etaDescription || (() => {
     const distance = shipment.distanceKm || 0;
@@ -264,91 +453,570 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     }
   })();
 
+  const getTimelineMilestoneStatus = (step: number, currentStatus: string, proof: any): "completed" | "active" | "pending" => {
+    switch (step) {
+      case 1:
+        return "completed";
+      case 2:
+        if (currentStatus === "pending_offers") return "pending";
+        if (currentStatus === "captain_assignment") return "active";
+        return "completed";
+      case 3:
+        if (["pending_offers", "captain_assignment"].includes(currentStatus)) return "pending";
+        if (currentStatus === "picked_up") return "active";
+        return "completed";
+      case 4:
+        if (["pending_offers", "captain_assignment", "picked_up"].includes(currentStatus)) return "pending";
+        if (currentStatus === "in_transit") return "active";
+        return "completed";
+      case 5:
+        if (["pending_offers", "captain_assignment", "picked_up", "in_transit"].includes(currentStatus)) return "pending";
+        if (currentStatus === "out_for_delivery" && !proof?.verifiedAt) return "active";
+        return "completed";
+      case 6:
+        if (["pending_offers", "captain_assignment", "picked_up", "in_transit"].includes(currentStatus)) return "pending";
+        if (currentStatus === "out_for_delivery") {
+          return proof?.verifiedAt ? "completed" : "active";
+        }
+        return "completed";
+      case 7:
+        if (currentStatus !== "out_for_delivery" && currentStatus !== "delivered") return "pending";
+        if (currentStatus === "out_for_delivery") {
+          if (!proof?.verifiedAt) return "pending";
+          return proof?.packageImage ? "completed" : "active";
+        }
+        return "completed";
+      case 8:
+        if (currentStatus === "delivered") return "completed";
+        return "pending";
+      case 9:
+        if (currentStatus === "delivered") return "active";
+        return "pending";
+      default:
+        return "pending";
+    }
+  };
+
+  const getMilestoneDescription = (step: number, currentStatus: string, proof: any): string | undefined => {
+    if (locale === "ar") {
+      switch (step) {
+        case 1: return "تم تسجيل الشحنة بنجاح على نظام طيار.";
+        case 2: return "تم اختيار الكابتن المناسب وتأكيد العرض المالي.";
+        case 3: return "استلم الكابتن الطرد من موقع الاستلام المحدد.";
+        case 4: return "الكابتن في طريقه للوجهة لتسليم طردك.";
+        case 5: return "وصل الكابتن إلى نطاق موقع التسليم.";
+        case 6: return proof?.verifiedAt ? "تم إدخال الرمز السري وتأكيد الهوية." : "يرجى تزويد الكابتن برقم الـ OTP لتأكيد الاستلام.";
+        case 7: return proof?.packageImage ? "تم رفع صورة الطرد كإثبات للتوصيل." : "بانتظار قيام الكابتن برفع صورة الطرد لتأكيد سلامته.";
+        case 8: return currentStatus === "delivered" ? "تم الإفراج عن المبلغ وتحويله للمحفظة." : "سيتم الإفراج عن الأموال فور التحقق.";
+        case 9: return currentStatus === "delivered" ? "شاركنا رأيك في الخدمة وتقييم الكابتن." : "التقييم سيكون متاحاً فور اكتمال التوصيل.";
+        default: return undefined;
+      }
+    } else {
+      switch (step) {
+        case 1: return "Shipment registered successfully on Tayar.";
+        case 2: return "Captain selected and delivery offer accepted.";
+        case 3: return "Package has been picked up from sender.";
+        case 4: return "Captain is on the way to the delivery location.";
+        case 5: return "Captain has arrived at the destination area.";
+        case 6: return proof?.verifiedAt ? "Verification code entered and verified." : "Please provide the OTP code to the captain.";
+        case 7: return proof?.packageImage ? "Package photo uploaded successfully." : "Awaiting captain photo upload to verify package integrity.";
+        case 8: return currentStatus === "delivered" ? "Funds released successfully from escrow." : "Funds will be released upon delivery.";
+        case 9: return currentStatus === "delivered" ? "Please rate your experience with this delivery." : "Review will be available after delivery.";
+        default: return undefined;
+      }
+    }
+  };
+
+  const getCurrentActionMessage = (status: string, proof: any) => {
+    if (locale === 'ar') {
+      switch (status) {
+        case 'pending_offers': return 'بانتظار تلقي عروض الأسعار من الكباتن...';
+        case 'captain_assignment': return 'بانتظار قبول الكابتن للطلب والبدء...';
+        case 'picked_up': return 'الكابتن استلم الشحنة ويستعد للانطلاق...';
+        case 'in_transit': return 'الكابتن في طريقه للتسليم حالياً...';
+        case 'out_for_delivery': 
+          if (proof?.verifiedAt) {
+            return 'تم التحقق من الرمز، بانتظار التقاط صورة التسليم...';
+          }
+          return 'بانتظار إدخال رمز التحقق (OTP) للتوصيل...';
+        case 'delivered': return 'تم توصيل الشحنة بنجاح وتحرير المدفوعات!';
+        case 'cancelled': return 'تم إلغاء الشحنة.';
+        default: return 'جاري المعالجة...';
+      }
+    } else {
+      switch (status) {
+        case 'pending_offers': return 'Waiting for captains to submit offers...';
+        case 'captain_assignment': return 'Waiting for captain to accept assignment...';
+        case 'picked_up': return 'Captain has picked up the package. Preparing transit...';
+        case 'in_transit': return 'Captain is currently in transit to your destination...';
+        case 'out_for_delivery':
+          if (proof?.verifiedAt) {
+            return 'OTP verified. Waiting for package photo upload...';
+          }
+          return 'Waiting for Delivery verification OTP...';
+        case 'delivered': return 'Shipment delivered successfully. Escrow funds released!';
+        case 'cancelled': return 'Shipment has been cancelled.';
+        default: return 'Processing shipment...';
+      }
+    }
+  };
+
+  const milestones: TrackingMilestone[] = [
+    {
+      step: 1,
+      title: locale === 'ar' ? 'إنشاء الشحنة' : 'Shipment Created',
+      timestamp: shipment.createdAt ? formatMilestoneTime(shipment.createdAt) : "Just now",
+      status: getTimelineMilestoneStatus(1, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(1, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 2,
+      title: locale === 'ar' ? 'قبول العرض' : 'Offer Accepted',
+      timestamp: getMilestoneTime("assigned", shipment.status !== "pending_offers" ? formatMilestoneTime(shipment.createdAt) : undefined),
+      status: getTimelineMilestoneStatus(2, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(2, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 3,
+      title: locale === 'ar' ? 'استلام الطرد' : 'Package Picked Up',
+      timestamp: getMilestoneTime("picked_up", ["picked_up", "in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
+      status: getTimelineMilestoneStatus(3, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(3, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 4,
+      title: locale === 'ar' ? 'بدء التوصيل' : 'Captain Started Delivery',
+      timestamp: getMilestoneTime("in_transit", ["in_transit", "out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
+      status: getTimelineMilestoneStatus(4, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(4, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 5,
+      title: locale === 'ar' ? 'وصول الكابتن' : 'Captain Arrived',
+      timestamp: getMilestoneTime("out_for_delivery", ["out_for_delivery", "delivered"].includes(shipment.status) ? "Completed" : undefined),
+      status: getTimelineMilestoneStatus(5, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(5, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 6,
+      title: locale === 'ar' ? 'رمز التحقق (OTP)' : 'Waiting for OTP',
+      timestamp: shipment.proofOfDelivery?.verifiedAt ? formatMilestoneTime(shipment.proofOfDelivery.verifiedAt) : undefined,
+      status: getTimelineMilestoneStatus(6, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(6, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 7,
+      title: locale === 'ar' ? 'صورة التسليم' : 'Delivery Photo',
+      timestamp: shipment.proofOfDelivery?.packageImage ? (shipment.proofOfDelivery.verifiedAt ? formatMilestoneTime(shipment.proofOfDelivery.verifiedAt) : "Completed") : undefined,
+      status: getTimelineMilestoneStatus(7, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(7, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 8,
+      title: locale === 'ar' ? 'تحرير الأموال' : 'Money Released',
+      timestamp: shipment.status === 'delivered' && shipment.proofOfDelivery?.verifiedAt ? formatMilestoneTime(shipment.proofOfDelivery.verifiedAt) : undefined,
+      status: getTimelineMilestoneStatus(8, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(8, shipment.status, shipment.proofOfDelivery),
+    },
+    {
+      step: 9,
+      title: locale === 'ar' ? 'تقييم الخدمة' : 'Review Available',
+      status: getTimelineMilestoneStatus(9, shipment.status, shipment.proofOfDelivery),
+      description: getMilestoneDescription(9, shipment.status, shipment.proofOfDelivery),
+    },
+  ];
+
   return (
-    <div className="flex flex-col gap-6 text-zinc-100 max-w-5xl mx-auto">
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-4">
-        <Link
-          href="/dashboard"
-          className="p-1 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-            {t("title")}
-          </h1>
-          <p className="text-xs text-zinc-500 mt-1">
-            {t("subtitle")}
-          </p>
+    <div className="flex flex-col gap-6 text-zinc-100 max-w-5xl mx-auto pb-12">
+      {/* Header Bar */}
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard"
+            className="p-1 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-100">
+              {t("title")}
+            </h1>
+            <p className="text-xs text-zinc-500 mt-1">
+              {t("subtitle")}
+            </p>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        
+        {/* Left Column: Live Status Summary & Map */}
         <div className="lg:col-span-7 flex flex-col gap-2 relative">
-          <div className="flex justify-between items-center text-xs font-semibold text-zinc-500 mb-1">
-            <span>{locale === 'ar' ? 'خريطة التتبع المباشر' : 'Live Tracking Map'}</span>
-            <div className="flex gap-2">
-              <span className="flex items-center gap-1 bg-zinc-950/80 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
-                {t("live")}
-              </span>
-              <span className="bg-zinc-950/80 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
-                {locale === "ar" ? "الوصول المتوقع: " : "Estimated arrival: "} {computedEtaText}
+          
+          {/* Delivery Status Summary Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold text-red-400 uppercase tracking-wider animate-pulse">
+                  <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
+                  {locale === 'ar' ? 'تتبع مباشر' : 'Live Tracking'}
+                </span>
+                <span className="flex items-center gap-1 bg-zinc-950 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-400">
+                  <Signal className="h-3 w-3 text-emerald-500" />
+                  {locale === "ar" ? "GPS نشط" : "GPS Signal: Live"}
+                </span>
+              </div>
+              <span className="text-sm font-bold text-zinc-100 mt-1">
+                {statusDescriptions[locale as 'ar' | 'en'][shipment.status as keyof typeof statusDescriptions.en] || shipment.status}
               </span>
             </div>
+
+            <div className="grid grid-cols-3 gap-6 sm:gap-8 border-t sm:border-t-0 rtl:sm:border-r ltr:sm:border-l border-zinc-800 pt-4 sm:pt-0 rtl:sm:pr-6 ltr:sm:pl-6 w-full sm:w-auto">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{locale === 'ar' ? 'الوصول المتوقع' : 'ETA'}</span>
+                <span className="text-xs font-bold text-zinc-200 mt-0.5 flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-blue-400" />
+                  {computedEtaText}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{locale === 'ar' ? 'المسافة' : 'Distance'}</span>
+                <span className="text-xs font-bold text-zinc-200 mt-0.5 flex items-center gap-1">
+                  <Compass className="h-3 w-3 text-blue-400" />
+                  {liveRemainingKm !== null ? `${liveRemainingKm.toFixed(1)} ${locale === 'ar' ? 'كم' : 'KM'}` : `${shipment.distanceKm || '--'} ${locale === 'ar' ? 'كم' : 'KM'}`}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{locale === 'ar' ? 'آخر تحديث' : 'Last Update'}</span>
+                <span className="text-xs font-bold text-zinc-200 mt-0.5 flex items-center gap-1">
+                  <RefreshCw className="h-3 w-3 text-emerald-400" />
+                  {secondsSinceLastUpdate < 5 ? (locale === 'ar' ? 'الآن' : 'Just now') : `${secondsSinceLastUpdate}s ${locale === 'ar' ? 'مضت' : 'ago'}`}
+                </span>
+              </div>
+            </div>
           </div>
+
           <MapView
             pickupCoords={parsedPickup}
             deliveryCoords={parsedDelivery}
             captainCoords={captainCoords}
             zoom={13}
             height="380px"
+            locale={locale}
           />
         </div>
 
+        {/* Right Column: Cards (Action, Timeline, PoD, Wallet, Captain) */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-md flex-1 flex flex-col justify-between gap-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-zinc-100">
-                    {shipment.trackingNumber}
-                  </span>
-                  <span className="text-[10px] text-zinc-500 font-medium">
-                    {shipment.pickupAddress.split(",")[0]} {locale === 'ar' ? '⬅' : '➔'} {shipment.deliveryAddress.split(",")[0]}
-                  </span>
-                </div>
-                <Ship className="h-5 w-5 text-blue-500" />
-              </div>
+          
+          {/* Current Action Card */}
+          <div className="bg-blue-600/10 border border-blue-500/20 rounded-xl p-4 flex gap-3 items-center">
+            <div className="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+              {shipment.status === 'delivered' ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              ) : (
+                <Clock className="h-4 w-4 animate-spin-slow text-blue-400" />
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">{locale === 'ar' ? 'الإجراء الحالي' : 'CURRENT ACTION'}</span>
+              <span className="text-xs font-semibold text-blue-400 mt-0.5">
+                {getCurrentActionMessage(shipment.status, shipment.proofOfDelivery)}
+              </span>
+            </div>
+          </div>
 
-              <TrackingTimeline 
-                milestones={milestones} 
-                progressPercent={shipment.deliveryProgressPercent}
-              />
+          {/* Shipment Timeline Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-md flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-zinc-100">
+                  {shipment.trackingNumber}
+                </span>
+                <span className="text-[10px] text-zinc-500 font-medium mt-0.5">
+                  {shipment.pickupAddress.split(",")[0]} {locale === 'ar' ? '⬅' : '➔'} {shipment.deliveryAddress.split(",")[0]}
+                </span>
+              </div>
+              <Package className="h-5 w-5 text-blue-500" />
             </div>
 
-            {displayProvider && (
-              <div className="bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 flex items-center justify-between gap-4">
+            <TrackingTimeline 
+              milestones={milestones} 
+              progressPercent={shipment.deliveryProgressPercent}
+              onMilestoneClick={(step) => {
+                if (step === 9) setIsReviewOpen(true);
+              }}
+            />
+          </div>
+
+          {/* Proof of Delivery Card (Unified GPS, OTP and Photo) */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-md flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+              <span className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-blue-500" />
+                {locale === "ar" ? "إثبات التوصيل (PoD)" : "Proof of Delivery"}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {/* 1. GPS Verification */}
+              <div className="flex items-start justify-between text-xs gap-3">
+                <div className="flex gap-2">
+                  <MapPin className="h-4 w-4 text-zinc-500 shrink-0 mt-0.5" />
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-zinc-300">{locale === "ar" ? "التحقق من الموقع (GPS)" : "GPS Verification"}</span>
+                    <span className="text-[10px] text-zinc-500 mt-0.5">
+                      {locale === "ar" ? "المسافة الحالية للكابتن: " : "Captain distance: "}
+                      {liveRemainingKm !== null 
+                        ? `${(liveRemainingKm * 1000).toFixed(0)}m` 
+                        : (shipment.status === 'delivered' ? '0m' : (locale === 'ar' ? 'جاري التحديد...' : 'Calculating...'))}
+                    </span>
+                  </div>
+                </div>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0",
+                  shipment.status === 'delivered' || (liveRemainingKm !== null && liveRemainingKm <= 0.2)
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                )}>
+                  {shipment.status === 'delivered' || (liveRemainingKm !== null && liveRemainingKm <= 0.2)
+                    ? (locale === "ar" ? "مؤكد" : "Verified")
+                    : (locale === "ar" ? "قيد الانتظار" : "Pending")}
+                </span>
+              </div>
+
+              {/* 2. OTP Verification */}
+              <div className="flex items-start justify-between text-xs gap-3 border-t border-zinc-800/45 pt-3">
+                <div className="flex gap-2 w-full">
+                  <KeyRound className="h-4 w-4 text-zinc-500 shrink-0 mt-0.5" />
+                  <div className="flex flex-col w-full">
+                    <span className="font-semibold text-zinc-300">{locale === "ar" ? "رمز التحقق الثنائي (OTP)" : "OTP Verification"}</span>
+                    
+                    {/* OTP Code display */}
+                    {["picked_up", "in_transit", "out_for_delivery"].includes(shipment.status) ? (
+                      <div className="flex flex-col gap-2 mt-2 bg-zinc-950/80 border border-zinc-850 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-mono font-bold tracking-widest text-blue-400">
+                            {shipment.proofOfDelivery?.otpCode || "------"}
+                          </span>
+                          
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (shipment.proofOfDelivery?.otpCode) {
+                                  navigator.clipboard.writeText(shipment.proofOfDelivery.otpCode);
+                                }
+                              }}
+                              className="p-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                              title={locale === "ar" ? "نسخ" : "Copy"}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                            
+                            <button
+                              type="button"
+                              onClick={handleRegenerateOTP}
+                              disabled={otpLoading}
+                              className="p-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-50 transition-colors"
+                              title={locale === "ar" ? "تحديث" : "Refresh"}
+                            >
+                              <RefreshCw className={cn("h-3.5 w-3.5", otpLoading && "animate-spin")} />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {otpTimeLeft && (
+                          <div className="flex items-center justify-between text-[10px] text-zinc-500 border-t border-zinc-850/60 pt-1.5 mt-1">
+                            <span>{locale === 'ar' ? 'الوقت المتبقي لانتهاء الرمز:' : 'Expires in:'}</span>
+                            <span className="font-mono text-amber-500/90 font-semibold">{otpTimeLeft}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-zinc-500 mt-1">
+                        {shipment.status === 'delivered' 
+                          ? (locale === "ar" ? "تم التحقق من الرمز بنجاح" : "OTP verified successfully")
+                          : (locale === "ar" ? "بانتظار بدء التوصيل لتوليد الرمز" : "OTP will generate once transit starts")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0",
+                  shipment.status === 'delivered' || shipment.proofOfDelivery?.verifiedAt
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                )}>
+                  {shipment.status === 'delivered' || shipment.proofOfDelivery?.verifiedAt
+                    ? (locale === "ar" ? "مؤكد" : "Verified")
+                    : (locale === "ar" ? "قيد الانتظار" : "Pending")}
+                </span>
+              </div>
+
+              {/* 3. Delivery Photo */}
+              <div className="flex flex-col gap-2 border-t border-zinc-800/45 pt-3">
+                <div className="flex items-start justify-between text-xs gap-3">
+                  <div className="flex gap-2">
+                    <Camera className="h-4 w-4 text-zinc-500 shrink-0 mt-0.5" />
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-zinc-300">{locale === "ar" ? "صورة إثبات التوصيل" : "Delivery Photo"}</span>
+                      <span className="text-[10px] text-zinc-500 mt-0.5">
+                        {shipment.proofOfDelivery?.packageImage 
+                          ? (locale === "ar" ? "تم رفع الصورة بواسطة الكابتن" : "Photo uploaded by captain")
+                          : (locale === "ar" ? "بانتظار قيام الكابتن برفع صورة الطرد" : "Awaiting package photo upload")}
+                      </span>
+                    </div>
+                  </div>
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0",
+                    shipment.proofOfDelivery?.packageImage
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                  )}>
+                    {shipment.proofOfDelivery?.packageImage
+                      ? (locale === "ar" ? "تم الرفع" : "Uploaded")
+                      : (locale === "ar" ? "بانتظار الرفع" : "Waiting")}
+                  </span>
+                </div>
+
+                {shipment.proofOfDelivery?.packageImage && (
+                  <div className="relative h-32 bg-zinc-950 border border-zinc-850 rounded-lg overflow-hidden group mt-2 shadow-inner">
+                    <img 
+                      src={shipment.proofOfDelivery.packageImage} 
+                      alt="Delivery Proof Package" 
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                    />
+                    <a 
+                      href={shipment.proofOfDelivery.packageImage} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-xs text-white font-bold gap-1 cursor-pointer"
+                    >
+                      <span>🔍 {locale === "ar" ? "عرض الصورة كاملة" : "View Fullscreen"}</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet Escrow Status Card */}
+          {shipment.price && (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-md flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+                <span className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-amber-500" />
+                  {locale === "ar" ? "حالة الدفع بالمحفظة" : "Wallet Payment Status"}
+                </span>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0",
+                  shipment.status === 'delivered'
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                )}>
+                  {shipment.status === 'delivered' 
+                    ? (locale === "ar" ? "تم التحرير" : "Released") 
+                    : (locale === "ar" ? "معلقة في الضمان" : "Held in Escrow")}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="flex flex-col bg-zinc-950/50 p-3 rounded-lg border border-zinc-850">
+                  <span className="text-zinc-500 font-semibold">{locale === "ar" ? "المبلغ المحتجز" : "Held Balance"}</span>
+                  <span className="text-base font-bold text-zinc-200 mt-1">EGP {shipment.price.toFixed(2)}</span>
+                </div>
+                <div className="flex flex-col bg-zinc-950/50 p-3 rounded-lg border border-zinc-850">
+                  <span className="text-zinc-500 font-semibold">{locale === "ar" ? "رصيدك المتاح" : "Available Balance"}</span>
+                  <span className="text-base font-bold text-zinc-200 mt-1">
+                    EGP {wallet?.balance !== undefined ? wallet.balance.toFixed(2) : '--'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-[11px] leading-relaxed text-zinc-400 bg-zinc-950/50 p-3 rounded-lg border border-zinc-850 flex gap-2 items-start">
+                {shipment.status === 'delivered' ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>
+                      {locale === "ar" 
+                        ? "تم تحرير المبلغ بنجاح لحساب الكابتن بعد إتمام التحقق من التوصيل." 
+                        : "Funds released successfully to the captain after delivery verification completed."}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                    <span>
+                      {locale === "ar" 
+                        ? "أموالك محتفظ بها بأمان في الضمان ولن يتم تحريرها للكابتن إلا بعد إدخال رمز OTP وتصوير الطرد." 
+                        : "Funds are securely held in escrow and will not be released until delivery verification is complete."}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Captain Card */}
+          {displayProvider && (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-md flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+                <span className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                  <Navigation className="h-4 w-4 text-blue-500" />
+                  {displayProvider.role === t("captain") 
+                    ? (locale === "ar" ? "بيانات الكابتن" : "Captain Information") 
+                    : (locale === "ar" ? "بيانات المكتب" : "Office Information")}
+                </span>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 shrink-0",
+                  shipment.status === 'out_for_delivery'
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : shipment.status === 'delivered'
+                    ? "bg-zinc-850 text-zinc-400 border border-zinc-800"
+                    : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                )}>
+                  <span className={cn(
+                    "h-1.5 w-1.5 rounded-full shrink-0",
+                    shipment.status === 'out_for_delivery'
+                      ? "bg-emerald-500 animate-ping"
+                      : shipment.status === 'delivered'
+                      ? "bg-zinc-500"
+                      : "bg-blue-500 animate-ping"
+                  )} />
+                  {shipment.status === 'out_for_delivery'
+                    ? (locale === 'ar' ? 'وصل للوجهة' : 'Arrived')
+                    : shipment.status === 'delivered'
+                    ? (locale === 'ar' ? 'أتم المهمة' : 'Completed')
+                    : (shipment.status === 'picked_up' || shipment.status === 'in_transit')
+                    ? (locale === 'ar' ? 'يقود الشاحنة' : 'Driving')
+                    : (locale === 'ar' ? 'متصل' : 'Online')}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="shrink-0">
+                  <div className="relative shrink-0">
                     {displayProvider.avatarUrl ? (
                       <img
                         src={displayProvider.avatarUrl}
                         alt={displayProvider.name}
-                        className="h-10 w-10 rounded-full object-cover border-2 border-amber-500/30"
+                        className="h-12 w-12 rounded-full object-cover border border-zinc-800"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-amber-600/10 text-amber-400 font-bold border border-amber-500/20 text-xs">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20 text-sm">
                         {displayProvider.initials}
                       </div>
                     )}
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border border-zinc-900" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-zinc-200">
                       {displayProvider.name}
                     </span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span className="text-amber-400 text-xs">★</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400 shrink-0" />
                       <span className="text-[10px] text-zinc-500 font-semibold">
                         {displayProvider.rating?.toFixed(1)} ({displayProvider.role})
                       </span>
@@ -356,20 +1024,20 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                   </div>
                 </div>
 
-                 <div className="flex gap-2">
+                <div className="flex gap-2">
                   {displayProvider.phone ? (
                     <a
                       href={`tel:${displayProvider.phone}`}
                       aria-label={t("callProvider")}
-                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400 hover:bg-zinc-800 transition-colors focus:outline-none flex items-center justify-center"
+                      className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-emerald-400 hover:bg-zinc-850 hover:text-emerald-300 transition-all flex items-center justify-center shadow-sm"
                     >
                       <Phone className="h-4 w-4" />
                     </a>
                   ) : (
                     <button
+                      type="button"
                       disabled
-                      aria-label={t("callProvider")}
-                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed focus:outline-none flex items-center justify-center"
+                      className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-700 cursor-not-allowed flex items-center justify-center"
                     >
                       <Phone className="h-4 w-4" />
                     </button>
@@ -386,25 +1054,40 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={t("messageProvider")}
-                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-blue-400 hover:bg-zinc-800 transition-colors focus:outline-none flex items-center justify-center"
+                      className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-blue-400 hover:bg-zinc-850 hover:text-blue-300 transition-all flex items-center justify-center shadow-sm"
                     >
                       <MessageSquare className="h-4 w-4" />
                     </a>
                   ) : (
                     <button
+                      type="button"
                       disabled
-                      aria-label={t("messageProvider")}
-                      className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed focus:outline-none flex items-center justify-center"
+                      className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-700 cursor-not-allowed flex items-center justify-center"
                     >
                       <MessageSquare className="h-4 w-4" />
                     </button>
                   )}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {isReviewOpen && displayProvider && shipment && (
+        <ReviewModal
+          isOpen={isReviewOpen}
+          onClose={() => setIsReviewOpen(false)}
+          onSubmitSuccess={() => {
+            setIsReviewOpen(false);
+          }}
+          shipmentId={shipment.id}
+          trackingNumber={shipment.trackingNumber}
+          revieweeId={captain ? (captain._id || captain.id) : (selectedOffer?.providerId || "")}
+          revieweeType={captain ? "Driver" : "Office"}
+          revieweeName={displayProvider.name}
+        />
+      )}
     </div>
   );
 }

@@ -10,6 +10,53 @@ import { getCurrentUser } from '@/features/auth/api'
 import { getVerificationStatus, submitVerification } from '@/features/verification/api'
 import clsx from 'clsx'
 
+function compressDocumentImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        const maxW = 1200;
+        const maxH = 1200;
+        let w = img.width;
+        let h = img.height;
+
+        if (w > h) {
+          if (w > maxW) {
+            h = Math.round((h * maxW) / w);
+            w = maxW;
+          }
+        } else {
+          if (h > maxH) {
+            w = Math.round((w * maxH) / h);
+            h = maxH;
+          }
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+        resolve(compressedBase64);
+      };
+      img.onerror = () => {
+        reject(new Error("Failed to load image for compression"));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error("FileReader error"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Verification() {
   const t = useCaptainTranslations()
   const locale = useLocale()
@@ -87,31 +134,23 @@ export default function Verification() {
     setErrorMsg('')
     setSuccessMsg('')
 
-    const reader = new FileReader()
-    reader.readAsDataURL(fileSelected)
-    reader.onload = async () => {
-      try {
-        const base64Str = reader.result as string
-        const result = await submitVerification({
-          documentNumber: docNumber,
-          documentType: docType as any,
-          documentImageUrl: base64Str,
-        })
+    try {
+      const base64Str = await compressDocumentImage(fileSelected)
+      const result = await submitVerification({
+        documentNumber: docNumber,
+        documentType: docType as any,
+        documentImageUrl: base64Str,
+      })
 
-        setStatusData(result)
-        setSuccessMsg(t('docSubmitSuccess'))
-        setDocNumber('')
-        setFileSelected(null)
-        setFilePreview(null)
-      } catch (err: any) {
-        console.error('Failed to submit verification:', err)
-        setErrorMsg(t('docSubmitError'))
-      } finally {
-        setSubmitting(false)
-      }
-    }
-    reader.onerror = () => {
-      setErrorMsg(t('fileReadError'))
+      setStatusData(result)
+      setSuccessMsg(t('docSubmitSuccess'))
+      setDocNumber('')
+      setFileSelected(null)
+      setFilePreview(null)
+    } catch (err: any) {
+      console.error('Failed to submit verification:', err)
+      setErrorMsg(t('docSubmitError'))
+    } finally {
       setSubmitting(false)
     }
   }

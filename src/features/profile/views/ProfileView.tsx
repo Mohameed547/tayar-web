@@ -131,12 +131,16 @@ export default function ProfileView() {
     : "U";
 
   const joinedDate = userProfile.createdAt
-    ? new Date(userProfile.createdAt).toLocaleDateString(undefined, {
+    ? new Date(userProfile.createdAt).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })
-    : t("joinedDate");
+    : new Date().toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
   return (
     <div className="flex flex-col gap-6 text-zinc-100 max-w-3xl mx-auto">

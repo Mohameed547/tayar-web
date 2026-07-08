@@ -38,6 +38,13 @@ export function mapShipment(s: any): Shipment {
       rating: s.captain.rating || undefined,
       reviewsCount: s.captain.reviewsCount || undefined,
     } : undefined,
+    proofOfDelivery: s.proofOfDelivery ? {
+      otpCode: s.proofOfDelivery.otpCode || null,
+      recipientName: s.proofOfDelivery.recipientName || null,
+      signatureImage: s.proofOfDelivery.signatureImage || null,
+      packageImage: s.proofOfDelivery.packageImage || null,
+      verifiedAt: s.proofOfDelivery.verifiedAt || null,
+    } : undefined,
   };
 }
 

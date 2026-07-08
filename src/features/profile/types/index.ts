@@ -14,4 +14,7 @@ export interface ProviderProfile {
   name: string;
   phone: string;
   avatar?: string;
+  email?: string;
+  createdAt?: string;
+  status?: string;
 }
