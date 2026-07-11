@@ -5,6 +5,7 @@ import { MessageSquare, Send, X, Headphones, ArrowLeft } from "lucide-react";
 import { useLocale } from "next-intl";
 import { getTickets, getTicketById, sendTicketMessage } from "../api";
 import { useNotifications } from "@/shared/providers/socket-notification-provider";
+import { useSocketEvent } from "@/shared/socket";
 
 interface ChatMessage {
   id: string;
@@ -150,10 +151,9 @@ export default function GlobalLiveChat() {
   }, [ticketId]);
 
   // Real-time message listener via Socket
-  useEffect(() => {
-    if (!socket || !ticketId) return;
-
-    const handleNewMessage = (msg: any) => {
+  useSocketEvent<any>(
+    `ticket:${ticketId}:message`,
+    (msg) => {
       const msgId = msg._id || msg.id || String(Date.now());
       setMessages((prev) => {
         // Prevent duplicate messages
@@ -191,13 +191,9 @@ export default function GlobalLiveChat() {
           },
         ];
       });
-    };
-
-    socket.on(`ticket:${ticketId}:message`, handleNewMessage);
-    return () => {
-      socket.off(`ticket:${ticketId}:message`, handleNewMessage);
-    };
-  }, [socket, ticketId]);
+    },
+    [ticketId]
+  );
 
   // Scroll to bottom
   useEffect(() => {

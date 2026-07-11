@@ -153,14 +153,16 @@ export async function refreshToken(
   data: RefreshTokenRequest,
 ): Promise<AuthTokens> {
   const res = await api.post<ApiResponse<{ tokens: AuthTokens }>>(
-    "/api/auth/refresh",
+    "/api/auth/refresh-token",
     {
       refreshToken: data.token,
     },
   );
   const { tokens } = res.data.data;
   tokenStorage.setToken(tokens.accessToken);
-  tokenStorage.setRefreshToken(tokens.refreshToken);
+  if (tokens.refreshToken) {
+    tokenStorage.setRefreshToken(tokens.refreshToken);
+  }
   return tokens;
 }
 

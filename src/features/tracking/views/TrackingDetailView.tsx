@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { 
@@ -40,7 +40,9 @@ import type { Shipment } from "@/features/shipments/types";
 import type { Offer } from "@/features/offers/types";
 import type { TrackingMilestone } from "../types";
 import type { Wallet as UserWallet } from "@/features/wallet/types";
-import { useNotifications } from "@/shared/providers/socket-notification-provider";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchCustomerDashboard } from "@/store/customer-slice";
+import { useShipmentTracking, useNotificationsListener, useSocketEvent, useSocket } from "@/shared/socket";
 import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/shared/ui/MapView"), {
@@ -51,6 +53,23 @@ const MapView = dynamic(() => import("@/shared/ui/MapView"), {
     </div>
   ),
 });
+
+const getDistance = (coords1?: [number, number], coords2?: [number, number]) => {
+  if (!coords1 || !coords2) return null;
+  const [lat1, lon1] = coords1;
+  const [lat2, lon2] = coords2;
+  const R = 6371; // km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // in km
+};
 
 interface TrackingDetailViewProps {
   id: string;
@@ -81,7 +100,7 @@ const statusDescriptions = {
 export default function TrackingDetailView({ id, offerId }: TrackingDetailViewProps) {
   const t = useTranslations("customer.tracking");
   const locale = useLocale();
-  const { socket } = useNotifications();
+  const dispatch = useAppDispatch();
 
   const [shipment, setShipment] = useState<Shipment | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -91,13 +110,20 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
   const [trackingDetails, setTrackingDetails] = useState<any>(null);
   const [otpLoading, setOtpLoading] = useState(false);
   
-  // Custom states for production logistics experience
   const [wallet, setWallet] = useState<UserWallet | null>(null);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<number>(Date.now());
   const [secondsSinceLastUpdate, setSecondsSinceLastUpdate] = useState(0);
   const [otpTimeLeft, setOtpTimeLeft] = useState<string>("");
   const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  const { socket } = useSocket();
+  const [captainOnline, setCaptainOnline] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState<number | null>(null);
+  const lastLocationUpdateRef = useRef<number>(0);
+  const lastCoordRef = useRef<{ lat: number; lng: number; time: number } | null>(null);
+
+  const captain = shipment?.captain as any;
 
   const handleRegenerateOTP = async () => {
     if (!shipment?.id) return;
@@ -127,6 +153,43 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     }
   };
 
+  const refreshTrackingData = async () => {
+    if (!id) return;
+    try {
+      const [loadedShipment, loadedOffers, loadedWallet, loadedTracking] = await Promise.all([
+        getShipmentById(id).catch(() => null),
+        getOffersForShipment(id).catch(() => []),
+        getWallet().catch(() => null),
+        getTrackingDetails(id).catch(() => null)
+      ]);
+
+      if (loadedShipment) {
+        setShipment(loadedShipment);
+        setOffers(loadedOffers);
+        if (loadedShipment.proofOfDelivery?.otpCode && !loadedShipment.proofOfDelivery?.verifiedAt) {
+          setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString());
+        }
+      }
+      if (loadedWallet) {
+        setWallet(loadedWallet);
+      }
+      if (loadedTracking) {
+        setTrackingDetails(loadedTracking);
+        if (loadedTracking.currentLocation?.coords) {
+          const [lng, lat] = loadedTracking.currentLocation.coords;
+          if (!isNaN(lat) && !isNaN(lng)) {
+            setCaptainCoords([lat, lng]);
+            setLastUpdatedTime(Date.now());
+          }
+        }
+      }
+      // Also update customer dashboard Redux state in the background
+      dispatch(fetchCustomerDashboard());
+    } catch (err) {
+      console.error("Failed to refresh tracking data:", err);
+    }
+  };
+
   useEffect(() => {
     Promise.all([
       getShipmentById(id).catch((err) => {
@@ -147,8 +210,12 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
       getWallet().catch((err) => {
         console.error("Failed to fetch wallet info:", err);
         return null;
+      }),
+      getTrackingDetails(id).catch((err) => {
+        console.error("Failed to fetch initial tracking details:", err);
+        return null;
       })
-    ]).then(([loadedShipment, loadedOffers, loadedWallet]) => {
+    ]).then(([loadedShipment, loadedOffers, loadedWallet, loadedTracking]) => {
       if (loadedShipment) {
         setShipment(loadedShipment);
         setOffers(loadedOffers);
@@ -159,76 +226,146 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
       if (loadedWallet) {
         setWallet(loadedWallet);
       }
+      if (loadedTracking) {
+        setTrackingDetails(loadedTracking);
+        if (loadedTracking.currentLocation?.coords) {
+          const [lng, lat] = loadedTracking.currentLocation.coords;
+          if (!isNaN(lat) && !isNaN(lng)) {
+            setCaptainCoords([lat, lng]);
+          }
+        }
+      }
       setLoading(false);
     });
   }, [id]);
 
+  // Check captain online status initially when captain info becomes available
   useEffect(() => {
-    if (!socket || !shipment?.id) return;
+    if (!socket || !captain) return;
+    const captainId = captain._id || captain.id;
+    if (!captainId) return;
 
-    socket.emit("joinShipment", shipment.id);
+    socket.emit("checkUserStatus", captainId, (res: { status: string }) => {
+      if (res && res.status) {
+        setCaptainOnline(res.status === "online");
+      }
+    });
+  }, [socket, captain]);
 
-    const handleStatusUpdate = (data: { shipmentId: string; status: string }) => {
-      if (data.shipmentId === shipment.id) {
+  // Listen to user status changes to update captain online/offline status in real-time
+  useSocketEvent<{ userId: string; status: "online" | "offline" }>(
+    "user:statusChanged",
+    (data) => {
+      if (captain) {
+        const captainId = captain._id || captain.id;
+        if (captainId === data.userId) {
+          setCaptainOnline(data.status === "online");
+        }
+      }
+    },
+    [captain]
+  );
+
+  // Listen to shipment:updated for instant database mutations (status, otp verification, timeline, payment)
+  useSocketEvent<any>(
+    "shipment:updated",
+    (updatedShipment) => {
+      if (updatedShipment && (updatedShipment._id === id || updatedShipment.id === id)) {
         setShipment((prev) => {
           if (!prev) return null;
           return {
             ...prev,
-            status: data.status as any,
+            ...updatedShipment,
+            status: updatedShipment.status as any,
+            id: updatedShipment.id || updatedShipment._id,
+          } as any;
+        });
+        if (updatedShipment.proofOfDelivery?.otpCode) {
+          if (updatedShipment.proofOfDelivery.verifiedAt) {
+            setOtpExpiresAt(null);
+          }
+        }
+        // Background refresh to guarantee full Redux/API sync
+        refreshTrackingData();
+      }
+    },
+    [id]
+  );
+
+  // Real-time tracking using centralized useShipmentTracking hook
+  useShipmentTracking(shipment?.id, {
+    onLocationUpdate: (data) => {
+      if (!data.coords || data.coords.length < 2) return;
+      const [lng, lat] = data.coords;
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const now = Date.now();
+
+      // Calculate current speed based on coordinate delta (KM / Hours)
+      if (lastCoordRef.current) {
+        const dist = getDistance([lastCoordRef.current.lat, lastCoordRef.current.lng], [lat, lng]);
+        const timeDiffHours = (now - lastCoordRef.current.time) / (1000 * 60 * 60);
+        if (timeDiffHours > 0 && dist !== null) {
+          const speed = dist / timeDiffHours;
+          if (speed >= 0 && speed <= 150) {
+            // Smooth speed updates using Exponential Moving Average
+            setCurrentSpeed(prev => prev !== null ? Math.round(prev * 0.7 + speed * 0.3) : Math.round(speed));
+          }
+        }
+      }
+      lastCoordRef.current = { lat, lng, time: now };
+
+      // Throttle setting state to avoid excessive React render cycles (at most once per 1.2s)
+      if (now - lastLocationUpdateRef.current >= 1200) {
+        setCaptainCoords([lat, lng]);
+        setLastUpdatedTime(now);
+        lastLocationUpdateRef.current = now;
+
+        setShipment((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            deliveryProgressPercent: data.progressPercent,
+          } as any;
+        });
+
+        setTrackingDetails((prev: any) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            progressPercent: data.progressPercent,
+            currentLocation: {
+              ...prev.currentLocation,
+              coords: data.coords,
+              updatedAt: data.updatedAt,
+            },
           };
         });
       }
-    };
-
-    socket.on("statusUpdate", handleStatusUpdate);
-
-    return () => {
-      socket.emit("leaveShipment", shipment.id);
-      socket.off("statusUpdate", handleStatusUpdate);
-    };
-  }, [socket, shipment?.id]);
-
-  useEffect(() => {
-    if (!shipment?.id) return;
-
-    const fetchLiveLocation = async () => {
-      try {
-        const details = await getTrackingDetails(shipment.id);
-        if (details) {
-          setTrackingDetails(details);
-          setLastUpdatedTime(Date.now());
-          if (details.currentLocation?.coords) {
-            const [lng, lat] = details.currentLocation.coords;
-            if (!isNaN(lat) && !isNaN(lng)) {
-              setCaptainCoords([lat, lng]);
-            }
-          }
-
-          setShipment((prev) => {
-            if (!prev) return null;
-            if (prev.status === details.status && prev.deliveryProgressPercent === details.progressPercent) {
-              return prev;
-            }
-            return {
-              ...prev,
-              status: details.status || prev.status,
-              deliveryProgressPercent: typeof details.progressPercent === 'number' ? details.progressPercent : prev.deliveryProgressPercent,
-            };
-          });
-        }
-      } catch (err) {
-        console.error("Failed to fetch live location:", err);
-      }
-    };
-
-    fetchLiveLocation();
-
-    const inProgressStatuses = ["picked_up", "in_transit", "out_for_delivery"];
-    if (inProgressStatuses.includes(shipment.status)) {
-      const interval = setInterval(fetchLiveLocation, 5000);
-      return () => clearInterval(interval);
+    },
+    onStatusUpdate: (data) => {
+      setShipment(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: data.status as any,
+        } as any;
+      });
+      refreshTrackingData();
+    },
+    onError: (err) => {
+      console.error("Shipment tracking socket error:", err.message);
     }
-  }, [shipment?.id, shipment?.status]);
+  });
+
+  // Re-fetch all data on notifications or wallet updates
+  useNotificationsListener(() => {
+    refreshTrackingData();
+  });
+
+  useSocketEvent("walletUpdate", () => {
+    refreshTrackingData();
+  });
 
   // Timer effect for last GPS update
   useEffect(() => {
@@ -346,7 +483,6 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
     );
   }
 
-  const captain = shipment.captain as any;
   const selectedOffer = offers.find((o) => o.id === offerId);
   const displayProvider = captain
     ? {
@@ -415,26 +551,31 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
   const parsedPickup = parseCoords(shipment.pickupCoords);
   const parsedDelivery = parseCoords(shipment.deliveryCoords);
 
-  const getDistance = (coords1?: [number, number], coords2?: [number, number]) => {
-    if (!coords1 || !coords2) return null;
-    const [lat1, lon1] = coords1;
-    const [lat2, lon2] = coords2;
-    const R = 6371; // km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // in km
-  };
-
   const liveRemainingKm = getDistance(captainCoords, parsedDelivery);
 
-  const computedEtaText = shipment.etaDescription || (() => {
+  const computedEtaText = (() => {
+    if (shipment.status === "delivered") {
+      return locale === "ar" ? "وصلت الشحنة" : "Arrived";
+    }
+    if (liveRemainingKm !== null && liveRemainingKm > 0) {
+      const activeSpeed = currentSpeed || 35; // fallback to 35 km/h
+      const timeHours = liveRemainingKm / activeSpeed;
+      const timeMinutes = Math.round(timeHours * 60);
+      if (timeMinutes < 1) {
+        return locale === "ar" ? "أقل من دقيقة" : "Less than a min";
+      }
+      if (timeMinutes < 60) {
+        return locale === "ar" ? `${timeMinutes} دقيقة` : `${timeMinutes} mins`;
+      }
+      const hours = Math.floor(timeMinutes / 60);
+      const mins = timeMinutes % 60;
+      return locale === "ar"
+        ? `${hours} ساعة ${mins > 0 ? `و ${mins} دقيقة` : ''}`
+        : `${hours}h ${mins > 0 ? `${mins}m` : ''}`;
+    }
+
+    if (shipment.etaDescription) return shipment.etaDescription;
+
     const distance = shipment.distanceKm || 0;
     const speed = shipment.deliverySpeed || "standard";
     if (speed === "scheduled") {
@@ -656,7 +797,7 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
           {/* Delivery Status Summary Card */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg">
             <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <span className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold text-red-400 uppercase tracking-wider animate-pulse">
                   <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
                   {locale === 'ar' ? 'تتبع مباشر' : 'Live Tracking'}
@@ -665,13 +806,23 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                   <Signal className="h-3 w-3 text-emerald-500" />
                   {locale === "ar" ? "GPS نشط" : "GPS Signal: Live"}
                 </span>
+                <span className="flex items-center gap-1 bg-zinc-950 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-400">
+                  <span className={cn("h-1.5 w-1.5 rounded-full transition-colors duration-300", captainOnline ? "bg-emerald-500 animate-pulse" : "bg-zinc-500")} />
+                  {locale === "ar" 
+                    ? `الكابتن: ${captainOnline ? 'متصل' : 'غير متصل'}` 
+                    : `Captain: ${captainOnline ? 'Online' : 'Offline'}`}
+                </span>
+                <span className="flex items-center gap-1 bg-zinc-950 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-bold text-zinc-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {locale === "ar" ? "أنت: متصل" : "You: Connected"}
+                </span>
               </div>
               <span className="text-sm font-bold text-zinc-100 mt-1">
                 {statusDescriptions[locale as 'ar' | 'en'][shipment.status as keyof typeof statusDescriptions.en] || shipment.status}
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 sm:gap-8 border-t sm:border-t-0 rtl:sm:border-r ltr:sm:border-l border-zinc-800 pt-4 sm:pt-0 rtl:sm:pr-6 ltr:sm:pl-6 w-full sm:w-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 border-t sm:border-t-0 rtl:sm:border-r ltr:sm:border-l border-zinc-800 pt-4 sm:pt-0 rtl:sm:pr-6 ltr:sm:pl-6 w-full sm:w-auto">
               <div className="flex flex-col">
                 <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{locale === 'ar' ? 'الوصول المتوقع' : 'ETA'}</span>
                 <span className="text-xs font-bold text-zinc-200 mt-0.5 flex items-center gap-1">
@@ -684,6 +835,13 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                 <span className="text-xs font-bold text-zinc-200 mt-0.5 flex items-center gap-1">
                   <Compass className="h-3 w-3 text-blue-400" />
                   {liveRemainingKm !== null ? `${liveRemainingKm.toFixed(1)} ${locale === 'ar' ? 'كم' : 'KM'}` : `${shipment.distanceKm || '--'} ${locale === 'ar' ? 'كم' : 'KM'}`}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{locale === 'ar' ? 'السرعة الحالية' : 'Speed'}</span>
+                <span className="text-xs font-bold text-zinc-200 mt-0.5 flex items-center gap-1">
+                  <Navigation className="h-3 w-3 text-amber-500 rotate-45" />
+                  {currentSpeed !== null ? `${currentSpeed} ${locale === 'ar' ? 'كم/س' : 'km/h'}` : (locale === 'ar' ? 'ثابت' : 'Stationary')}
                 </span>
               </div>
               <div className="flex flex-col">
@@ -1009,7 +1167,10 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
                         {displayProvider.initials}
                       </div>
                     )}
-                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border border-zinc-900" />
+                    <span className={cn(
+                      "absolute bottom-0 right-0 h-3 w-3 rounded-full border border-zinc-900 transition-colors duration-300",
+                      captainOnline ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "bg-zinc-500"
+                    )} />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-zinc-200">

@@ -16,6 +16,7 @@ import { assignShipmentToCaptain, reassignShipmentToCaptain, updateDriverAvailab
 import { updateOrderStatus, acceptAssignment, rejectAssignment, pingLocation } from '@/features/shipments'
 import { fetchCaptainDashboard } from '@/features/captain/store/data-slice'
 import { useLocale } from 'next-intl'
+import { useSocket, useNotificationsListener, useSocketEvent } from '@/shared/socket'
 
 import dynamic from 'next/dynamic'
 
@@ -562,7 +563,18 @@ export default function Orders() {
   const isOffice = accountType === 'office'
   const [expandedMapId, setExpandedMapId] = useState<string | null>(null)
 
-  // Background location pinging for active shipments in transit
+  const { emitLocation } = useSocket()
+
+  // Real-time notifications and status updates inside the orders view
+  useNotificationsListener(() => {
+    dispatch(fetchCaptainDashboard(accountType))
+  })
+
+  useSocketEvent("statusUpdate", () => {
+    dispatch(fetchCaptainDashboard(accountType))
+  })
+
+  // Background location pinging for active shipments in transit via Socket.IO
   useEffect(() => {
     if (accountType !== 'captain') return;
 
@@ -577,15 +589,15 @@ export default function Orders() {
       if (!navigator.geolocation) return;
 
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
-          // Ping the server for each active order
+          // Emit the live location coordinates via Socket.IO for each active order
           for (const order of activeOrders) {
             try {
-              await pingLocation(order.id, latitude, longitude);
-              console.log(`Pinged location for order ${order.id}: [${latitude}, ${longitude}]`);
+              emitLocation(order.id, longitude, latitude);
+              console.log(`Socket emitted location for order ${order.id}: [${longitude}, ${latitude}]`);
             } catch (err) {
-              console.error(`Failed to ping location for order ${order.id}:`, err);
+              console.error(`Failed to emit location via socket for order ${order.id}:`, err);
             }
           }
         },
@@ -595,7 +607,7 @@ export default function Orders() {
     }, 15000); // Send location update every 15 seconds
 
     return () => clearInterval(intervalId);
-  }, [accountType, orders]);
+  }, [accountType, orders, emitLocation]);
 
   const getStatusBadge = (status: string, captainName?: string, rawStatus?: string, captainStatus?: string) => {
     const finalStatus = rawStatus || status;

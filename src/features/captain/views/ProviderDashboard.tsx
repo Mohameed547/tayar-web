@@ -6,12 +6,14 @@ import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-tra
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchCaptainDashboard, switchAccountTypeData } from '@/features/captain/store/data-slice'
 import { useNotifications } from '@/shared/providers/socket-notification-provider'
+import { useNotificationsListener, useSocketEvent, useSocket } from '@/shared/socket'
 import { setAccountType, setOnlineState } from '@/features/captain/store/dashboard-slice'
 import { getCurrentUser } from '@/features/auth/api'
 import {
   selectActiveScreen,
   selectCaptainDataStatus,
   selectAccountType,
+  selectOrders,
 } from '@/features/captain/store/selectors'
 
 import Sidebar from '../components/Sidebar'
@@ -106,21 +108,71 @@ export default function ProviderDashboard() {
     }
   }, [authorized, dataStatus, dispatch, accountType])
 
-  const { socket } = useNotifications()
+  const orders = useAppSelector(selectOrders) || [];
+  const { joinShipment, leaveShipment } = useSocket();
 
   useEffect(() => {
-    if (!socket || !authorized) return
+    if (!orders || orders.length === 0) return;
+    
+    orders.forEach((o) => {
+      const orderId = (o as any).id || (o as any)._id;
+      if (orderId) {
+        joinShipment(orderId);
+      }
+    });
 
-    const handleNewNotification = (notif: any) => {
-      console.log('Real-time notification in dashboard, reloading data:', notif)
-      dispatch(fetchCaptainDashboard(accountType))
-    }
-
-    socket.on('newNotification', handleNewNotification)
     return () => {
-      socket.off('newNotification', handleNewNotification)
+      orders.forEach((o) => {
+        const orderId = (o as any).id || (o as any)._id;
+        if (orderId) {
+          leaveShipment(orderId);
+        }
+      });
+    };
+  }, [orders, joinShipment, leaveShipment]);
+
+  // Setup real-time updates for the dashboard stats, shipments, and wallet
+  useNotificationsListener(() => {
+    console.log("Real-time notification received in Captain Dashboard, refreshing...");
+    if (authorized) {
+      dispatch(fetchCaptainDashboard(accountType));
     }
-  }, [socket, authorized, dispatch, accountType])
+  });
+
+  useSocketEvent("walletUpdate", () => {
+    console.log("Real-time wallet update received in Captain Dashboard, refreshing...");
+    if (authorized) {
+      dispatch(fetchCaptainDashboard(accountType));
+    }
+  });
+
+  useSocketEvent("statusUpdate", () => {
+    console.log("Real-time status update received in Captain Dashboard, refreshing...");
+    if (authorized) {
+      dispatch(fetchCaptainDashboard(accountType));
+    }
+  });
+
+  useSocketEvent("office:shipmentUpdate", () => {
+    console.log("Real-time office shipment update received, refreshing...");
+    if (authorized) {
+      dispatch(fetchCaptainDashboard(accountType));
+    }
+  });
+
+  useSocketEvent("office:captainUpdate", () => {
+    console.log("Real-time office captain update received, refreshing...");
+    if (authorized) {
+      dispatch(fetchCaptainDashboard(accountType));
+    }
+  });
+
+  useSocketEvent("office:verificationUpdate", () => {
+    console.log("Real-time office verification update received, refreshing...");
+    if (authorized) {
+      dispatch(fetchCaptainDashboard(accountType));
+    }
+  });
 
   if (checkingAuth) {
     return (

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import RatingStars from "./RatingStars";
 import type { Review } from "../types";
 
@@ -10,9 +11,11 @@ export default function ReviewCard({
   review,
   displayMode = "reviewee",
 }: ReviewCardProps) {
+  const t = useTranslations("customer.reviews");
+
   const name =
     displayMode === "reviewee"
-      ? review.reviewee?.fullName || "Office/Driver"
+      ? review.reviewee?.fullName || `${t("office")}/${t("driver")}`
       : review.reviewer?.fullName || "Customer";
 
   const trackingNumber = review.shipment?.trackingNumber || "N/A";
@@ -24,9 +27,9 @@ export default function ReviewCard({
         <div className="flex flex-col gap-0.5">
           <span className="text-xs font-bold text-[var(--color-text-main)]">{name}</span>
           <span className="text-[10px] text-[var(--color-text-sub)] font-medium">
-            Shipment ID: <strong className="text-[var(--color-text-main)]">{trackingNumber}</strong>
+            {t("shipmentId", { id: trackingNumber })}
             {displayMode === "reviewee" && (
-              <span className="text-[var(--dh-text-muted)]"> • {review.revieweeType === "Office" ? "Office" : "Driver"}</span>
+              <span className="text-[var(--dh-text-muted)]"> • {review.revieweeType === "Office" ? t("office") : t("driver")}</span>
             )}
           </span>
         </div>
