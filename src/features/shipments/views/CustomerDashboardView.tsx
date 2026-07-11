@@ -13,6 +13,9 @@ import type { Shipment } from "@/features/shipments/types";
 import { getWallet } from "@/features/wallet/api";
 import { getReviews } from "@/features/reviews/api";
 import { getCurrentUser } from "@/features/auth/api";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchCustomerDashboard } from "@/store/customer-slice";
+import { useNotificationsListener, useSocketEvent, useSocket } from "@/shared/socket";
 
 import { useState, useEffect } from "react";
 
@@ -63,13 +66,32 @@ export default function CustomerDashboardView() {
   const router = useRouter();
   const [formattedDate, setFormattedDate] = useState("");
   const [greetingText, setGreetingText] = useState("");
-  const [customerName, setCustomerName] = useState(mockCustomer.name.split(" ")[0]);
-  const [shipments, setShipments] = useState<Shipment[]>([]);
-  const [walletBalance, setWalletBalance] = useState("EGP 0");
-  const [averageRating, setAverageRating] = useState("5.0");
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const { customerName, shipments, walletBalance, averageRating, status } = useAppSelector(
+    (state) => state.customer
+  );
   const [authorized, setAuthorized] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  const { joinShipment, leaveShipment } = useSocket();
+
+  useEffect(() => {
+    if (!shipments || shipments.length === 0) return;
+    
+    shipments.forEach((s) => {
+      if (s.id) {
+        joinShipment(s.id);
+      }
+    });
+
+    return () => {
+      shipments.forEach((s) => {
+        if (s.id) {
+          leaveShipment(s.id);
+        }
+      });
+    };
+  }, [shipments, joinShipment, leaveShipment]);
 
   const activeShipments = shipments.filter(
     (shipment) =>
@@ -120,47 +142,34 @@ export default function CustomerDashboardView() {
     if (!customerName) return;
     const hour = new Date().getHours();
     let text = "";
+    const nameToUse = customerName.split(" ")[0];
     if (hour >= 5 && hour < 12) {
-      text = locale === "ar" ? `صباح الخير، ${customerName}` : `Good morning, ${customerName}`;
+      text = locale === "ar" ? `صباح الخير، ${nameToUse}` : `Good morning, ${nameToUse}`;
     } else if (hour >= 12 && hour < 18) {
-      text = locale === "ar" ? `مساء الخير، ${customerName}` : `Good afternoon, ${customerName}`;
+      text = locale === "ar" ? `مساء الخير، ${nameToUse}` : `Good afternoon, ${nameToUse}`;
     } else {
-      text = locale === "ar" ? `مساء الخير، ${customerName}` : `Good evening, ${customerName}`;
+      text = locale === "ar" ? `مساء الخير، ${nameToUse}` : `Good evening, ${nameToUse}`;
     }
     setGreetingText(text);
   }, [locale, customerName]);
 
   useEffect(() => {
-    if (!authorized) return;
+    if (authorized) {
+      dispatch(fetchCustomerDashboard());
+    }
+  }, [authorized, dispatch]);
 
-    Promise.all([
-      getCustomerProfile().then(data => data.name).catch(() => mockCustomer.name),
-      getShipments().catch(err => {
-        console.error("Failed to load shipments, using mock:", err);
-        return mockShipments;
-      }),
-      getWallet().then(w => `EGP ${w.balance}`).catch(err => {
-        console.error("Failed to load wallet, using mock:", err);
-        return "EGP 320";
-      }),
-      getReviews().then(res => {
-        return res && typeof res.averageRating === "number" ? res.averageRating.toFixed(1) : "5.0";
-      }).catch(err => {
-        console.error("Failed to load reviews, using mock:", err);
-        return "4.6";
-      })
-    ]).then(([name, loadedShipments, balance, ratingVal]) => {
-      if (name) {
-        setCustomerName(name.split(" ")[0]);
-      }
-      setShipments(loadedShipments);
-      setWalletBalance(balance);
-      setAverageRating(ratingVal);
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
-  }, [authorized]);
+  useNotificationsListener(() => {
+    dispatch(fetchCustomerDashboard());
+  });
+
+  useSocketEvent("walletUpdate", () => {
+    dispatch(fetchCustomerDashboard());
+  });
+
+  useSocketEvent("statusUpdate", () => {
+    dispatch(fetchCustomerDashboard());
+  });
 
   if (checkingAuth) {
     return (
@@ -173,7 +182,9 @@ export default function CustomerDashboardView() {
     );
   }
 
-  if (!authorized || loading) {
+  const isFirstLoad = (status === "loading" || status === "idle") && shipments.length === 0;
+
+  if (!authorized || isFirstLoad) {
     return <DashboardSkeleton />;
   }
 

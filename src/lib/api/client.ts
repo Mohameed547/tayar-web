@@ -72,6 +72,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
 
     const isRefreshRequest =
+      originalRequest.url?.includes("/api/auth/refresh-token") ||
       originalRequest.url?.includes("/api/auth/refresh");
 
     const isAuthRequest =
@@ -103,21 +104,22 @@ api.interceptors.response.use(
       try {
         const refreshToken = tokenStorage.getRefreshToken();
 
-        if (!refreshToken) {
-          throw new Error("Refresh token not found");
-        }
-
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh-token`,
           {
-            refreshToken,
+            refreshToken: refreshToken || undefined,
+          },
+          {
+            withCredentials: true,
           }
         );
 
         const tokens = response.data.data.tokens;
 
         tokenStorage.setToken(tokens.accessToken);
-        tokenStorage.setRefreshToken(tokens.refreshToken);
+        if (tokens.refreshToken) {
+          tokenStorage.setRefreshToken(tokens.refreshToken);
+        }
 
         api.defaults.headers.common.Authorization = `Bearer ${tokens.accessToken}`;
 

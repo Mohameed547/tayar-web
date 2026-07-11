@@ -41,6 +41,7 @@ export default function MapView({
   
   const [autoFollow, setAutoFollow] = useState(true)
   const hasFitBoundsRef = useRef(false)
+  const animationFrameRef = useRef<number | null>(null)
 
   const getGreenPin = (label: string) => L.divIcon({
     className: 'custom-pin-green',
@@ -159,7 +160,39 @@ export default function MapView({
     if (captainCoords && !isNaN(captainCoords[0]) && !isNaN(captainCoords[1])) {
       bounds.push(captainCoords)
       if (captainMarkerRef.current) {
-        captainMarkerRef.current.setLatLng(captainCoords)
+        // Animate marker transition smoothly
+        if (animationFrameRef.current !== null) {
+          cancelAnimationFrame(animationFrameRef.current)
+        }
+
+        const startLatLng = captainMarkerRef.current.getLatLng()
+        const endLatLng = L.latLng(captainCoords[0], captainCoords[1])
+        const duration = 1200 // 1.2s interpolation transition
+        const startTime = performance.now()
+
+        const animateStep = (time: number) => {
+          const elapsed = time - startTime
+          const progress = Math.min(elapsed / duration, 1)
+
+          const lat = startLatLng.lat + (endLatLng.lat - startLatLng.lat) * progress
+          const lng = startLatLng.lng + (endLatLng.lng - startLatLng.lng) * progress
+
+          if (captainMarkerRef.current) {
+            captainMarkerRef.current.setLatLng([lat, lng])
+            
+            // Sync polyline layout in real-time as marker moves
+            if (polylineRef.current && pickupCoords && deliveryCoords) {
+              polylineRef.current.setLatLngs([pickupCoords, [lat, lng], deliveryCoords])
+            }
+          }
+
+          if (progress < 1) {
+            animationFrameRef.current = requestAnimationFrame(animateStep)
+          } else {
+            animationFrameRef.current = null
+          }
+        }
+        animationFrameRef.current = requestAnimationFrame(animateStep)
       } else {
         captainMarkerRef.current = L.marker(captainCoords, { icon: getCaptainIcon() }).addTo(map)
       }
@@ -173,9 +206,7 @@ export default function MapView({
         ? [pickupCoords, captainCoords, deliveryCoords]
         : [pickupCoords, deliveryCoords]
 
-      if (polylineRef.current) {
-        polylineRef.current.setLatLngs(routePath)
-      } else {
+      if (!polylineRef.current) {
         polylineRef.current = L.polyline(routePath, {
           color: '#06b6d4', // High-contrast Cyan
           weight: 4.5,      // Slightly thicker for satellite view
@@ -191,6 +222,12 @@ export default function MapView({
     if (!hasFitBoundsRef.current && bounds.length > 1) {
       map.fitBounds(L.latLngBounds(bounds), { padding: [40, 40] })
       hasFitBoundsRef.current = true
+    }
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
     }
   }, [map, pickupCoords, deliveryCoords, captainCoords, zoom, t])
 

@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 import { MapPin, Phone, RefreshCw, Search, Shield, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLocale } from 'next-intl'
+import { useShipmentTracking, useNotificationsListener, useSocketEvent } from '@/shared/socket'
 
 const MapView = dynamic(() => import("@/shared/ui/MapView"), {
   ssr: false,
@@ -42,8 +43,6 @@ export default function CaptainTracking() {
 
   useEffect(() => {
     fetchCaptains()
-    const interval = setInterval(fetchCaptains, 15000)
-    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -62,16 +61,7 @@ export default function CaptainTracking() {
     }
 
     fetchDetails()
-    const interval = setInterval(fetchDetails, 8000)
-    return () => clearInterval(interval)
   }, [selectedCaptain])
-
-  const filteredCaptains = captains.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          c.phone.includes(searchQuery)
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
 
   const getCoordinates = (coords?: [number, number]): [number, number] | undefined => {
     if (!coords || coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return undefined
@@ -82,6 +72,58 @@ export default function CaptainTracking() {
   const pickupCoords = getCoordinates(activeShipment?.pickupCoords)
   const deliveryCoords = getCoordinates(activeShipment?.deliveryCoords)
   const captainCoords = getCoordinates(trackingDetails?.lastKnownLocation?.coords)
+
+  // Real-time tracking for the selected captain's active shipment
+  useShipmentTracking(activeShipment?.id || activeShipment?._id, {
+    onLocationUpdate: (data) => {
+      if (data.coords && data.coords.length >= 2) {
+        setTrackingDetails((prev: any) => {
+          if (!prev) return null
+          return {
+            ...prev,
+            lastKnownLocation: {
+              ...prev.lastKnownLocation,
+              coords: data.coords,
+              updatedAt: data.updatedAt,
+            },
+          }
+        })
+      }
+    },
+    onStatusUpdate: () => {
+      fetchCaptains()
+      if (selectedCaptain) {
+        getCaptainTracking(selectedCaptain.id)
+          .then(setTrackingDetails)
+          .catch((err) => console.error("Failed to fetch tracking details on status change:", err))
+      }
+    }
+  })
+
+  useNotificationsListener(() => {
+    fetchCaptains()
+    if (selectedCaptain) {
+      getCaptainTracking(selectedCaptain.id)
+        .then(setTrackingDetails)
+        .catch((err) => console.error("Failed to fetch tracking details on notification:", err))
+    }
+  })
+
+  useSocketEvent("statusUpdate", () => {
+    fetchCaptains()
+    if (selectedCaptain) {
+      getCaptainTracking(selectedCaptain.id)
+        .then(setTrackingDetails)
+        .catch((err) => console.error("Failed to fetch tracking details on statusUpdate:", err))
+    }
+  })
+
+  const filteredCaptains = captains.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          c.phone.includes(searchQuery)
+    const matchesStatus = statusFilter === 'all' || c.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
   return (
     <div className="flex flex-col gap-6 text-[var(--color-text-main)]">

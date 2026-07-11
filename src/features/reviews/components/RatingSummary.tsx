@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import RatingStars from "./RatingStars";
 import type { Review } from "../types";
 
@@ -12,6 +13,8 @@ export default function RatingSummary({
   averageRating,
   totalReviews,
 }: RatingSummaryProps) {
+  const t = useTranslations("customer.reviews");
+
   // Calculate distribution
   const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   reviews.forEach((r) => {
@@ -26,14 +29,14 @@ export default function RatingSummary({
       {/* Average score */}
       <div className="flex flex-col items-center justify-center text-center md:border-r md:border-zinc-800 pr-0 md:pr-4">
         <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">
-          Average Rating
+          {t("averageRating")}
         </span>
         <span className="text-4xl font-extrabold text-amber-400">
           {averageRating ? averageRating.toFixed(1) : "0.0"}
         </span>
         <RatingStars rating={Math.round(averageRating)} size={16} className="mt-2" />
         <span className="text-[10px] text-zinc-500 mt-1 font-medium">
-          Based on {totalReviews} reviews
+          {t("basedOn", { count: totalReviews })}
         </span>
       </div>
 

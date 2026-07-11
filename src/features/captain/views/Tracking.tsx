@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic'
 import { Map, Shield, User, Phone, MapPin, Navigation, RefreshCw, CheckCircle2, Circle } from 'lucide-react'
 import { useLocale } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { useShipmentTracking, useNotificationsListener, useSocketEvent } from '@/shared/socket'
 
 function MapLoading() {
   const t = useCaptainTranslations()
@@ -59,9 +60,7 @@ export default function Tracking() {
 
   useEffect(() => {
     fetchOrders()
-    const interval = setInterval(fetchOrders, 10000)
-    return () => clearInterval(interval)
-  }, [selectedOrder])
+  }, [])
 
   const [captainCoords, setCaptainCoords] = useState<[number, number] | undefined>(undefined)
 
@@ -71,29 +70,41 @@ export default function Tracking() {
       return
     }
 
-    const fetchLiveLocation = async () => {
-      try {
-        const details = await getTrackingDetails(selectedOrder.id)
+    // Fetch initial coordinates on selection
+    getTrackingDetails(selectedOrder.id)
+      .then((details) => {
         if (details && details.currentLocation?.coords) {
           const [lng, lat] = details.currentLocation.coords
           if (!isNaN(lat) && !isNaN(lng)) {
             setCaptainCoords([lat, lng])
           }
         }
-      } catch (err) {
-        console.error("Failed to fetch live location for tracking:", err)
-      }
-    }
-
-    fetchLiveLocation()
-    
-    const activeStatuses = ['picked_up', 'in_transit', 'in_progress', 'out_for_delivery']
-    const rawStatus = selectedOrder.rawStatus || selectedOrder.status
-    if (activeStatuses.includes(rawStatus)) {
-      const interval = setInterval(fetchLiveLocation, 5000)
-      return () => clearInterval(interval)
-    }
+      })
+      .catch((err) => console.error("Failed to fetch initial location:", err))
   }, [selectedOrder])
+
+  // Real-time shipment tracking via socket
+  useShipmentTracking(selectedOrder?.id, {
+    onLocationUpdate: (data) => {
+      if (data.coords && data.coords.length >= 2) {
+        const [lng, lat] = data.coords
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setCaptainCoords([lat, lng])
+        }
+      }
+    },
+    onStatusUpdate: () => {
+      fetchOrders()
+    }
+  })
+
+  useNotificationsListener(() => {
+    fetchOrders()
+  })
+
+  useSocketEvent("statusUpdate", () => {
+    fetchOrders()
+  })
 
   const filteredOrders = orders.filter(o => 
     o.id.toLowerCase().includes(searchQuery.toLowerCase()) || 

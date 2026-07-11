@@ -76,6 +76,25 @@ export default function NotificationsView() {
     const captainName = item.captainName || (locale === 'ar' ? 'كابتن' : 'Captain');
 
     // Handle tracking states with dynamic, variable messages & titles from translation keys
+    if (item.rawType === "new_shipment") {
+      try {
+        const match = item.message.match(/from\s+(.+?)\s+to\s+(.+)\.?/i);
+        if (match) {
+          const pickup = match[1];
+          const delivery = match[2].replace(/\.$/, "");
+          return {
+            title: t("newShipmentTitle") || item.title,
+            message: t("newShipmentMessage", { pickup, delivery }),
+          };
+        }
+        return {
+          title: t("newShipmentTitle") || item.title,
+          message: item.message,
+        };
+      } catch (e) {
+        return { title: item.title, message: item.message };
+      }
+    }
     if (item.rawType === "picked_up") {
       try {
         return {
