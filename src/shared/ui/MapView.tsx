@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import { useTheme } from '@/shared/providers/theme-provider'
 import { useTranslations } from 'next-intl'
 import { Navigation } from 'lucide-react'
+import { getRoadRoute, getDuration, getStraightLineDistance } from '@/shared/services/routingService'
 
 interface MapViewProps {
   pickupCoords?: [number, number]
@@ -16,6 +17,7 @@ interface MapViewProps {
   zoom?: number
   height?: string
   locale?: string
+  shipmentStatus?: string
 }
 
 export default function MapView({
@@ -27,6 +29,7 @@ export default function MapView({
   zoom = 12,
   height = '350px',
   locale = 'en',
+  shipmentStatus,
 }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const [map, setMap] = useState<L.Map | null>(null)
@@ -42,6 +45,12 @@ export default function MapView({
   const [autoFollow, setAutoFollow] = useState(true)
   const hasFitBoundsRef = useRef(false)
   const animationFrameRef = useRef<number | null>(null)
+
+  const [routeCoords, setRouteCoords] = useState<[number, number][]>([])
+  const [distanceText, setDistanceText] = useState<string>('')
+  const [durationText, setDurationText] = useState<string>('')
+  const [isRouteFallback, setIsRouteFallback] = useState<boolean>(false)
+  const [isLoadingRoute, setIsLoadingRoute] = useState<boolean>(false)
 
   const getGreenPin = (label: string) => L.divIcon({
     className: 'custom-pin-green',
@@ -79,7 +88,12 @@ export default function MapView({
     if (!mapContainerRef.current || map) return
 
     const defaultCenter: [number, number] = [30.0444, 31.2357]
-    const initialCenter = pickupCoords || defaultCenter
+    const isValidCoords = (c: any): c is [number, number] => 
+      Array.isArray(c) && c.length === 2 && !isNaN(c[0]) && !isNaN(c[1]);
+
+    const initialCenter = isValidCoords(pickupCoords) 
+      ? pickupCoords 
+      : (isValidCoords(deliveryCoords) ? deliveryCoords : defaultCenter);
 
     const mapInstance = L.map(mapContainerRef.current, {
       center: initialCenter,
@@ -107,6 +121,26 @@ export default function MapView({
     }
 
     return () => {
+      if (pickupMarkerRef.current) {
+        pickupMarkerRef.current.remove()
+        pickupMarkerRef.current = null
+      }
+      if (deliveryMarkerRef.current) {
+        deliveryMarkerRef.current.remove()
+        deliveryMarkerRef.current = null
+      }
+      if (captainMarkerRef.current) {
+        captainMarkerRef.current.remove()
+        captainMarkerRef.current = null
+      }
+      if (polylineRef.current) {
+        polylineRef.current.remove()
+        polylineRef.current = null
+      }
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
       mapInstance.remove()
       setMap(null)
     }
@@ -125,6 +159,91 @@ export default function MapView({
 
     tileLayerRef.current = newTileLayer
   }, [map, theme])
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const isValidCoords = (c: any): c is [number, number] => 
+      Array.isArray(c) && c.length === 2 && !isNaN(c[0]) && !isNaN(c[1]);
+
+    if (!isValidCoords(pickupCoords) || !isValidCoords(deliveryCoords)) {
+      setRouteCoords([]);
+      setDistanceText('');
+      setDurationText('');
+      setIsRouteFallback(false);
+      setIsLoadingRoute(false);
+      return;
+    }
+
+    setIsLoadingRoute(true);
+
+    const fetchRoute = async () => {
+      try {
+        if (captainCoords && !isNaN(captainCoords[0]) && !isNaN(captainCoords[1])) {
+          // Check if package is picked up
+          const isPickedUp = shipmentStatus && ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shipmentStatus);
+
+          if (isPickedUp) {
+            // Route from Captain to Delivery
+            const res = await getRoadRoute(captainCoords[1], captainCoords[0], deliveryCoords[1], deliveryCoords[0], controller.signal);
+            if (!active) return;
+            setRouteCoords(res.coordinates);
+            setDistanceText(res.distanceFormatted);
+            setDurationText(res.durationFormatted);
+            setIsRouteFallback(res.isFallback);
+          } else {
+            // Route from Captain to Pickup, then Pickup to Delivery
+            const [leg1, leg2] = await Promise.all([
+              getRoadRoute(captainCoords[1], captainCoords[0], pickupCoords[1], pickupCoords[0], controller.signal),
+              getRoadRoute(pickupCoords[1], pickupCoords[0], deliveryCoords[1], deliveryCoords[0], controller.signal)
+            ]);
+
+            if (!active) return;
+
+            const combinedCoords = [...leg1.coordinates, ...leg2.coordinates];
+            const totalDistKm = leg1.distanceKm + leg2.distanceKm;
+            const totalDurationSec = leg1.durationSeconds + leg2.durationSeconds;
+
+            setRouteCoords(combinedCoords);
+            setDistanceText(`${totalDistKm.toFixed(2)} KM`);
+            setDurationText(getDuration(totalDurationSec));
+            setIsRouteFallback(leg1.isFallback || leg2.isFallback);
+          }
+        } else {
+          // Simple Route from Pickup to Delivery
+          const res = await getRoadRoute(pickupCoords[1], pickupCoords[0], deliveryCoords[1], deliveryCoords[0], controller.signal);
+          if (!active) return;
+          setRouteCoords(res.coordinates);
+          setDistanceText(res.distanceFormatted);
+          setDurationText(res.durationFormatted);
+          setIsRouteFallback(res.isFallback);
+        }
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("Error fetching road route for MapView:", err);
+          if (!active) return;
+          // Global fallback to straight line
+          const straightDistKm = getStraightLineDistance(pickupCoords[0], pickupCoords[1], deliveryCoords[0], deliveryCoords[1]);
+          const estimatedSeconds = (straightDistKm / 50) * 3600;
+          setRouteCoords([pickupCoords, deliveryCoords]);
+          setDistanceText(`${straightDistKm.toFixed(2)} KM`);
+          setDurationText(getDuration(estimatedSeconds));
+          setIsRouteFallback(true);
+        }
+      } finally {
+        if (active) {
+          setIsLoadingRoute(false);
+        }
+      }
+    };
+
+    fetchRoute();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [pickupCoords, deliveryCoords, captainCoords, shipmentStatus]);
 
   useEffect(() => {
     if (!map) return
@@ -179,11 +298,6 @@ export default function MapView({
 
           if (captainMarkerRef.current) {
             captainMarkerRef.current.setLatLng([lat, lng])
-            
-            // Sync polyline layout in real-time as marker moves
-            if (polylineRef.current && pickupCoords && deliveryCoords) {
-              polylineRef.current.setLatLngs([pickupCoords, [lat, lng], deliveryCoords])
-            }
           }
 
           if (progress < 1) {
@@ -201,17 +315,19 @@ export default function MapView({
       captainMarkerRef.current = null
     }
 
-    if (pickupCoords && deliveryCoords && !isNaN(pickupCoords[0]) && !isNaN(deliveryCoords[0])) {
-      const routePath = captainCoords && !isNaN(captainCoords[0])
-        ? [pickupCoords, captainCoords, deliveryCoords]
-        : [pickupCoords, deliveryCoords]
+    const isValidCoords = (c: any): c is [number, number] => 
+      Array.isArray(c) && c.length === 2 && !isNaN(c[0]) && !isNaN(c[1]);
 
-      if (!polylineRef.current) {
-        polylineRef.current = L.polyline(routePath, {
+    const validRouteCoords = routeCoords.filter(isValidCoords)
+
+    if (validRouteCoords.length > 0) {
+      if (polylineRef.current) {
+        polylineRef.current.setLatLngs(validRouteCoords)
+      } else {
+        polylineRef.current = L.polyline(validRouteCoords, {
           color: '#06b6d4', // High-contrast Cyan
           weight: 4.5,      // Slightly thicker for satellite view
           opacity: 0.9,
-          dashArray: '6, 8',
         }).addTo(map)
       }
     } else if (polylineRef.current) {
@@ -229,7 +345,7 @@ export default function MapView({
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [map, pickupCoords, deliveryCoords, captainCoords, zoom, t])
+  }, [map, pickupCoords, deliveryCoords, captainCoords, zoom, t, routeCoords])
 
   // Separate effect for live auto follow to prevent fitting bounds repeatedly
   useEffect(() => {
@@ -243,6 +359,8 @@ export default function MapView({
     ? (autoFollow ? "تتبع تلقائي: مفعل" : "تتبع تلقائي: معطل")
     : (autoFollow ? "Auto-Follow: ON" : "Auto-Follow: OFF")
 
+  const hasCompleteRoute = Boolean(pickupCoords && deliveryCoords)
+
   return (
     <div className="relative w-full rounded-xl border border-zinc-800/80 shadow-inner bg-zinc-950 overflow-hidden">
       <div 
@@ -250,6 +368,9 @@ export default function MapView({
         className="w-full"
         style={{ height }} 
       />
+
+
+
       {captainCoords && (
         <button
           type="button"

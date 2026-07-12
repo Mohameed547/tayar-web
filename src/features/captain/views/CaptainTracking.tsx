@@ -71,7 +71,9 @@ export default function CaptainTracking() {
   const activeShipment = trackingDetails?.activeShipmentTracking?.shipment
   const pickupCoords = getCoordinates(activeShipment?.pickupCoords)
   const deliveryCoords = getCoordinates(activeShipment?.deliveryCoords)
-  const captainCoords = getCoordinates(trackingDetails?.lastKnownLocation?.coords)
+  const captainCoords = getCoordinates(trackingDetails?.lastKnownLocation?.coords) ||
+                        getCoordinates(trackingDetails?.activeShipmentTracking?.currentLocation?.coords) ||
+                        getCoordinates(activeShipment?.captainCurrentLocation?.coordinates)
 
   // Real-time tracking for the selected captain's active shipment
   useShipmentTracking(activeShipment?.id || activeShipment?._id, {
@@ -278,6 +280,8 @@ export default function CaptainTracking() {
                 captainCoords={captainCoords}
                 zoom={13}
                 height="400px"
+                shipmentStatus={activeShipment?.status}
+                locale={locale}
               />
             </div>
           ) : (

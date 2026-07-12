@@ -64,6 +64,8 @@ export interface ShipmentRequest {
   scheduledDate?: string;
   pickupCoords?: [number, number];
   deliveryCoords?: [number, number];
+  trackingNumber?: string;
+  createdAt?: string;
 }
 
 export interface ProviderOrder {

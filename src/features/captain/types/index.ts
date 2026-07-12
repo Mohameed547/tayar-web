@@ -20,7 +20,8 @@ export type ScreenId =
   | "verification"
   | "profile"
   | "support"
-  | "notifications";
+  | "notifications"
+  | "offices";
 
 // ─── Account mode (office vs individual captain) ──────────────────────────────
 export type AccountType = "office" | "captain";

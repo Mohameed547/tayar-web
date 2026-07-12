@@ -324,6 +324,8 @@ export default function Tracking() {
                 captainCoords={captainCoords}
                 zoom={12}
                 height="350px"
+                shipmentStatus={selectedOrder?.rawStatus || selectedOrder?.status}
+                locale={locale}
               />
 
               {/* Timeline Progress */}

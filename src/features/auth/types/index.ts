@@ -17,6 +17,8 @@ export interface User {
   driverStatus?: "available" | "busy" | "offline";
   officeStatus?: "available" | "offline";
   status?: "pending" | "active" | "suspended" | "banned";
+  activeOfficeId?: string | null;
+  workingMode?: "independent" | "office";
 }
 
 export interface AuthTokens {

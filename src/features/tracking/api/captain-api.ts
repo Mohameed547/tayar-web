@@ -13,12 +13,25 @@ export async function getCaptainDeliveries(): Promise<Delivery[]> {
       "/api/shipments/mine/assigned",
     );
     const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
-    return shipments.map((s: any) => ({
-      id: s._id,
-      captain: s.captain || "Captain",
-      route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
-      status: s.status,
-    }));
+    return shipments.map((s: any) => {
+      let captainName = "Captain";
+      if (s.captain) {
+        if (typeof s.captain === "object") {
+          captainName = s.captain.fullName || s.captain.name || "Captain";
+        } else if (typeof s.captain === "string") {
+          captainName = s.captain;
+        }
+      }
+      return {
+        id: s._id,
+        trackingNumber: s.trackingNumber,
+        captain: captainName,
+        route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
+        status: s.status,
+        pickupAddress: s.pickupAddress,
+        deliveryAddress: s.deliveryAddress,
+      };
+    });
   } catch {
     return mockProviderDashboardData.deliveries;
   }
@@ -34,6 +47,8 @@ export async function getDeliveryById(deliveryId: string): Promise<Delivery> {
     captain: s.captain || "Captain",
     route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
     status: s.status,
+    pickupAddress: s.pickupAddress,
+    deliveryAddress: s.deliveryAddress,
   };
 }
 

@@ -7,6 +7,7 @@ import { selectProfile, selectVerification, selectAccountType } from '@/features
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import { getProviderProfile, updateProviderProfile, uploadAvatar } from '@/features/profile'
 import { User, Phone, CheckCircle, Eye, Camera, Mail, Calendar } from 'lucide-react'
+import DangerZone from '@/features/profile/components/DangerZone'
 import { useLocale } from 'next-intl'
 
 export default function Profile() {
@@ -321,6 +322,12 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* ── Danger Zone ── */}
+      <DangerZone
+        userProfile={{ name: profile.name, email: profile.email, phone: profile.phone }}
+        role={isOffice ? 'office' : 'driver'}
+      />
 
       {showPreview && profile.avatar && (
         <div 

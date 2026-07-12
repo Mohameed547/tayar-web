@@ -128,9 +128,9 @@ export default function OffersView({ shipmentId }: OffersViewProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
-        {offers.map((offer) => (
+        {offers.map((offer, idx) => (
           <OfferCard
-            key={offer.id}
+            key={`${offer.id}-${idx}`}
             offer={offer}
             isSelected={selectedOfferId === offer.id}
             onSelect={() => setSelectedOfferId(offer.id)}

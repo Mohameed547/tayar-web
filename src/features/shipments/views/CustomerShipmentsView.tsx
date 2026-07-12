@@ -83,8 +83,8 @@ export default function CustomerShipmentsView() {
 
       <div className="flex flex-col gap-4 mt-2">
         {filteredShipments.length > 0 ? (
-          filteredShipments.map((shipment) => (
-            <ShipmentCard key={shipment.id} shipment={shipment} />
+          filteredShipments.map((shipment, idx) => (
+            <ShipmentCard key={`${shipment.id}-${idx}`} shipment={shipment} />
           ))
         ) : (
           <div className="text-center p-12 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] border-dashed rounded-xl">

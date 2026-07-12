@@ -16,10 +16,15 @@ export function mapCaptain(c: any): Captain {
 
 // ── Office Team API ───────────────────────────────────────────────────────────
 
-export async function getTeamCaptains(): Promise<Captain[]> {
+export async function getTeamCaptains(params?: {
+  search?: string;
+  relationshipStatus?: string;
+  status?: string;
+}): Promise<Captain[]> {
   try {
     const response = await api.get<ApiResponse<any>>(
       "/api/office/captains",
+      { params }
     );
     const data = response?.data?.data;
     let list: any[] = [];
@@ -39,10 +44,49 @@ export async function getTeamCaptains(): Promise<Captain[]> {
       name: c.fullName || c.name || "Captain",
       phone: c.phone || "",
       status: c.status || "offline",
+      relationshipStatus: c.relationshipStatus || "ACTIVE",
     }));
   } catch {
     return mockProviderDashboardData.captains;
   }
+}
+
+export async function suspendCaptain(id: string): Promise<Captain> {
+  const response = await api.patch<ApiResponse<any>>(
+    `/api/office/captains/${id}/suspend`
+  );
+  const c = response.data.data;
+  return {
+    id: c.id || c._id || id,
+    userId: c.userId || "",
+    name: c.fullName || c.name || "",
+    phone: c.phone || "",
+    status: c.status || "offline",
+    relationshipStatus: c.relationshipStatus || "SUSPENDED",
+  };
+}
+
+export async function unsuspendCaptain(id: string): Promise<Captain> {
+  const response = await api.patch<ApiResponse<any>>(
+    `/api/office/captains/${id}/unsuspend`
+  );
+  const c = response.data.data;
+  return {
+    id: c.id || c._id || id,
+    userId: c.userId || "",
+    name: c.fullName || c.name || "",
+    phone: c.phone || "",
+    status: c.status || "offline",
+    relationshipStatus: c.relationshipStatus || "ACTIVE",
+  };
+}
+
+export async function removeCaptain(id: string, reason?: string): Promise<any> {
+  const response = await api.delete<ApiResponse<any>>(
+    `/api/office/captains/${id}`,
+    { data: { reason } }
+  );
+  return response.data.data;
 }
 
 export async function addTeamCaptain(
@@ -138,3 +182,30 @@ export async function getCaptainPerformance(captainId: string): Promise<any> {
   );
   return response.data.data;
 }
+
+export async function searchCaptain(query: string): Promise<any> {
+  const response = await api.get<ApiResponse<any>>(
+    `/api/office/captains/search?query=${encodeURIComponent(query)}`
+  );
+  return response.data.data;
+}
+
+export async function inviteCaptain(data: {
+  email?: string;
+  phone?: string;
+  captainId?: string;
+}): Promise<any> {
+  const response = await api.post<ApiResponse<any>>(
+    "/api/office/captains/invite",
+    data
+  );
+  return response.data.data;
+}
+
+export async function getCaptainById(id: string): Promise<any> {
+  const response = await api.get<ApiResponse<any>>(
+    `/api/office/captains/${id}`
+  );
+  return response.data.data;
+}
+

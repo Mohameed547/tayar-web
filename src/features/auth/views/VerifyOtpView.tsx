@@ -18,7 +18,8 @@ export default function VerifyOtpView() {
   const validation = useTranslations("validation");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const phone = searchParams.get("phone") || searchParams.get("email") || "";
+  const phone = searchParams.get("phone") || "";
+  const email = searchParams.get("email") || searchParams.get("phone") || "";
   const purpose = searchParams.get("purpose") || "register";
   const [generalError, setGeneralError] = React.useState<string | null>(null);
 
@@ -54,7 +55,7 @@ export default function VerifyOtpView() {
   return (
     <AuthLayout
       title={t("auth.verifyOtp")}
-      subtitle={`${t("auth.otpSentTo")} ${phone}`}
+      subtitle={`${t("auth.otpSentTo")} ${email}`}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         {generalError && (

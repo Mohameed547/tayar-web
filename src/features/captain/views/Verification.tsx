@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { ShieldCheck, Upload, AlertCircle, CheckCircle, FileText } from 'lucide-react'
-import { useAppSelector } from '@/store/hooks'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { useLocale } from 'next-intl'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import { selectVerification } from '@/features/captain/store/selectors'
+import { setVerificationStatusInStore } from '@/features/captain/store/data-slice'
 import { getCurrentUser } from '@/features/auth/api'
 import { getVerificationStatus, submitVerification } from '@/features/verification/api'
 import clsx from 'clsx'
@@ -58,6 +59,7 @@ function compressDocumentImage(file: File): Promise<string> {
 }
 
 export default function Verification() {
+  const dispatch = useAppDispatch()
   const t = useCaptainTranslations()
   const locale = useLocale()
   const isRTL = locale === 'ar'
@@ -92,6 +94,7 @@ export default function Verification() {
       .then(([user, verStatus]) => {
         setUserRole(user.role === 'office' ? 'office' : 'driver')
         setStatusData(verStatus)
+        dispatch(setVerificationStatusInStore(verStatus))
         // Set default document type
         setDocType(user.role === 'office' ? 'commercial_license' : 'national_id')
         setLoading(false)
@@ -100,7 +103,7 @@ export default function Verification() {
         console.error('Failed to load verification status:', err)
         setLoading(false)
       })
-  }, [locale])
+  }, [locale, dispatch])
 
   const documentOptions = userRole === 'office'
     ? [
@@ -143,6 +146,7 @@ export default function Verification() {
       })
 
       setStatusData(result)
+      dispatch(setVerificationStatusInStore(result))
       setSuccessMsg(t('docSubmitSuccess'))
       setDocNumber('')
       setFileSelected(null)

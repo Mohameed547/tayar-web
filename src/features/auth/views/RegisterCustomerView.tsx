@@ -59,7 +59,7 @@ export default function RegisterCustomerView() {
         password: formData.password,
         passwordConfirmation: formData.confirmPassword,
       });
-      router.push(`${ROUTES.VERIFY_OTP}?phone=${formData.phone}&purpose=register`);
+      router.push(`${ROUTES.VERIFY_OTP}?phone=${formData.phone}&email=${formData.email}&purpose=register`);
     } catch (err: any) {
       console.error("Register Customer API failed:", err);
       const backendError = err.response?.data?.message || err.message || "Registration failed. Please check your data.";

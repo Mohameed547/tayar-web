@@ -13,7 +13,9 @@ import { createShipment } from "@/features/shipments";
 import { getWallet } from "@/features/wallet/api";
 import { calculateDistance, reverseGeocode, fetchAddressSuggestions, type MapSuggestion } from "@/lib/utils/map";
 import dynamic from "next/dynamic";
+import { getDuration, getRoadRoute } from "@/shared/services/routingService";
 import { useNotifications } from "@/shared/providers/socket-notification-provider";
+import { useAppSelector } from "@/store/hooks";
 
 const MapView = dynamic(() => import("@/shared/ui/MapView"), {
   ssr: false,
@@ -86,6 +88,8 @@ export default function NewShipmentView() {
   const router = useRouter();
   const locale = useLocale();
   const { triggerLocalToast } = useNotifications();
+  
+  
   
   const getValidationError = (messageKey: string | undefined) => {
     if (!messageKey) return "";
@@ -221,12 +225,48 @@ export default function NewShipmentView() {
 
   const price = watch("price");
 
-  const hasCompleteRoute = Boolean(pickupCoords && deliveryCoords);
-  const distanceKm = hasCompleteRoute && pickupCoords && deliveryCoords
-    ? calculateDistance(pickupCoords[0], pickupCoords[1], deliveryCoords[0], deliveryCoords[1])
-    : 0;
+  const [roadDistanceKm, setRoadDistanceKm] = useState<number>(0);
+  const [roadDurationSeconds, setRoadDurationSeconds] = useState<number>(0);
+  const [isRoadLoading, setIsRoadLoading] = useState<boolean>(false);
 
-  const distance = hasCompleteRoute ? `${distanceKm} km` : "-";
+  const hasCompleteRoute = Boolean(pickupCoords && deliveryCoords);
+
+  useEffect(() => {
+    if (pickupCoords && deliveryCoords) {
+      setIsRoadLoading(true);
+      const controller = new AbortController();
+      getRoadRoute(pickupCoords[1], pickupCoords[0], deliveryCoords[1], deliveryCoords[0], controller.signal)
+        .then((res) => {
+          setRoadDistanceKm(res.distanceKm);
+          setRoadDurationSeconds(res.durationSeconds);
+        })
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("Failed to get road route for pricing:", err);
+            const straight = calculateDistance(pickupCoords[0], pickupCoords[1], deliveryCoords[0], deliveryCoords[1]);
+            setRoadDistanceKm(straight);
+            setRoadDurationSeconds((straight / 50) * 3600);
+          }
+        })
+        .finally(() => {
+          setIsRoadLoading(false);
+        });
+
+      return () => {
+        controller.abort();
+      };
+    } else {
+      setRoadDistanceKm(0);
+      setRoadDurationSeconds(0);
+    }
+  }, [pickupCoords, deliveryCoords]);
+
+  const distanceKm = roadDistanceKm;
+  const distance = hasCompleteRoute
+    ? (isRoadLoading
+      ? (locale === 'ar' ? 'جاري الحساب...' : 'Calculating...')
+      : `${distanceKm.toFixed(2)} KM`)
+    : "-";
   
   const computedPrice = hasCompleteRoute ? calculateDynamicPrice(weight, packageType, deliverySpeed, distanceKm) : 0;
   const minPrice = Math.max(10, Math.round((computedPrice * 0.9) / 10) * 10);
@@ -800,6 +840,7 @@ export default function NewShipmentView() {
               interactive={true}
               onMapClick={handleMapClick}
               height="300px"
+              locale={locale}
             />
           </div>
 
@@ -830,7 +871,13 @@ export default function NewShipmentView() {
                   {locale === 'ar' ? 'الوصول المتوقع' : 'Estimated Arrival'}
                 </span>
                 <span className="text-[var(--dh-text-main)] font-semibold">
-                  {hasCompleteRoute ? calculateEstimatedArrival(distanceKm, deliverySpeed, locale) : "-"}
+                  {hasCompleteRoute
+                    ? (deliverySpeed === "scheduled"
+                      ? (locale === 'ar' ? 'حسب الموعد المحدّد' : 'As scheduled')
+                      : (isRoadLoading
+                        ? (locale === 'ar' ? 'جاري الحساب...' : 'Calculating...')
+                        : getDuration(roadDurationSeconds)))
+                    : "-"}
                 </span>
               </div>
               {deliverySpeed === "scheduled" && scheduledDate && (

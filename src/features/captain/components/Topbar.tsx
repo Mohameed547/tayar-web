@@ -14,6 +14,7 @@ import {
   selectIsOnline,
   selectOrders,
   selectAccountType,
+  selectVerification,
 } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import { LocaleToggle } from '@/shared/ui/locale-toggle'
@@ -23,9 +24,11 @@ import { getCurrentUser, logout } from '@/features/auth/api'
 import type { User } from '@/features/auth/types'
 import { useNotifications } from '@/shared/providers/socket-notification-provider'
 import { updateDriverAvailability, updateOfficeAvailability } from '@/features/office'
+import api from '@/lib/api/client'
 
 const SCREEN_TITLE_KEY: Record<ScreenId, string> = {
   'overview':         'screen_overview',
+  'offices':          'screen_offices',
   'requests':         'screen_requests',
   'offers':           'screen_offers',
   'orders':           'screen_orders',
@@ -50,6 +53,7 @@ export default function Topbar() {
   const isOnline     = useAppSelector(selectIsOnline)
   const orders       = useAppSelector(selectOrders) || []
   const accountType  = useAppSelector(selectAccountType)
+  const verification = useAppSelector(selectVerification)
   const locale       = useLocale()
   const t            = useCaptainTranslations()
   const { unreadCount, triggerLocalToast } = useNotifications()
@@ -57,6 +61,7 @@ export default function Topbar() {
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [officeName, setOfficeName] = useState<string>('')
 
   useEffect(() => {
     const fetchUser = () => {
@@ -73,6 +78,26 @@ export default function Topbar() {
     };
   }, []);
 
+  useEffect(() => {
+    if (user && user.role === 'driver' && user.workingMode === 'office' && user.activeOfficeId) {
+      api.get('/api/captain-dashboard/offices')
+        .then((res) => {
+          const matched = res.data?.data?.find((o: any) => o.id === user.activeOfficeId || o._id === user.activeOfficeId);
+          if (matched) {
+            setOfficeName(matched.officeName);
+          } else {
+            setOfficeName('');
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching offices in Topbar:", err);
+          setOfficeName('');
+        });
+    } else {
+      setOfficeName('');
+    }
+  }, [user]);
+
   const hasActiveOrder = orders.some((order: any) => {
     const status = order.rawStatus || order.status
     return status !== 'delivered' && status !== 'cancelled' && status !== 'pending_offers'
@@ -83,13 +108,13 @@ export default function Topbar() {
   const handleToggleOnline = async () => {
     if (!user || isBusy) return
 
-    // Prevent pending accounts from going online
-    if (user.status === 'pending') {
+    // Prevent unverified accounts from going online
+    if (!verification.isVerified) {
       triggerLocalToast(
-        locale === 'ar' ? 'الحساب قيد المراجعة' : 'Account Pending Review',
+        locale === 'ar' ? 'الحساب غير موثق' : 'Account Unverified',
         locale === 'ar'
-          ? 'عذراً، لا يمكنك تفعيل وضع النشاط لأن حسابك في انتظار التوثيق والمراجعة من قبل الإدارة.'
-          : 'Sorry, you cannot go online because your account is pending verification and review.',
+          ? 'عذراً، لا يمكنك تفعيل وضع النشاط لأن حسابك غير موثق بالكامل بعد.'
+          : 'Sorry, you cannot go online because your account is not fully verified yet.',
         'warning'
       );
       return;
@@ -135,7 +160,7 @@ export default function Topbar() {
     : 'bg-[var(--dh-bg-card)] border border-[var(--dh-border)] text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)]'
   let indicatorClass = isOnline ? 'bg-[var(--dh-success)] animate-pulse' : 'bg-[var(--dh-text-muted)]'
 
-  if (user?.status === 'pending') {
+  if (!verification.isVerified) {
     statusText = locale === 'ar' ? 'في انتظار التوثيق' : 'Pending Verification'
     statusClass = 'bg-amber-500/10 border border-amber-500/20 !text-amber-500 cursor-not-allowed font-semibold'
     indicatorClass = 'bg-amber-500 animate-pulse'
@@ -168,6 +193,37 @@ export default function Topbar() {
           <ThemeToggle className="border-[var(--dh-border)] bg-[var(--dh-bg-card)] dark:bg-[var(--dh-bg-card)]" />
           <LocaleToggle className="border-[var(--dh-border)] bg-[var(--dh-bg-card)] dark:bg-[var(--dh-bg-card)]" />
         </div>
+
+        {/* Working Mode Badge */}
+        {user && user.role === 'driver' && (
+          <button
+            onClick={() => dispatch(setActiveScreen('offices'))}
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-[5px] rounded-full text-[12px] font-semibold transition-all duration-200 border hover:opacity-90',
+              user.workingMode === 'office'
+                ? 'bg-blue-500/10 border-blue-500/20 text-blue-500 hover:bg-blue-500/20'
+                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20'
+            )}
+          >
+            {user.workingMode === 'office' ? (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span>
+                  {locale === 'ar'
+                    ? `يعمل مع: ${officeName || 'جاري التحميل...'}`
+                    : `Working with: ${officeName || 'Office'}`}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>
+                  {locale === 'ar' ? 'يعمل بشكل مستقل' : 'Working as Independent'}
+                </span>
+              </>
+            )}
+          </button>
+        )}
 
         {/* Online/Offline status pill */}
         <button
@@ -241,27 +297,31 @@ export default function Topbar() {
                 "absolute mt-2 w-48 bg-[var(--dh-bg-card)] border border-[var(--dh-border)] rounded-xl shadow-xl py-1 z-20",
                 isRTL ? "left-0" : "right-0"
               )}>
-                <button
-                  onClick={() => {
-                    setDropdownOpen(false)
-                    dispatch(setActiveScreen('profile'))
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors text-start"
-                >
-                  <UserIcon className="h-4 w-4 text-[var(--dh-text-muted)]" />
-                  <span>{t("myProfileLink")}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setDropdownOpen(false)
-                    dispatch(setActiveScreen('profile'))
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors text-start"
-                >
-                  <Settings className="h-4 w-4 text-[var(--dh-text-muted)]" />
-                  <span>{t("accountSettingsLink")}</span>
-                </button>
-                <hr className="border-[var(--dh-border)] my-1" />
+                {verification.isVerified && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false)
+                        dispatch(setActiveScreen('profile'))
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors text-start"
+                    >
+                      <UserIcon className="h-4 w-4 text-[var(--dh-text-muted)]" />
+                      <span>{t("myProfileLink")}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false)
+                        dispatch(setActiveScreen('profile'))
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[var(--dh-text-sub)] hover:bg-[var(--dh-bg-muted)] hover:text-[var(--dh-text-main)] transition-colors text-start"
+                    >
+                      <Settings className="h-4 w-4 text-[var(--dh-text-muted)]" />
+                      <span>{t("accountSettingsLink")}</span>
+                    </button>
+                    <hr className="border-[var(--dh-border)] my-1" />
+                  </>
+                )}
                 <button
                   onClick={async () => {
                     setDropdownOpen(false)
