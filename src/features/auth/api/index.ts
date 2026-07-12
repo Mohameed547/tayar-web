@@ -213,6 +213,11 @@ export async function logout(): Promise<void> {
   }
 }
 
+export async function resendCustomerOtp(phone: string) {
+  const res = await api.post<ApiResponse<void>>("/api/auth/otp/resend", { phone });
+  return res.data;
+}
+
 // ─── Captain Onboarding API ───────────────────────────────────────────────────
 
 export async function verifyCaptainOtp(phone: string, otp: string) {
