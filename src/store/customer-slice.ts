@@ -4,12 +4,15 @@ import { getWallet } from "@/features/wallet/api";
 import { getReviews } from "@/features/reviews/api";
 import { getCustomerProfile } from "@/features/profile";
 import type { Shipment } from "@/features/shipments/types";
+import { getVerificationStatus } from "@/features/verification/api";
+import type { VerificationStatus } from "@/features/verification/types";
 
 export interface CustomerState {
   customerName: string;
   shipments: Shipment[];
   walletBalance: string;
   averageRating: string;
+  verification: VerificationStatus;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 }
@@ -19,6 +22,7 @@ const initialState: CustomerState = {
   shipments: [],
   walletBalance: "EGP 0",
   averageRating: "5.0",
+  verification: { isVerified: false, status: "pending", complianceText: "Verification pending." },
   status: "idle",
   error: null,
 };
@@ -27,10 +31,24 @@ export const fetchCustomerDashboard = createAsyncThunk(
   "customer/fetchDashboard",
   async (_, { rejectWithValue }) => {
     try {
-      const [profileName, loadedShipments, balance, ratingVal] = await Promise.all([
-        getCustomerProfile()
-          .then((data) => data.name || "Customer")
-          .catch(() => "Customer"),
+      // 1. Fetch verification status first
+      const verStatus = await getVerificationStatus().catch((err) => {
+        console.error("Failed to load verification status:", err);
+        return {
+          isVerified: false,
+          status: "pending",
+          complianceText: "Your verification request is pending review.",
+        };
+      });
+
+      const profileName = await getCustomerProfile()
+        .then((data) => data.name || "Customer")
+        .catch(() => "Customer");
+
+
+
+      // 3. Otherwise fetch everything normally
+      const [loadedShipments, balance, ratingVal] = await Promise.all([
         getShipments().catch((err) => {
           console.error("Failed to load shipments:", err);
           return [];
@@ -58,6 +76,7 @@ export const fetchCustomerDashboard = createAsyncThunk(
         shipments: loadedShipments,
         walletBalance: balance,
         averageRating: ratingVal,
+        verification: verStatus,
       };
     } catch (err: any) {
       return rejectWithValue(err.message || "Failed to load dashboard data");
@@ -102,6 +121,7 @@ const customerSlice = createSlice({
         state.shipments = action.payload.shipments;
         state.walletBalance = action.payload.walletBalance;
         state.averageRating = action.payload.averageRating;
+        state.verification = action.payload.verification;
       })
       .addCase(fetchCustomerDashboard.rejected, (state, action) => {
         state.status = "failed";

@@ -7,13 +7,15 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchCaptainDashboard, switchAccountTypeData } from '@/features/captain/store/data-slice'
 import { useNotifications } from '@/shared/providers/socket-notification-provider'
 import { useNotificationsListener, useSocketEvent, useSocket } from '@/shared/socket'
-import { setAccountType, setOnlineState } from '@/features/captain/store/dashboard-slice'
+import { setAccountType, setOnlineState, setActiveScreen } from '@/features/captain/store/dashboard-slice'
 import { getCurrentUser } from '@/features/auth/api'
+import type { User } from '@/features/auth/types'
 import {
   selectActiveScreen,
   selectCaptainDataStatus,
   selectAccountType,
   selectOrders,
+  selectVerification,
 } from '@/features/captain/store/selectors'
 
 import Sidebar from '../components/Sidebar'
@@ -34,6 +36,7 @@ import Performance from './Performance'
 import Ratings from './Ratings'
 import Verification from './Verification'
 import Profile from './Profile'
+import Offices from './Offices'
 import { NotificationsView } from '@/features/notifications'
 import SupportView from '@/features/support/views/SupportView'
 import GlobalLiveChat from '@/features/support/components/GlobalLiveChat'
@@ -42,6 +45,7 @@ import type { ScreenId } from '@/features/captain/types'
 
 const SCREENS: Record<ScreenId, React.ReactNode> = {
   'overview':         <Overview />,
+  'offices':          <Offices />,
   'requests':         <Requests />,
   'offers':           <Offers />,
   'orders':           <Orders />,
@@ -71,11 +75,14 @@ export default function ProviderDashboard() {
   const [authorized, setAuthorized] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
 
-  useEffect(() => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+
+  const fetchUser = () => {
     getCurrentUser()
       .then((user) => {
+        setCurrentUser(user)
         if (!user.isVerified) {
-          router.replace(`/verify-otp?phone=${user.phone}`);
+          router.replace(`/verify-otp?phone=${user.phone}&email=${user.email}`);
           return;
         }
         if ((user.role as string) === 'driver' || (user.role as string) === 'office') {
@@ -98,15 +105,45 @@ export default function ProviderDashboard() {
         router.replace('/login')
         setCheckingAuth(false)
       })
+  }
+
+  useEffect(() => {
+    fetchUser()
+    window.addEventListener("profile-updated", fetchUser)
+    return () => {
+      window.removeEventListener("profile-updated", fetchUser)
+    }
   }, [router, dispatch])
 
   const accountType = useAppSelector(selectAccountType)
+  const verification = useAppSelector(selectVerification)
 
   useEffect(() => {
-    if (authorized && dataStatus === 'idle') {
+    if (currentUser && currentUser.role === 'driver' && currentUser.workingMode === 'office') {
+      if (['requests', 'offers'].includes(activeScreen)) {
+        dispatch(setActiveScreen('overview'));
+      }
+    }
+  }, [currentUser, activeScreen, dispatch]);
+
+  useEffect(() => {
+    if (authorized) {
+      if (!verification.isVerified) {
+        const isProtected = ['overview', 'offices', 'requests', 'offers', 'orders', 'deliveries', 'tracking', 'earnings', 'wallet', 'team', 'captain-tracking', 'performance', 'ratings', 'profile', 'notifications'].includes(activeScreen);
+        if (isProtected) {
+          dispatch(setActiveScreen('verification'));
+        }
+      } else if (activeScreen === 'verification') {
+        dispatch(setActiveScreen('overview'));
+      }
+    }
+  }, [authorized, verification.isVerified, activeScreen, dispatch]);
+
+  useEffect(() => {
+    if (authorized) {
       dispatch(fetchCaptainDashboard(accountType))
     }
-  }, [authorized, dataStatus, dispatch, accountType])
+  }, [authorized, dispatch, accountType])
 
   const orders = useAppSelector(selectOrders) || [];
   const { joinShipment, leaveShipment } = useSocket();

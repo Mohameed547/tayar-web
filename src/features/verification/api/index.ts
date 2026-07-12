@@ -4,14 +4,17 @@ import type { ApiResponse } from "@/shared/types/api";
 import type { SubmitVerificationRequest } from "../types/dtos";
 
 function mapVerificationStatus(v: any): VerificationStatus {
-  const status = v.status || "pending";
+  const status = v.status || "PENDING_VERIFICATION";
+  const isVerified = status === "VERIFIED" || status === "approved";
   return {
-    isVerified: status === "approved",
-    complianceText: status === "approved"
+    isVerified,
+    status: status,
+    hasSubmitted: v.hasSubmitted !== undefined ? v.hasSubmitted : !!(v.documents && v.documents.length > 0),
+    complianceText: v.complianceText || (isVerified
       ? "Your verification documents have been fully approved. You can start receiving shipments."
-      : status === "rejected"
+      : status === "REJECTED" || status === "rejected"
       ? `Verification rejected: ${v.reviewNote || "Please resubmit documents"}`
-      : "Your verification request is pending review.",
+      : "Your verification request is pending review."),
   };
 }
 

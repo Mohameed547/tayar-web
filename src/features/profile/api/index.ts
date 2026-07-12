@@ -124,3 +124,27 @@ export async function uploadAvatar(file: File): Promise<{ url: string }> {
 
   return { url: res.data.data.profileImage || base64 };
 }
+
+export async function deleteAccount(reason: string, password?: string, otp?: string): Promise<any> {
+  const timestamp = new Date().toISOString();
+  return await api.delete<ApiResponse<any>>("/api/users/me", {
+    data: { reason, password, otp },
+    headers: {
+      "x-request-timestamp": timestamp,
+    },
+  });
+}
+
+export async function restoreAccount(): Promise<any> {
+  const timestamp = new Date().toISOString();
+  return await api.post<ApiResponse<any>>("/api/users/me/restore", {}, {
+    headers: {
+      "x-request-timestamp": timestamp,
+    },
+  });
+}
+
+export async function getDeleteStatus(): Promise<any> {
+  const res = await api.get<ApiResponse<any>>("/api/users/me/delete-status");
+  return res.data.data;
+}

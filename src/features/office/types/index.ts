@@ -7,4 +7,8 @@ export interface Captain {
   name: string;
   phone: string;
   status: "available" | "busy" | "offline";
+  relationshipStatus?: 'ACTIVE' | 'SUSPENDED' | 'REMOVED' | 'PENDING' | 'INVITED' | 'LEFT' | 'REJECTED' | string;
+  workingMode?: "independent" | "office";
+  activeOfficeId?: string | null;
+  officeId?: string | null;
 }

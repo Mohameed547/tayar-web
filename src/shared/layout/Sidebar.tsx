@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/shared/providers/socket-notification-provider";
 import { DelixLogo } from "@/shared/ui/DelixLogo";
+import { useAppSelector } from "@/store/hooks";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -26,53 +27,65 @@ export default function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations("navigation");
   const { unreadCount } = useNotifications();
+  const { verification } = useAppSelector((state) => state.customer);
+
+  const isVerified = true;
 
   const menuItems = [
     {
       label: t("dashboard"),
       href: "/dashboard",
       icon: LayoutDashboard,
+      protected: false,
     },
     {
       label: t("newShipment"),
       href: "/shipments/new",
       icon: PlusCircle,
+      protected: true,
     },
     {
       label: t("myShipments"),
       href: "/shipments",
       icon: Package,
+      protected: true,
     },
     {
       label: t("track"),
       href: "/tracking",
       icon: MapPin,
+      protected: true,
     },
     {
       label: t("wallet"),
       href: "/wallet",
       icon: Wallet,
+      protected: true,
     },
     {
       label: t("notifications"),
       href: "/notifications",
       icon: Bell,
       badge: unreadCount,
+      protected: true,
     },
     {
       label: t("reviews"),
       href: "/reviews",
       icon: Star,
+      protected: true,
     },
     {
       label: t("support"),
       href: "/support",
       icon: Headphones,
+      protected: false,
     },
     {
       label: t("settings"),
       href: "/profile",
       icon: Settings,
+      protected: false,
     },
   ];
 
@@ -97,28 +110,35 @@ export default function Sidebar({ className }: SidebarProps) {
           {menuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
+            const isDisabled = item.protected && !isVerified;
 
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={isDisabled ? "#" : item.href}
+                onClick={(e) => {
+                  if (isDisabled) {
+                    e.preventDefault();
+                  }
+                }}
                 className={cn(
-                  "flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] group",
-                  isActive
+                  "flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 group",
+                  isActive && !isDisabled
                     ? "bg-[var(--dh-brand-subtle)] text-[var(--dh-brand)] hover:bg-[var(--dh-brand-subtle)] hover:text-[var(--dh-brand)]"
-                    : "text-[var(--dh-text-sub)]"
+                    : "text-[var(--dh-text-sub)] hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)]",
+                  isDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:text-[var(--dh-text-sub)]"
                 )}
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     className={cn(
                       "h-4 w-4 transition-transform duration-200 group-hover:scale-105",
-                      isActive ? "text-[var(--dh-brand)]" : "text-[var(--dh-text-sub)]"
+                      isActive && !isDisabled ? "text-[var(--dh-brand)]" : "text-[var(--dh-text-sub)]"
                     )}
                   />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && item.badge > 0 && (
+                {item.badge && item.badge > 0 && !isDisabled && (
                   <span className="flex items-center justify-center h-5 w-5 rounded-full bg-[var(--dh-danger)] text-white text-[10px] font-bold">
                     {item.badge}
                   </span>

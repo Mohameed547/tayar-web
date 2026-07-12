@@ -14,7 +14,10 @@ export interface TrackingMilestone {
 
 export interface Delivery {
   id: string;
+  trackingNumber?: string;
   captain: string;
   route: string;
   status: string;
+  pickupAddress?: string;
+  deliveryAddress?: string;
 }

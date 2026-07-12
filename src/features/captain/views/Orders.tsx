@@ -57,8 +57,18 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
     }
   }
 
-  // Filter out offline captains, and sort available captains first
-  const activeCaptains = captains.filter(c => c.status !== 'offline')
+  // Filter out offline captains, captains in independent mode, or captains active for another office.
+  // We keep the captain currently assigned to the order (if any) so it remains selected.
+  const activeCaptains = captains.filter(c => {
+    if (order.captain && order.captain.id === c.userId) return true;
+    return (
+      c.status !== 'offline' &&
+      c.workingMode === 'office' &&
+      c.activeOfficeId &&
+      c.officeId &&
+      c.activeOfficeId === c.officeId
+    );
+  })
   const sortedCaptains = [...activeCaptains].sort((a, b) => {
     if (a.status === 'available' && b.status !== 'available') return -1
     if (a.status !== 'available' && b.status === 'available') return 1
@@ -119,11 +129,28 @@ function OrderAssignmentControl({ order, captains, isRTL }: { order: any; captai
 function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boolean; t: any }) {
   const dispatch = useAppDispatch()
   const router = useRouter()
+  const locale = useLocale()
   const captainT = useCaptainTranslations()
   const [acceptLoading, setAcceptLoading] = useState(false)
   const [rejectLoading, setRejectLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+
+  const getErrorMessage = (err: any) => {
+    const data = err.response?.data;
+    const errorCode = data?.errorCode;
+    if (errorCode === 'OFFICE_MODE_ACTIVE') {
+      return locale === 'ar' 
+        ? '⚠️ غير مسموح: يجب التبديل إلى "وضع المكتب" لقبول هذه الشحنة.' 
+        : '⚠️ Not allowed: You must switch to "Office Mode" to accept this shipment.';
+    }
+    if (errorCode === 'INDEPENDENT_MODE_ACTIVE') {
+      return locale === 'ar'
+        ? '⚠️ غير مسموح: يجب التبديل إلى "الوضع المستقل" لقبول هذه الشحنة.'
+        : '⚠️ Not allowed: You must switch to "Independent Mode" to accept this shipment.';
+    }
+    return data?.message || err.message || t('orderActionError');
+  }
 
   // PoD Modal States
   const [showPodModal, setShowPodModal] = useState(false)
@@ -144,7 +171,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       dispatch(fetchCaptainDashboard('captain'))
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
+      setErrorMsg(getErrorMessage(err))
     } finally {
       setAcceptLoading(false)
     }
@@ -158,7 +185,7 @@ function CaptainOrderActionControl({ order, isRTL, t }: { order: any; isRTL: boo
       dispatch(fetchCaptainDashboard('captain'))
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.response?.data?.message || err.message || t('orderActionError'))
+      setErrorMsg(getErrorMessage(err))
     } finally {
       setRejectLoading(false)
     }
@@ -752,6 +779,8 @@ export default function Orders() {
                         deliveryCoords={order.deliveryCoords[0] > order.deliveryCoords[1] ? [order.deliveryCoords[1], order.deliveryCoords[0]] : [order.deliveryCoords[0], order.deliveryCoords[1]]}
                         zoom={12}
                         height="250px"
+                        shipmentStatus={order.rawStatus || order.status}
+                        locale={locale}
                       />
                     </div>
                   )}

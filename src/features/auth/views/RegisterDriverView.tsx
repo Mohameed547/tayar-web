@@ -97,7 +97,7 @@ export default function RegisterDriverView() {
         });
       }
 
-      router.push(`${ROUTES.VERIFY_OTP}?phone=${formData.phone}&purpose=register`);
+      router.push(`${ROUTES.VERIFY_OTP}?phone=${formData.phone}&email=${formData.email}&purpose=register`);
     } catch (err: any) {
       console.error("Registration failed:", err);
       const backendError = err.response?.data?.message || err.message || "Registration failed. Please check your data.";

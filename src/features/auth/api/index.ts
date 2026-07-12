@@ -26,6 +26,8 @@ function mapUser(rawUser: any): User {
     driverStatus: rawUser.driverStatus,
     officeStatus: rawUser.officeStatus,
     status: rawUser.status,
+    activeOfficeId: rawUser.activeOfficeId || null,
+    workingMode: rawUser.workingMode || "independent",
   };
 }
 
@@ -209,4 +211,35 @@ export async function logout(): Promise<void> {
   } finally {
     tokenStorage.clearAll();
   }
+}
+
+// ─── Captain Onboarding API ───────────────────────────────────────────────────
+
+export async function verifyCaptainOtp(phone: string, otp: string) {
+  const res = await api.post<ApiResponse<{ accountStatus: string }>>("/api/auth/captain/verify-otp", { phone, otp });
+  return res.data.data;
+}
+
+export async function setCaptainPassword(phone: string, password: string): Promise<AuthResponse> {
+  const res = await api.post<ApiResponse<{ user: any; tokens: AuthTokens; accountStatus: string }>>(
+    "/api/auth/captain/set-password",
+    { phone, password }
+  );
+  const { user, tokens } = res.data.data;
+  tokenStorage.setToken(tokens.accessToken);
+  tokenStorage.setRefreshToken(tokens.refreshToken);
+  return { user: mapUser(user), tokens };
+}
+
+export async function resendCaptainOtp(phone: string) {
+  const res = await api.post<ApiResponse<{ resendsLeft: number }>>("/api/auth/captain/resend-otp", { phone });
+  return res.data.data;
+}
+
+export async function getCaptainOnboardingStatus(phone: string) {
+  const res = await api.post<ApiResponse<{ accountStatus: string; isPhoneVerified: boolean; email: string }>>(
+    "/api/auth/captain/onboarding-status",
+    { phone }
+  );
+  return res.data.data;
 }

@@ -107,8 +107,8 @@ export const mockProviderDashboardData: ProviderDashboardData = {
 };
 
 export const mockVerificationByAccount: Record<AccountType, VerificationStatus> = {
-  office: { isVerified: true, complianceText: "Commercial records and ID card are active." },
-  captain: { isVerified: true, complianceText: "National ID verification is active." },
+  office: { isVerified: false, complianceText: "Verification pending.", status: "pending" },
+  captain: { isVerified: false, complianceText: "Verification pending.", status: "pending" },
 };
 
 export const mockProfileByAccount: Record<AccountType, ProviderProfile> = {

@@ -47,7 +47,7 @@ export default function LoginView() {
       console.log("Login data:", { email, password, rememberMe });
       const response = await login({ email: email.trim(), password });
       if (!response.user.isVerified) {
-        router.push(`${ROUTES.VERIFY_OTP}?phone=${response.user.phone}`);
+        router.push(`${ROUTES.VERIFY_OTP}?phone=${response.user.phone}&email=${response.user.email}`);
         return;
       }
       if (response.user.role === "driver") {
@@ -57,7 +57,16 @@ export default function LoginView() {
       }
     } catch (err: any) {
       console.error("Login API failed:", err);
-      const backendError = err.response?.data?.message || err.message || "Login failed. Please check your credentials.";
+      const data = err.response?.data || {};
+      const errorCode = data.code || data.errorCode;
+      const phone = data.phone;
+      
+      if (errorCode === "PENDING_OTP" || errorCode === "PENDING_PASSWORD" || errorCode === "PENDING_DOCUMENTS") {
+        router.push(`/captain-onboarding?phone=${phone || ""}&email=${data.email || ""}`);
+        return;
+      }
+
+      const backendError = data.message || err.message || "Login failed. Please check your credentials.";
       setErrors({ root: backendError });
     } finally {
       setIsLoading(false);

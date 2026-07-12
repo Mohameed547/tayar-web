@@ -861,6 +861,7 @@ export default function TrackingDetailView({ id, offerId }: TrackingDetailViewPr
             zoom={13}
             height="380px"
             locale={locale}
+            shipmentStatus={shipment.status}
           />
         </div>
 

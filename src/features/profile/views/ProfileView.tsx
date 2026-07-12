@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { profileSchema } from "@/lib/validation/common";
 import { User, Phone, Mail, Calendar, CheckCircle, Eye, Camera } from "lucide-react";
+import DangerZone from "../components/DangerZone";
 import { mockCustomer } from "@/constants/mock-data";
 import { cn } from "@/lib/utils";
 import { useTranslations, useLocale } from "next-intl";
@@ -350,7 +351,10 @@ export default function ProfileView() {
           </div>
         </div>
       </div>
-      
+
+      {/* ── Danger Zone ── */}
+      <DangerZone userProfile={userProfile} role="customer" />
+
       {showPreview && userProfile.avatar && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"

@@ -1,5 +1,5 @@
 'use client'
-
+import { useState, useEffect } from 'react'
 import clsx from 'clsx'
 import {
   LayoutDashboard, Inbox, Gavel, CheckCircle, Truck, Map,
@@ -10,7 +10,8 @@ import { useNotifications } from '@/shared/providers/socket-notification-provide
 import { useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { logout } from '@/features/auth/api'
+import { logout, getCurrentUser } from '@/features/auth/api'
+import type { User } from '@/features/auth/types'
 import { setActiveScreen, setSidebarOpen } from '@/features/captain/store/dashboard-slice'
 import {
   selectAccountType,
@@ -19,6 +20,7 @@ import {
   selectSidebarOpen,
   selectRequests,
   selectOrders,
+  selectVerification,
 } from '@/features/captain/store/selectors'
 import { useCaptainTranslations } from '@/features/captain/hooks/use-captain-translations'
 import type { ScreenId } from '@/features/captain/types'
@@ -30,10 +32,12 @@ interface NavEntry {
   icon: React.ComponentType<any>
   badge?: number
   officeOnly?: boolean
+  captainOnly?: boolean
 }
 
 const NAV_ITEMS: NavEntry[] = [
   { id: 'overview', labelKey: 'nav_overview', icon: LayoutDashboard },
+  { id: 'offices', labelKey: 'nav_offices', icon: Users, captainOnly: true },
   { id: 'requests', labelKey: 'nav_requests', icon: Inbox },
   { id: 'offers', labelKey: 'nav_offers', icon: Gavel },
   { id: 'orders', labelKey: 'nav_orders', icon: CheckCircle },
@@ -67,6 +71,7 @@ export default function Sidebar() {
   const activeScreen = useAppSelector(selectActiveScreen)
   const sidebarOpen = useAppSelector(selectSidebarOpen)
   const profile = useAppSelector(selectProfile)
+  const verification = useAppSelector(selectVerification)
   const requests = useAppSelector(selectRequests) || []
   const orders = useAppSelector(selectOrders) || []
   const locale = useLocale()
@@ -75,8 +80,26 @@ export default function Sidebar() {
   const isOffice = accountType === 'office'
   const isRTL = locale === 'ar'
 
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    const fetchUser = () => {
+      getCurrentUser()
+        .then((data) => setUser(data))
+        .catch((err) => console.error("Error fetching user in Captain Sidebar:", err));
+    };
+
+    fetchUser();
+
+    window.addEventListener("profile-updated", fetchUser);
+    return () => {
+      window.removeEventListener("profile-updated", fetchUser);
+    };
+  }, []);
+
   const dynamicBadges: Record<ScreenId | 'notifications', number> = {
     overview: 0,
+    offices: 0,
     requests: requests.length,
     offers: 0,
     orders: orders.filter((o: any) => {
@@ -113,18 +136,41 @@ export default function Sidebar() {
 
   const renderItem = (item: NavEntry) => {
     if (item.officeOnly && !isOffice) return null
+    if (item.captainOnly && isOffice) return null
+
+    // Filter based on workingMode if driver
+    if (user && user.role === 'driver') {
+      const isMarketplace = ['requests', 'offers'].includes(item.id);
+      if (user.workingMode === 'office' && isMarketplace) {
+        return null;
+      }
+    }
+
+    const isProtected = ['overview', 'offices', 'requests', 'offers', 'orders', 'deliveries', 'tracking', 'earnings', 'wallet', 'team', 'captain-tracking', 'performance', 'ratings', 'profile', 'notifications'].includes(item.id);
+    const isDisabled = !verification.isVerified && isProtected;
+
     const active = activeScreen === item.id
     const Icon = item.icon
     const badgeVal = dynamicBadges[item.id]
     return (
       <button
         key={item.id}
-        onClick={() => navigate(item.id)}
+        onClick={() => {
+          if (isDisabled) return;
+          // If clicking verification and already verified, go to overview instead
+          if (item.id === 'verification' && verification.isVerified) {
+            navigate('overview');
+          } else {
+            navigate(item.id);
+          }
+        }}
+        disabled={isDisabled}
         className={clsx(
           'flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 hover:text-[var(--dh-text-main)] hover:bg-[var(--dh-bg-muted)] group',
           active
             ? 'bg-[var(--dh-brand-subtle)] text-[var(--dh-brand)] hover:bg-[var(--dh-brand-subtle)]'
-            : 'text-[var(--dh-text-sub)]'
+            : 'text-[var(--dh-text-sub)]',
+          isDisabled && 'opacity-40 cursor-not-allowed hover:bg-transparent hover:text-[var(--dh-text-sub)]'
         )}
       >
         <div className="flex items-center gap-3">
@@ -136,7 +182,7 @@ export default function Sidebar() {
           />
           <span>{t(item.labelKey)}</span>
         </div>
-        {badgeVal > 0 && (
+        {badgeVal > 0 && !isDisabled && (
           <span className={clsx(
             "flex items-center justify-center h-5 w-5 rounded-full text-white text-[10px] font-bold shrink-0",
             item.id === 'notifications' ? 'bg-[var(--dh-danger)]' : 'bg-[var(--dh-brand)]'

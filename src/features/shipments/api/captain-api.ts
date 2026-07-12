@@ -15,23 +15,42 @@ export async function getCaptainRequests(): Promise<ShipmentRequest[]> {
       "/api/shipments/available",
     );
     const shipments = Array.isArray(response.data?.data?.shipments) ? response.data.data.shipments : [];
-    return shipments.map((s: any) => ({
-      id: s._id,
-      route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
-      weight: `${s.weight} kg`,
-      packageType: s.packageType,
-      expiresIn: "",
-      pickup: s.pickupAddress,
-      dropoff: s.deliveryAddress,
-      price: s.price,
-      estimatedPriceMin: s.estimatedPriceMin,
-      estimatedPriceMax: s.estimatedPriceMax,
-      notes: s.notes || s.description || "",
-      deliverySpeed: s.deliverySpeed,
-      scheduledDate: s.scheduledDate,
-      pickupCoords: s.pickupCoords,
-      deliveryCoords: s.deliveryCoords,
-    }));
+    return shipments.map((s: any) => {
+      let expiresInStr = "";
+      if (s.createdAt) {
+        const createdTime = new Date(s.createdAt).getTime();
+        const diffMs = (createdTime + 24 * 60 * 60 * 1000) - Date.now();
+        if (diffMs > 0) {
+          const diffHrs = Math.floor(diffMs / (3600 * 1000));
+          const diffMins = Math.floor((diffMs % (3600 * 1000)) / (60 * 1000));
+          expiresInStr = diffHrs > 0 ? `${diffHrs}h ${diffMins}m` : `${diffMins}m`;
+        } else {
+          expiresInStr = "Expired";
+        }
+      } else {
+        expiresInStr = "24h";
+      }
+
+      return {
+        id: s._id,
+        trackingNumber: s.trackingNumber,
+        route: `${s.pickupAddress} -> ${s.deliveryAddress}`,
+        weight: `${s.weight} kg`,
+        packageType: s.packageType,
+        expiresIn: expiresInStr,
+        pickup: s.pickupAddress,
+        dropoff: s.deliveryAddress,
+        price: s.price,
+        estimatedPriceMin: s.estimatedPriceMin,
+        estimatedPriceMax: s.estimatedPriceMax,
+        notes: s.notes || s.description || "",
+        deliverySpeed: s.deliverySpeed,
+        scheduledDate: s.scheduledDate,
+        pickupCoords: s.pickupCoords,
+        deliveryCoords: s.deliveryCoords,
+        createdAt: s.createdAt,
+      };
+    });
   } catch (error) {
     throw error;
   }
