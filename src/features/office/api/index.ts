@@ -11,6 +11,9 @@ export function mapCaptain(c: any): Captain {
     name: c.fullName || c.name || "Captain",
     phone: c.phone || "",
     status: c.status || "offline",
+    workingMode: c.workingMode || "independent",
+    activeOfficeId: c.activeOfficeId || null,
+    officeId: c.officeId || null,
   };
 }
 
@@ -45,9 +48,17 @@ export async function getTeamCaptains(params?: {
       phone: c.phone || "",
       status: c.status || "offline",
       relationshipStatus: c.relationshipStatus || "ACTIVE",
+      workingMode: c.workingMode || "independent",
+      activeOfficeId: c.activeOfficeId || null,
+      officeId: c.officeId || null,
     }));
   } catch {
-    return mockProviderDashboardData.captains;
+    return mockProviderDashboardData.captains.map((c: any) => ({
+      ...c,
+      workingMode: c.workingMode || "independent",
+      activeOfficeId: c.activeOfficeId || null,
+      officeId: c.officeId || null,
+    }));
   }
 }
 
